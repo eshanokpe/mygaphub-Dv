@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1020147279728",
+    "project_id": "mygaphub-b4910",
+    "storage_bucket": "mygaphub-b4910.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020147279728:android:60dee043e1bfef8c0d91b5",
+        "android_client_info": {
+          "package_name": "com.prismcheck.gaphub"
+        }
+      }, 
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZAT95qOXukJ0UFvXUjfmj7zna39onvCE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

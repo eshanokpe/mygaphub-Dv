@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "mygaphub-b4910",
+    "production": "mygaphub-b4910"
+  },
+  "targets": {},
+  "etags": {}
+}
