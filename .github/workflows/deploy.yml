@@ -26,14 +26,19 @@ jobs:
       - name: Build iOS
         run: flutter build ipa --release --no-codesign
 
-      - name: Find IPA file
-        run: |
-          echo "=== Searching for IPA ==="
-          find . -name "*.ipa" -type f
-          echo "=== Build directory contents ==="
-          ls -la build/ios/ipa/ || echo "Directory does not exist"
+      - name: Find IPA
+        run: find . -name "*.ipa" -o -name "*.app" | head -20
 
-      - name: Upload to App Store
+      - name: Upload artifact for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: |
+            build/ios/ipa/*.ipa
+            build/ios/archive/Runner.xcarchive
+          retention-days: 5
+
+      - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
           app-path: 'build/ios/ipa/GapHub.ipa'
