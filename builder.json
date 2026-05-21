@@ -1,15 +1,12 @@
 {
   "project": "gaphub-Dv",
-  "platform": "ios",
+  "platform": "flutter",
   "github": {
     "owner": "eshanokpe",
     "repo": "mygaphub-Dv"
   },
-  "ios": {},
   "flutter": {
-    "version": "3.41.9",
+    "version": "3.22.6",
     "watch": {}
-  },
-  "reactNative": {},
-  "mobai": {}
+  }
 }
