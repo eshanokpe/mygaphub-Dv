@@ -27,7 +27,11 @@ jobs:
         run: flutter build ipa --release --no-codesign
 
       - name: Find IPA file
-        run: find build/ios -name "*.ipa" -type f
+        run: |
+          echo "=== Searching for IPA ==="
+          find . -name "*.ipa" -type f
+          echo "=== Build directory contents ==="
+          ls -la build/ios/ipa/ || echo "Directory does not exist"
 
       - name: Upload to App Store
         uses: apple-actions/upload-testflight-build@v1
