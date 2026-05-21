@@ -17,7 +17,30 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/screens/registration/costoflivingcalc.dart';
 import '../navigation_manager.dart';
- 
+
+// ---------------------------------------------------------------------------
+// Color constants
+// ---------------------------------------------------------------------------
+
+const _kColorSaveGreen    = Color(0xff009933);
+const _kColorSlate        = Color(0xff4F5B6D);
+const _kColorSlateLight   = Color(0xff6C7685);
+const _kColorDivider      = Color(0xffE6E6E6);
+const _kColorCardBorder   = Color(0xffD8D8D8);
+const _kColorCard         = Color(0xfff4f4f4);
+const _kColorSubtext      = Color(0xff888888);
+const _kColorCancelLabel  = Color(0xff344054);
+const _kColorCancelBorder = Color(0xffD0D5DD);
+const _kColorIconTint     = Color(0xfff3f3f4);
+const _kColorRed          = Color(0xffFF0001);
+const _kColorRedDark      = Color(0xffCE0001);
+const _kColorAmber        = Color(0xffF6AE39);
+const _kColorOrange       = Color(0xffFF7A00);
+const _kColorGreenDark    = Color(0xff005E32);
+const _kColorGreenLight   = Color(0xff17B26A);
+const _kColorBlueDark     = Color(0xff005E77);
+const _kColorNavy         = Color(0xff002E77);
+
 class Grand extends StatefulWidget {
   final Analyticsinfo grandInfo;
   final bool newUser;
@@ -31,18 +54,19 @@ class Grand extends StatefulWidget {
     required this.contains,
     this.fromSave = false,
   });
+
   @override
   _GrandState createState() => _GrandState();
 }
 
 class _GrandState extends State<Grand> {
-  final _key = GlobalKey<FormState>();
-  Dio dio = Dio();
-  final TextEditingController _current = TextEditingController();
-  final TextEditingController _target = TextEditingController();
+  final _formKey   = GlobalKey<FormState>();
+  Dio _dio         = Dio();
+  final TextEditingController _current  = TextEditingController();
+  final TextEditingController _target   = TextEditingController();
   final TextEditingController _strategy = TextEditingController();
-  DialogBox dialogBox = DialogBox();
-  bool _isClicked = false;
+  DialogBox _dialogBox = DialogBox();
+  bool _isClicked              = false;
   bool _isLoadingDialogVisible = false;
 
   @override
@@ -64,8 +88,16 @@ class _GrandState extends State<Grand> {
   }
 
   @override
+  void dispose() {
+    _current.dispose();
+    _target.dispose();
+    _strategy.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var value = context.watch<Providers>().sevengeemodel.steps[0].toString();
+    var value    = context.watch<Providers>().sevengeemodel.steps[0].toString();
     String currency = context.watch<Providers>().snapshotmodel.currency;
 
     var intVal = int.parse(value);
@@ -85,13 +117,12 @@ class _GrandState extends State<Grand> {
     }
 
     var colors = context.watch<Providers>().sevengeemodel.backgrounds;
-    List<String> sevenGeesColor = [];
+    List<String> sevenGeesColor  = [];
     List<String> sevenGeesColors = [];
-    List<int> realColors = [];
+    List<int>    realColors      = [];
     for (var a in colors) {
       sevenGeesColor.add(a.toString().substring(1));
     }
-
     for (var a in sevenGeesColor) {
       sevenGeesColors.add('0xff$a');
     }
@@ -124,25 +155,23 @@ class _GrandState extends State<Grand> {
               ? Container()
               : TextButton(
                   onPressed: () {
-                    print("_current.text:${_current.text}");
-                    print("_target.text:${_target.text}");
                     switch (widget.newUser) {
                       case true:
                         FocusScope.of(context).requestFocus(FocusNode());
                         if (_current.text.isEmpty || _target.text.isEmpty) {
-                          dialogBox.information(
+                          _dialogBox.information(
                             context,
                             'Status',
                             'Please fill all fields',
                           );
                           return;
                         }
-                        dialogBox.waiting(context, 'Saving');
+                        _dialogBox.waiting(context, 'Saving');
                         var timer = Timer(
                           const Duration(milliseconds: 30000),
                           () {
                             Navigator.pop(context);
-                            dialogBox.information(
+                            _dialogBox.information(
                               context,
                               'Status',
                               'Service timed out',
@@ -151,11 +180,11 @@ class _GrandState extends State<Grand> {
                           },
                         );
                         try {
-                          save7G();
+                          _save7G();
                           timer.cancel();
                         } catch (e) {
                           Navigator.pop(context);
-                          dialogBox.information(
+                          _dialogBox.information(
                             context,
                             'Status',
                             'Error saving details',
@@ -164,7 +193,7 @@ class _GrandState extends State<Grand> {
                         }
                         break;
                       case false:
-                        widget.contains ? phila(currency) : fuck();
+                        widget.contains ? _openPhilanthropy(currency) : _handleSave();
                         break;
                       default:
                     }
@@ -174,7 +203,7 @@ class _GrandState extends State<Grand> {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: width * .035,
-                      color: const Color(0xff009933),
+                      color: _kColorSaveGreen,
                     ),
                   ),
                 ),
@@ -190,12 +219,10 @@ class _GrandState extends State<Grand> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Text('${widget.newUser}'),
-              // Text('${widget.contains}'),
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
-                    left: BorderSide(color: Color(0xff4F5B6D), width: 3),
+                    left: BorderSide(color: _kColorSlate, width: 3),
                   ),
                 ),
                 child: Padding(
@@ -207,7 +234,7 @@ class _GrandState extends State<Grand> {
                         children: [
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [Color(0xff4F5B6D), Color(0xff6C7685)],
+                              colors: [_kColorSlate, _kColorSlateLight],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ).createShader(bounds),
@@ -239,7 +266,7 @@ class _GrandState extends State<Grand> {
               ),
               SizedBox(height: height * .02),
               Divider(
-                color: const Color(0xffE6E6E6),
+                color: _kColorDivider,
                 indent: width * .03,
                 endIndent: width * .03,
               ),
@@ -248,11 +275,11 @@ class _GrandState extends State<Grand> {
                 visible: widget.newUser,
                 child: Card(
                   elevation: 0,
-                  color: const Color(0xfff4f4f4),
+                  color: _kColorCard,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     side: const BorderSide(
-                      color: Color(0xffD8D8D8),
+                      color: _kColorCardBorder,
                       width: 0.5,
                     ),
                   ),
@@ -335,7 +362,7 @@ class _GrandState extends State<Grand> {
               ),
               SizedBox(height: height * .01),
               Form(
-                key: _key,
+                key: _formKey,
                 child: Column(
                   children: [
                     Fiforms(
@@ -377,7 +404,7 @@ class _GrandState extends State<Grand> {
                   Text(
                     'Document your plan',
                     style: TextStyle(
-                      color: const Color(0xff888888),
+                      color: _kColorSubtext,
                       fontWeight: FontWeight.w400,
                       fontSize: width * .04,
                     ),
@@ -395,7 +422,7 @@ class _GrandState extends State<Grand> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                         side: const BorderSide(
-                          color: Color(0xffD8D8D8),
+                          color: _kColorCardBorder,
                           width: 0.5,
                         ),
                       ),
@@ -433,106 +460,103 @@ class _GrandState extends State<Grand> {
                       ),
                     ),
                   ),
-                  // Show nothing if newUser is true
                   if (!widget.newUser)
                     const SizedBox.shrink()
-                  // Show buttons when clicked and not new user
-                  // Show buttons when clicked and not new user
-else if (_isClicked)
-  Padding(
-    padding: EdgeInsets.only(top: height * .015),
-    child: Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () {
-              setState(() {
-                _isClicked = false;
-              });
-            },
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 14.h),
-              side: const BorderSide(color: Color(0xffD0D5DD), width: 1.2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xff344054),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(width: width * .03),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              FocusScope.of(context).requestFocus(FocusNode());
-              if (_current.text.isEmpty || _target.text.isEmpty) {
-                dialogBox.information(
-                  context,
-                  'Status',
-                  'Please fill all fields',
-                );
-                return;
-              }
-              dialogBox.waiting(context, 'Saving');
-              var timer = Timer(
-                const Duration(milliseconds: 30000),
-                () {
-                  Navigator.pop(context);
-                  dialogBox.information(
-                    context,
-                    'Status',
-                    'Service timed out',
-                  );
-                  return;
-                },
-              );
-              try {
-                save7G();
-                timer.cancel();
-              } catch (e) {
-                Navigator.pop(context);
-                timer.cancel();
-                dialogBox.information(
-                  context,
-                  'Status',
-                  'Error saving details',
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              padding: EdgeInsets.symmetric(vertical: 14.h),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Update",
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
-  ),
+                  else if (_isClicked)
+                    Padding(
+                      padding: EdgeInsets.only(top: height * .015),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isClicked = false;
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 14.h),
+                                side: const BorderSide(color: _kColorCancelBorder, width: 1.2),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kColorCancelLabel,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: width * .03),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                FocusScope.of(context).requestFocus(FocusNode());
+                                if (_current.text.isEmpty || _target.text.isEmpty) {
+                                  _dialogBox.information(
+                                    context,
+                                    'Status',
+                                    'Please fill all fields',
+                                  );
+                                  return;
+                                }
+                                _dialogBox.waiting(context, 'Saving');
+                                var timer = Timer(
+                                  const Duration(milliseconds: 30000),
+                                  () {
+                                    Navigator.pop(context);
+                                    _dialogBox.information(
+                                      context,
+                                      'Status',
+                                      'Service timed out',
+                                    );
+                                    return;
+                                  },
+                                );
+                                try {
+                                  _save7G();
+                                  timer.cancel();
+                                } catch (e) {
+                                  Navigator.pop(context);
+                                  timer.cancel();
+                                  _dialogBox.information(
+                                    context,
+                                    'Status',
+                                    'Error saving details',
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                padding: EdgeInsets.symmetric(vertical: 14.h),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Update",
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
               Visibility(
@@ -553,10 +577,9 @@ else if (_isClicked)
                         ),
                       ),
                       onPressed: () {
-                        print("newUser:${widget.newUser}");
                         switch (widget.newUser) {
                           case true:
-                            phila(currency);
+                            _openPhilanthropy(currency);
                             break;
                           case false:
                             break;
@@ -569,22 +592,21 @@ else if (_isClicked)
                           Icon(
                             Icons.remove_red_eye,
                             size: width * .04,
-                            color: const Color(0xfff3f3f4),
+                            color: _kColorIconTint,
                           ),
                           SizedBox(width: width * .02),
-                         
                           Text(
                             "View More",
                             style: TextStyle(
-                              color: const Color(0xfff3f3f4),
+                              color: _kColorIconTint,
                               fontWeight: FontWeight.w400,
                               fontSize: 14.sp,
                             ),
                           ),
                         ],
                       ),
-                    ): Container()
-                  
+                    )
+                  : Container(),
             ],
           ),
         ),
@@ -595,7 +617,7 @@ else if (_isClicked)
   void _showLoadingDialog(String message) {
     if (_isLoadingDialogVisible || !mounted) return;
     _isLoadingDialogVisible = true;
-    dialogBox.waiting(context, message).then((_) {
+    _dialogBox.waiting(context, message).then((_) {
       _isLoadingDialogVisible = false;
     });
   }
@@ -606,19 +628,19 @@ else if (_isClicked)
     Navigator.of(context, rootNavigator: true).pop();
   }
 
-  Future<void> fuck() async {
+  Future<void> _handleSave() async {
     FocusScope.of(context).requestFocus(FocusNode());
     if (_current.text.isEmpty || _target.text.isEmpty) {
-      dialogBox.information(context, 'Status', 'Please fill all fields');
+      _dialogBox.information(context, 'Status', 'Please fill all fields');
       return;
     }
     _showLoadingDialog('Saving');
     try {
-      await save7G();
+      await _save7G();
     } catch (e) {
       if (mounted) {
         _dismissLoadingDialog();
-        dialogBox.information(
+        _dialogBox.information(
           context,
           'Unable to Save',
           'We could not save your information right now. Please try again.',
@@ -627,15 +649,15 @@ else if (_isClicked)
     }
   }
 
-  phila(currency) async {
+  Future<void> _openPhilanthropy(String currency) async {
     FocusScope.of(context).requestFocus(FocusNode());
     if (_current.text.isEmpty || _target.text.isEmpty) {
-      dialogBox.information(context, 'Status', 'Please fill all fields');
+      _dialogBox.information(context, 'Status', 'Please fill all fields');
       return;
     }
     var timer = Timer(const Duration(milliseconds: 20000), () {
       Navigator.pop(context);
-      dialogBox.information(context, 'Status', 'Service timed out');
+      _dialogBox.information(context, 'Status', 'Service timed out');
       return;
     });
     _showLoadingDialog('Loading');
@@ -644,7 +666,7 @@ else if (_isClicked)
     final prefs = await SharedPreferences.getInstance();
     String? finalToken = prefs.getString('tokenDB');
 
-    var response2 = await dio.get(
+    var response2 = await _dio.get(
       url2,
       options: Options(headers: {"Authorization": 'Bearer $finalToken'}),
     );
@@ -668,144 +690,147 @@ else if (_isClicked)
     }
   }
 
-  save7G() async {
-  FocusScope.of(context).requestFocus(FocusNode());
-  if (_current.text.isEmpty || _target.text.isEmpty) {
-    dialogBox.information(context, 'Status', 'Please fill all fields');
-    return;
-  }
-
-  var timer = Timer(const Duration(milliseconds: 45000), () {
-    if (mounted) {
-      _dismissLoadingDialog();
-      dialogBox.information(
-        context,
-        'Taking Longer Than Expected',
-        'Saving your information is taking longer than expected. Please check your connection and try again.',
-      );
-    }
-  });
-
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('tokenDB');
-    final headers = {"Authorization": 'Bearer $token'};
-
-    final url        = Uri.parse("$baseUrl/app/seveng");
-    final urlAnalytics = Uri.parse('$baseUrl/app/seveng/edit');
-    final urlDashboard = Uri.parse('$baseUrl/app/dashboard');
-
-    Map<String, dynamic> body = {
-      "seveng": "ggs5dbwexsxgxbxjzgjabajzxhsgzah",
-      "current": _current.text.replaceAll(',', ''),
-      "target": _target.text.replaceAll(',', ''),
-      "strategy": _strategy.text,
-      "main": "1",
-    };
-
-    // 1. POST first — must complete before fetching fresh data
-    final response = await http.post(
-      url,
-      body: body,
-      headers: {
-        ...headers,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      encoding: Encoding.getByName("utf-8"),
-    );
-
-    if (response.statusCode != 200 || !mounted) {
-      throw Exception('Save failed with status ${response.statusCode}');
+  Future<void> _save7G() async {
+    FocusScope.of(context).requestFocus(FocusNode());
+    if (_current.text.isEmpty || _target.text.isEmpty) {
+      _dialogBox.information(context, 'Status', 'Please fill all fields');
+      return;
     }
 
-    // 2. Fire all GET requests in parallel
-    final results = await Future.wait([
-      http.get(url,          headers: headers), // seveng  → index 0
-      http.get(urlAnalytics, headers: headers), // analytics → index 1
-      http.get(urlDashboard, headers: headers), // dashboard → index 2
-    ]);
-
-    final response2         = results[0];
-    final responseAnalytics = results[1];
-    final responseDashboard = results[2];
-
-    if (response2.statusCode         != 200 ||
-        responseAnalytics.statusCode != 200 ||
-        responseDashboard.statusCode != 200) {
-      throw Exception('One or more fetch requests failed');
-    }
-
-    if (!mounted) return;
-
-    // Update providers
-    final sevengeemodel = Sevengeemodel.fromJson(jsonDecode(response2.body));
-    context.read<Providers>().setSevenGee(sevengeemodel);
-
-    final dataDashboard = jsonDecode(responseDashboard.body);
-    context.read<Providers>().setAssistance(
-      Map<String, dynamic>.from(dataDashboard['assistance'] ?? {}),
-    );
-
-    final analyticsData = jsonDecode(responseAnalytics.body);
-    final analyticsinfo = Analyticsinfo.fromJson(analyticsData["data"]);
-    context.read<Providers>().setAnalyticsInfo(analyticsinfo);
-
-    timer.cancel();
-    _dismissLoadingDialog();
-
-    if (widget.fromSave && mounted) {
-      final String assistanceData =
-          dataDashboard['assistance']?["personal"]?["setup"] ?? "";
-      final String nextPageType = _getNextPageType(assistanceData);
-
-      if (nextPageType.isNotEmpty) {
-        NavigationManager.navigateToPage(
-          context: context,
-          pageType: nextPageType,
-          analyticsinfo: analyticsinfo,
-          replace: true,
-          fromSave: true,
+    var timer = Timer(const Duration(milliseconds: 45000), () {
+      if (mounted) {
+        _dismissLoadingDialog();
+        _dialogBox.information(
+          context,
+          'Taking Longer Than Expected',
+          'Saving your information is taking longer than expected. Please check your connection and try again.',
         );
-      } else {
-        dialogBox.information(context, 'Success', 'Information saved successfully!').then((_) {
-          if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(context, 'Dashboard', (route) => false);
-          }
-        });
       }
-    } else if (mounted) {
-      // Pop whatever dialog is on top (the loading one), then show success
-      Navigator.of(context, rootNavigator: true).pop();
-      await Future.delayed(const Duration(milliseconds: 100));
-      // dialogBox.information(context, 'Success', 'Information saved successfully!');
-    }
+    });
 
-  } catch (e) {
-    timer.cancel();
-    if (mounted) {
-      _dismissLoadingDialog();
-      dialogBox.information(
-        context,
-        'Unable to Save',
-        'We could not save your information. Please check your connection and try again.',
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenDB');
+      final headers = {"Authorization": 'Bearer $token'};
+
+      final url           = Uri.parse("$baseUrl/app/seveng");
+      final urlAnalytics  = Uri.parse('$baseUrl/app/seveng/edit');
+      final urlDashboard  = Uri.parse('$baseUrl/app/dashboard');
+
+      Map<String, dynamic> body = {
+        "seveng"  : "ggs5dbwexsxgxbxjzgjabajzxhsgzah",
+        "current" : _current.text.replaceAll(',', ''),
+        "target"  : _target.text.replaceAll(',', ''),
+        "strategy": _strategy.text,
+        "main"    : "1",
+      };
+
+      // 1. POST first — must complete before fetching fresh data
+      final response = await http.post(
+        url,
+        body: body,
+        headers: {
+          ...headers,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        encoding: Encoding.getByName("utf-8"),
       );
+
+      if (response.statusCode != 200 || !mounted) {
+        throw Exception('Save failed with status ${response.statusCode}');
+      }
+
+      // 2. Fire all GET requests in parallel
+      final results = await Future.wait([
+        http.get(url,          headers: headers), // seveng    → index 0
+        http.get(urlAnalytics, headers: headers), // analytics → index 1
+        http.get(urlDashboard, headers: headers), // dashboard → index 2
+      ]);
+
+      final response2         = results[0];
+      final responseAnalytics = results[1];
+      final responseDashboard = results[2];
+
+      if (response2.statusCode         != 200 ||
+          responseAnalytics.statusCode != 200 ||
+          responseDashboard.statusCode != 200) {
+        throw Exception('One or more fetch requests failed');
+      }
+
+      if (!mounted) return;
+
+      // Update providers
+      final sevengeemodel = Sevengeemodel.fromJson(jsonDecode(response2.body));
+      context.read<Providers>().setSevenGee(sevengeemodel);
+
+      final dataDashboard = jsonDecode(responseDashboard.body);
+      context.read<Providers>().setAssistance(
+        Map<String, dynamic>.from(dataDashboard['assistance'] ?? {}),
+      );
+
+      final analyticsData = jsonDecode(responseAnalytics.body);
+      final analyticsinfo = Analyticsinfo.fromJson(analyticsData["data"]);
+      context.read<Providers>().setAnalyticsInfo(analyticsinfo);
+
+      timer.cancel();
+      _dismissLoadingDialog();
+
+      if (widget.fromSave && mounted) {
+        final String assistanceData =
+            dataDashboard['assistance']?["personal"]?["setup"] ?? "";
+        final String nextPageType = _getNextPageType(assistanceData);
+
+        if (nextPageType.isNotEmpty) {
+          NavigationManager.navigateToPage(
+            context      : context,
+            pageType     : nextPageType,
+            analyticsinfo: analyticsinfo,
+            replace      : true,
+            fromSave     : true,
+          );
+        } else {
+          _dialogBox.information(context, 'Success', 'Information saved successfully!').then((_) {
+            if (mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, 'Dashboard', (route) => false);
+            }
+          }); 
+        }
+      } else if (mounted) {
+        // Pop whatever dialog is on top (the loading one), then show success
+        await Future.delayed(const Duration(milliseconds: 100));
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          'Dashboard',
+          (route) => false,
+          arguments: {'targetTab': 1}, // 1 = analytics tab
+        );
+      }
+
+    } catch (e) {
+      timer.cancel();
+      if (mounted) {
+        _dismissLoadingDialog();
+        _dialogBox.information(
+          context,
+          'Unable to Save',
+          'We could not save your information. Please check your connection and try again.',
+        );
+      }
     }
   }
-}
 
   String _getNextPageType(String assistance) {
     if (assistance.isEmpty) return '';
 
     String setupText = assistance.toLowerCase();
 
-    // Extract page type from setup text
-    if (setupText.contains('credit')) return 'credit';
-    if (setupText.contains('grand')) return 'grand';
-    if (setupText.contains('freedom')) return 'freedom';
+    if (setupText.contains('credit'))    return 'credit';
+    if (setupText.contains('grand'))     return 'grand';
+    if (setupText.contains('freedom'))   return 'freedom';
     if (setupText.contains('education')) return 'education';
-    if (setupText.contains('debt')) return 'debt';
-    if (setupText.contains('beta')) return 'beta';
-    if (setupText.contains('alpha')) return 'alpha';
+    if (setupText.contains('debt'))      return 'debt';
+    if (setupText.contains('beta'))      return 'beta';
+    if (setupText.contains('alpha'))     return 'alpha';
 
     return '';
   }
@@ -830,17 +855,17 @@ else if (_isClicked)
     Color endColor;
 
     if (intValuePercentage <= 25) {
-      startColor = const Color(0xffFF0001);
-      endColor = const Color(0xffCE0001);
+      startColor = _kColorRed;
+      endColor   = _kColorRedDark;
     } else if (intValuePercentage <= 50) {
-      startColor = const Color(0xffF6AE39);
-      endColor = const Color(0xffFF7A00);
+      startColor = _kColorAmber;
+      endColor   = _kColorOrange;
     } else if (intValuePercentage <= 75) {
-      startColor = const Color(0xff005E32);
-      endColor = const Color(0xff17B26A);
+      startColor = _kColorGreenDark;
+      endColor   = _kColorGreenLight;
     } else {
-      startColor = const Color(0xff005E77);
-      endColor = const Color(0xff002E77);
+      startColor = _kColorBlueDark;
+      endColor   = _kColorNavy;
     }
 
     return ShaderMask(

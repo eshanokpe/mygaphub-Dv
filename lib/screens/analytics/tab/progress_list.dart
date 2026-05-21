@@ -304,7 +304,7 @@ class _ProgressListUIState extends State<ProgressListUI> {
                             "$progress%",
                             style: TextStyle(
                               color: progress <= 1
-                                  ? Colors.black
+                                  ? Colors.white
                                   : Colors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 11.sp,

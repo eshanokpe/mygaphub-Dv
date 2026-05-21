@@ -823,15 +823,13 @@ class _DebtState extends State<Debt> {
                 }
               } else if (mounted && !widget.fromSave) {
                 // Pop whatever dialog is on top (the loading one), then show success
-                Navigator.of(context, rootNavigator: true).pop();
                 await Future.delayed(const Duration(milliseconds: 100));
-                // Just show success message when accessed from Assistant
-                // Navigator.of(context).pop();
-                // dialogBox.information(
-                //   context,
-                //   'Success',
-                //   'Information saved successfully!!',
-                // );
+                 Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  'Dashboard',
+                  (route) => false,
+                  arguments: {'targetTab': 1}, // 1 = analytics tab
+                );
               }
               return;
             }

@@ -902,15 +902,13 @@ class _CreditState extends State<Credit> {
                 }
               } else if (mounted && !widget.fromSave) {
                 // Pop whatever dialog is on top (the loading one), then show success
-                Navigator.of(context, rootNavigator: true).pop();
                 await Future.delayed(const Duration(milliseconds: 100));
-                // Just show success message when accessed from Assistant
-                // dialogBox.information(
-                //   context,
-                //   'Success',
-                //   'Information saved successfully!!',
-                // );
-                  // Navigator.of(context).pop();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  'Dashboard',
+                  (route) => false,
+                  arguments: {'targetTab': 1}, // 1 = analytics tab
+                );
               }
               return;
             }

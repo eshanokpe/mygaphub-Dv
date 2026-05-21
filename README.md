@@ -85,3 +85,8 @@ flutter run --android-skip-build-dependency-validation
 flutter build apk --release --target-platform android-arm64
 
 <!-- open ios/Runner.xcworkspace -->
+
+
+curl -sSL https://raw.githubusercontent.com/MobAI-App/ios-builder/main/install.sh | bash
+
+builder init

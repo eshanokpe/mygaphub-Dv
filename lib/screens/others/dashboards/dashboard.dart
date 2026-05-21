@@ -17,15 +17,13 @@ import 'widgets/dashboard_page_factory.dart';
 
 class Dashboard extends ConsumerStatefulWidget {
   const Dashboard({super.key, required this.index});
-
   final int index;
- 
+
   @override
   DashboardState createState() => DashboardState();
 }
 
 class DashboardState extends ConsumerState<Dashboard> {
-  // ─── Page storage keys — stable for the life of this widget ──────────────
   final Key _pageStrKey1 = const PageStorageKey('pageOne');
   final Key _pageStrKey2 = const PageStorageKey('pageTwo');
   final Key _pageStrKey3 = const PageStorageKey('pageThree');
@@ -33,45 +31,43 @@ class DashboardState extends ConsumerState<Dashboard> {
   final Key _pageStrKey5 = const PageStorageKey('pageFive');
   final Key _pageStrKey6 = const PageStorageKey('pageSix');
 
-  // ─── Page cache — built exactly once on first frame ───────────────────────
   List<Widget>? _cachedPages;
 
-  // ─── Chart series — only rebuilt when 7G values change ───────────────────
   List<charts.Series<Kpi, String>> _seriesData = [];
   double? _lastGrand, _lastFreedom, _lastEducation;
   double? _lastDebt, _lastCredit, _lastBeta, _lastAlpha;
 
-  // ─── Misc ─────────────────────────────────────────────────────────────────
+  // Track what the pages were last built with so we know when to invalidate
+  bool? _lastNewUserAnalytics;
+  List<int>? _lastRealColors;
+
   final PageStorageBucket _bucket = PageStorageBucket();
   final DialogBox _dialogBox = DialogBox();
   final GlobalKey _sliderKey = GlobalKey();
   bool _hasFetchedReminders = false;
 
-  // ─── Real-time analytics ──────────────────────────────────────────────────
-  // Fetches fresh data from GET /app/seveng/edit immediately on mount,
-  // then every 30 seconds. AuthProvider.fetchAnalyticsInfo() calls
-  // providers.setAnalyticsInfo() which notifies context.select listeners,
-  // so only widgets that read analyticsInfo rebuild — nothing else.
   Timer? _analyticsTimer;
 
-  // ─── Lifecycle ────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Seed tab index from widget parameter
-      if (widget.index != ref.read(tabIndexProvider)) {
-        ref.read(tabIndexProvider.notifier).state = widget.index;
+    Future.microtask(() {
+      if (!mounted) return;
+
+      // Check for a tab override passed via Navigator arguments
+      final args = ModalRoute.of(context)?.settings.arguments as Map?;
+      final targetTab = args?['targetTab'] as int?;
+      final resolvedIndex = targetTab ?? widget.index;
+
+      if (resolvedIndex != ref.read(tabIndexProvider)) {
+        ref.read(tabIndexProvider.notifier).state = resolvedIndex;
       }
 
       _maybeFetchReminders();
-
-      // First fetch — runs after the first frame so context.mounted is true
       _fetchAnalytics();
     });
 
-    // Periodic refresh — keeps analyticsInfo in sync with the server
     _analyticsTimer = Timer.periodic(
       const Duration(seconds: 30),
       (_) => _fetchAnalytics(),
@@ -80,19 +76,12 @@ class DashboardState extends ConsumerState<Dashboard> {
 
   @override
   void dispose() {
-    // Must cancel — prevents setState being called on a dead widget
     _analyticsTimer?.cancel();
     super.dispose();
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-
   Future<void> _fetchAnalytics() async {
     if (!mounted) return;
-    // Delegates to AuthProvider which hits GET /app/seveng/edit,
-    // parses the response into Analyticsinfo, and calls
-    // providers.setAnalyticsInfo() — triggering a targeted rebuild
-    // only in widgets that watch analyticsinfo.
     await context.read<AuthProvider>().fetchAnalyticsInfo(context);
   }
 
@@ -119,31 +108,17 @@ class DashboardState extends ConsumerState<Dashboard> {
   }
 
   void _maybeRebuildSeries({
-    required double grand,
-    required double freedom,
-    required double education,
-    required double debt,
-    required double credit,
-    required double beta,
-    required double alpha,
+    required double grand, required double freedom,
+    required double education, required double debt,
+    required double credit, required double beta, required double alpha,
   }) {
-    // Skip series reconstruction if values haven't changed —
-    // avoids unnecessary chart data allocation on every build()
-    if (grand == _lastGrand &&
-        freedom == _lastFreedom &&
-        education == _lastEducation &&
-        debt == _lastDebt &&
-        credit == _lastCredit &&
-        beta == _lastBeta &&
-        alpha == _lastAlpha) return;
-
-    _lastGrand     = grand;
-    _lastFreedom   = freedom;
-    _lastEducation = education;
-    _lastDebt      = debt;
-    _lastCredit    = credit;
-    _lastBeta      = beta;
-    _lastAlpha     = alpha;
+    if (grand == _lastGrand && freedom == _lastFreedom &&
+        education == _lastEducation && debt == _lastDebt &&
+        credit == _lastCredit && beta == _lastBeta && alpha == _lastAlpha) {
+      return;
+    }
+    _lastGrand = grand; _lastFreedom = freedom; _lastEducation = education;
+    _lastDebt = debt; _lastCredit = credit; _lastBeta = beta; _lastAlpha = alpha;
 
     _seriesData = [
       charts.Series<Kpi, String>(
@@ -169,33 +144,20 @@ class DashboardState extends ConsumerState<Dashboard> {
   }
 
   Future<bool> _onWillPop() => _dialogBox.options(
-    context,
-    'Exit',
-    'Are you sure you want to exit?',
+    context, 'Exit', 'Are you sure you want to exit?',
     () => SystemNavigator.pop(),
   );
 
-  // ─── Build ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final steps = context.select<Providers, List>((p) => p.sevengeemodel.steps);
+    final steps  = context.select<Providers, List>((p) => p.sevengeemodel.steps);
     final colors = context.select<Providers, List>((p) => p.sevengeemodel.backgrounds);
+    final analyticsInfo = context.select<Providers, dynamic>((p) => p.analyticsinfo);
 
-    // analyticsInfo: context.select ensures ONLY this widget rebuilds when
-    // analyticsinfo changes — not the entire subtree.
-    // The actual data is always fresh because _analyticsTimer calls
-    // _fetchAnalytics() → AuthProvider.fetchAnalyticsInfo() →
-    // providers.setAnalyticsInfo() on a 30-second cycle.
-    final analyticsInfo = context.select<Providers, dynamic>(
-      (p) => p.analyticsinfo,
-    );
-
-    // ── Parse colors safely ────────────────────────────────────────────────
     final List<int> realColors = colors
         .map((e) => _safeColor(e.toString()).value)
         .toList();
 
-    // ── Parse 7G values safely ─────────────────────────────────────────────
     final List<String> sevenGees = steps.map((e) => e.toString()).toList();
     final double grand     = _safeStep(sevenGees, 0);
     final double freedom   = _safeStep(sevenGees, 1);
@@ -205,36 +167,37 @@ class DashboardState extends ConsumerState<Dashboard> {
     final double beta      = _safeStep(sevenGees, 5);
     final double alpha     = _safeStep(sevenGees, 6);
 
-    // ── Memoised series rebuild ────────────────────────────────────────────
     _maybeRebuildSeries(
       grand: grand, freedom: freedom, education: education,
       debt: debt, credit: credit, beta: beta, alpha: alpha,
     );
 
-    // ── newUserAnalytics flag ──────────────────────────────────────────────
     final sectionValues = [
-      analyticsInfo.grand?['main'],
-      analyticsInfo.freedom?['main'],
-      analyticsInfo.education?['main'],
-      analyticsInfo.dept?['main'],
-      analyticsInfo.credit?['main'],
-      analyticsInfo.beta?['main'],
+      analyticsInfo.grand?['main'],   analyticsInfo.freedom?['main'],
+      analyticsInfo.education?['main'], analyticsInfo.dept?['main'],
+      analyticsInfo.credit?['main'],  analyticsInfo.beta?['main'],
       analyticsInfo.alpha?['main'],
     ];
     final bool newUserAnalytics = sectionValues.every(
       (v) => v != null && v.toString() == '1',
     );
 
-    // ── Screen dimensions ──────────────────────────────────────────────────
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final size   = MediaQuery.of(context).size;
     final height = isPortrait ? size.height : size.width;
     final width  = isPortrait ? size.width  : size.height;
 
-    // ── Build page cache ONCE ──────────────────────────────────────────────
-    // After this point, IndexedStack handles all tab visibility.
-    // Tab switches never reach this code path again.
+    // ── Invalidate page cache when meaningful data changes ─────────────────
+    // This is the key fix: pages are rebuilt when newUserAnalytics flips
+    // (e.g. user completes setup and returns) or colors change.
+    // The ??= guard still prevents unnecessary rebuilds on every frame.
+    if (_lastNewUserAnalytics != newUserAnalytics ||
+        _lastRealColors?.join() != realColors.join()) {
+      _cachedPages = null;
+      _lastNewUserAnalytics = newUserAnalytics;
+      _lastRealColors = realColors;
+    }
+
     _cachedPages ??= DashboardPageFactory.build(
       newUserAnalytics: newUserAnalytics,
       height: height,
@@ -258,7 +221,6 @@ class DashboardState extends ConsumerState<Dashboard> {
       pageStrKey6: _pageStrKey6,
     );
 
-    // ── Scaffold ───────────────────────────────────────────────────────────
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: DashboardAppBar(
