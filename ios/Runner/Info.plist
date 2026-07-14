@@ -24,8 +24,8 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<!-- <string>$(FLUTTER_BUILD_NUMBER)</string> -->
-	<string>39</string>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<!-- <string>39</string> -->
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>FlutterDeepLinkingEnabled</key>
