@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AssociatedDomains</key>
+	<array>
+		<string>applinks:appstaging.mygaphub.com</string>
+		<string>applinks:app.mygaphub.com</string>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -49,6 +54,18 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mygaphub.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mygaphub</string>
+			</array>
+		</dict>
+	</array>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

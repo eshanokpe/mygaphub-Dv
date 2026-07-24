@@ -11,14 +11,6 @@ class DeepLinkService {
   bool _isInitialUriHandled = false;
   final appLinks = AppLinks();
 
-  // Define allowed hosts here for easy maintenance
-  static const List<String> allowedHosts = [
-    'app.mygaphub.com',
-    'mygaphub.com',
-    'www.mygaphub.com',
-    'appstaging.mygaphub.com',
-  ];
-
   DeepLinkService(this.navigatorKey);
 
   void initDeepLinks() {
@@ -37,7 +29,12 @@ class DeepLinkService {
 
       if (initialUri != null) {
         _isInitialUriHandled = true;
+        debugPrint('Initial URI received: $initialUri');
         debugPrint('📱 INITIAL DEEP LINK DETECTED: $initialUri');
+        debugPrint('Scheme: ${initialUri.scheme}');
+        debugPrint('Host: ${initialUri.host}');
+        debugPrint('Path: ${initialUri.path}');
+        debugPrint('Query: ${initialUri.query}');
         await _processDeepLink(initialUri);
       } else {
         debugPrint('No initial URI found');
@@ -64,6 +61,8 @@ class DeepLinkService {
 
   Future<void> _processDeepLink(Uri uri) async {
     debugPrint('Received deep link: $uri');
+    debugPrint('Received deep host: ${uri.host}');
+    debugPrint('Received deep path: ${uri.path}');
 
     if (!(navigatorKey.currentState?.mounted ?? false)) return;
 
@@ -72,23 +71,24 @@ class DeepLinkService {
 
     // 🔧 FIX the malformed URI first
     final fixedUri = _fixAmpEncoding(uri);
+    debugPrint('Fixed URI: $fixedUri');
+    debugPrint('Fixed query parameters: ${fixedUri.queryParameters}');
 
-    final String host = fixedUri.host;
-    final String path = fixedUri.path;
+    // Deep link route matching
+    final isResetPasswordLink =
+        (fixedUri.host == 'mygaphub.com' ||
+            fixedUri.host == 'app.mygaphub.com' ||
+            fixedUri.host == 'https://app.mygaphub.com' ||
+            fixedUri.host == 'www.mygaphub.com' ||
+            fixedUri.host == 'appstaging.mygaphub.com' ||
+            fixedUri.host == 'app') &&
+        (fixedUri.path == '/reset-password' ||
+            fixedUri.path == '/app/password/reset');
 
-    debugPrint('Processed Host: $host');
-    debugPrint('Processed Path: $path');
-
-    // Check if host is allowed
-    if (!allowedHosts.contains(host)) {
-      debugPrint('❌ Host not allowed: $host');
-      return;
-    }
-
-    // 1. Handle Reset Password
-    if (path == '/reset-password' || path == '/app/password/reset') {
+    if (isResetPasswordLink) {
       final token = fixedUri.queryParameters['token'];
       final email = fixedUri.queryParameters['email'];
+
       final decodedEmail = email != null ? Uri.decodeComponent(email) : '';
 
       debugPrint('Token: $token');
@@ -113,29 +113,36 @@ class DeepLinkService {
         );
       }
     }
-    // 2. Handle App Home
-    else if (path == '/app/home') {
-      debugPrint('Navigating to Login via /app/home');
+    // Handle other links
+    else if ((fixedUri.host == 'mygaphub.com' ||
+            fixedUri.host == 'app.mygaphub.com' ||
+            fixedUri.host == 'www.mygaphub.com' ||
+            fixedUri.host == 'https://app.mygaphub.com' ||
+            fixedUri.host == 'appstaging.mygaphub.com') &&
+        fixedUri.path == '/app/home') {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => Login()),
         (route) => false,
       );
-    }
-    // 3. Handle Account Home
-    else if (path == '/account/home') {
-      debugPrint('Navigating to Login via /account/home');
+    } else if ((fixedUri.host == 'mygaphub.com' ||
+            fixedUri.host == 'www.mygaphub.com' ||
+            fixedUri.host == 'app.mygaphub.com' ||
+            fixedUri.host == 'https://app.mygaphub.com' ||
+            fixedUri.host == 'appstaging.mygaphub.com') &&
+        fixedUri.path == '/account/home') {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => Login()),
         (route) => false,
       );
     } else {
-      debugPrint('⚠️ Unknown deep link path: $path');
+      debugPrint('Unknown deep link: $fixedUri');
     }
   }
 
   // Helper method to fix the &amp; encoding issue
   Uri _fixAmpEncoding(Uri uri) {
     final originalString = uri.toString();
+    // Replace &amp; with & to fix the encoding issue
     final fixedString = originalString.replaceAll('&amp;', '&');
     return Uri.parse(fixedString);
   }
