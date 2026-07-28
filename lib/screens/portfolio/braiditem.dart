@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'charts/itemshealthchart.dart';
+import './charts/itemshealthchart.dart';
 import 'charts/assetvaluechart.dart';
 import 'package:flutter/services.dart';
 import 'charts/netincomechart.dart';
@@ -27,11 +27,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/utils/dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'braidetails.dart';
+import './braidetails.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
-import 'summary.dart';
-import 'financial.dart';
+import './summary.dart';
+import './financial.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:provider/provider.dart';
 
@@ -537,7 +537,6 @@ class _BraiditemState extends State<Braiditem> {
 
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.white,
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,

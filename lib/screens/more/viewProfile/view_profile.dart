@@ -6,23 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import '../settings/avatarPickerButton.dart';
+import 'package:intl/intl.dart'; 
 import 'deleteAccount/delete_account.dart';
 import 'edit_country_profile.dart';
 import 'edit_dateofbirth_profile.dart';
 import 'edit_name_profile.dart';
 import 'edit_phone_profile.dart';
 
-class ViewProfile extends StatefulWidget {
+class ViewProfile extends StatelessWidget {
   const ViewProfile({super.key});
-
-  @override
-  State<ViewProfile> createState() => _ViewProfileState();
-}
-
-class _ViewProfileState extends State<ViewProfile> {
-  int _imageRefreshVersion = 0;
 
   String _processImageUrl(String? rawUrl) {
     print("rawUrl:$rawUrl");
@@ -60,17 +52,17 @@ class _ViewProfileState extends State<ViewProfile> {
       'Canada': 'CA',
       'Australia': 'AU',
       'Åland Islands': 'AX',
-      'American Samoa': 'AS',
-      'Anguilla': 'AI',
+      'American Samoa' : 'AS',
+      'Anguilla' : 'AI',
       'Antigua and Barbuda': 'AG',
-      'Ascension Island': 'AC',
+      'Ascension Island':'AC',
       'Aruba': 'AW',
-      'Bahamas': 'BS',
+      'Bahamas':'BS',
       'Barbados': 'BB',
       'Germany': 'DE',
       'France': 'FR',
-      'Faroe Islands': 'FO',
-      'Fiji': 'FJ',
+      'Faroe Islands':'FO',
+      'Fiji':'FJ',
       'Italy': 'IT',
       'Spain': 'ES',
       'Brazil': 'BR',
@@ -214,67 +206,67 @@ class _ViewProfileState extends State<ViewProfile> {
       'Djibouti': 'DJ',
       'Comoros': 'KM',
       'São Tomé and Príncipe': 'ST',
-      'Christmas Island': 'CX',
-      'Cocos [Keeling] Islands': 'CCK',
-      'Colombia': 'CO',
-      'Western Sahara': 'EH',
-      'Marshall Islands': 'MH',
-      'Martinique': 'MQ',
-      'Mauritania': 'MR',
-      'Mayotte': 'YT',
-      'Micronesia': 'FM',
-      'Samoa': 'WS',
-      'South Georgia and the South Sandwich Islands': 'GS',
-      'Svalbard and Jan mayen': 'SJ',
-      'Turks and Caicos Islands': 'TC',
-      'United Arab Emirates': 'AE',
-      'Uruguay': 'UY',
-      'Vanuatu': 'VU',
-      'Vatican City': 'VAT',
-      'Wallis and Futuna': 'WF',
-      'Guinea Conakry': 'GN',
-      'Guernsey': 'GG',
-      'Guatemala': 'GTM',
-      'Greenland': 'GL',
-      'Grenada': 'GRD',
-      'Guadeloupe': 'GP',
-      'Gibraltar': 'GIB',
-      'French Polynesia': 'PF',
-      'French Guiana': 'GF',
-      'Guam': 'GU',
-      'Falkland Islands (Islas Malvinas)': 'FK',
-      'El Salvador': 'SLV',
-      'Ecuador': 'EC',
-      'East Timor': 'TP',
-      'Dominican Republic': 'DO',
-      'Dominica': 'DM',
-      'Curaçao': 'CW',
-      'Cuba': 'CU',
-      'Costa Rica': 'CR',
-      'Cook Islands': 'CK',
-      'Republic of Congo': 'CG',
-      'Malawi': 'MW',
-      'Brunei': 'BN',
-      'Bolivia': 'BO',
-      'British Indian Ocean Territory': 'IO',
-      'British Virgin Islands': 'VG',
-      'Cocos (Keeling) Islands': 'CC',
-      'Cayman Islands': 'KY',
-      'Caribbean Netherlands': 'BQ',
-      'Bermuda': 'BM',
-      'Belize': 'BZ',
-      'Democratic Republic Congo': 'CD',
-      'Guyana': 'GY',
-      'Haiti': 'HT',
-      'Democrac Republic Congo': 'CD',
-      'Heard island and Mc Donald': 'HM',
-      'Honduras': 'HN',
-      'Isle of man': 'IM',
-      'Jamaica': 'JM',
-      'Jersey': 'JE',
-      'Kiribati': 'KI',
-      'North Macedonia': 'MK',
-    };
+      'Christmas Island':'CX',
+      'Cocos [Keeling] Islands':'CCK',
+      'Colombia':'CO',
+      'Western Sahara':'EH',
+      'Marshall Islands':'MH',
+      'Martinique':'MQ',
+      'Mauritania':'MR',
+      'Mayotte':'YT',
+      'Micronesia':'FM',
+      'Samoa':'WS',
+      'South Georgia and the South Sandwich Islands':'GS',
+      'Svalbard and Jan mayen':'SJ',
+      'Turks and Caicos Islands':'TC',
+      'United Arab Emirates':'AE',
+      'Uruguay':'UY',
+      'Vanuatu':'VU',
+      'Vatican City':'VAT',
+      'Wallis and Futuna':'WF',
+      'Guinea Conakry':'GN',
+      'Guernsey':'GG',
+      'Guatemala':'GTM',
+      'Greenland':'GL',
+      'Grenada':'GRD',
+      'Guadeloupe':'GP',
+      'Gibraltar':'GIB',
+      'French Polynesia':'PF',
+      'French Guiana':'GF',
+      'Guam':'GU',
+      'Falkland Islands (Islas Malvinas)':'FK',
+      'El Salvador':'SLV',
+      'Ecuador':'EC',
+      'East Timor':'TP',
+      'Dominican Republic':'DO',
+      'Dominica':'DM',
+      'Curaçao':'CW',
+      'Cuba':'CU',
+      'Costa Rica':'CR',
+      'Cook Islands':'CK',
+      'Republic of Congo':'CG',
+      'Malawi':'MW',
+      'Brunei':'BN',
+      'Bolivia':'BO',
+      'British Indian Ocean Territory':'IO',
+      'British Virgin Islands':'VG',
+      'Cocos (Keeling) Islands':'CC',
+      'Cayman Islands':'KY',
+      'Caribbean Netherlands':'BQ',
+      'Bermuda':'BM',
+      'Belize':'BZ',
+      'Democratic Republic Congo':'CD',
+      'Guyana':'GY',
+      'Haiti':'HT',
+      'Democrac Republic Congo':'CD',
+      'Heard island and Mc Donald':'HM',
+      'Honduras':'HN',
+      'Isle of man':'IM',
+      'Jamaica':'JM',
+      'Jersey':'JE',
+      'Kiribati':'KI',
+      'North Macedonia':'MK',
+    }; 
 
     String countryCode =
         countryCodes[countryName] ?? 'GB'; // Default to GB if not found
@@ -285,11 +277,10 @@ class _ViewProfileState extends State<ViewProfile> {
 
     return String.fromCharCode(firstLetter) + String.fromCharCode(secondLetter);
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<Providers>();
-    print("details:${provider.details[3]}");
     final firstName = provider.details[0];
     final lastName = provider.details[1];
     final email = provider.details[2];
@@ -320,10 +311,10 @@ class _ViewProfileState extends State<ViewProfile> {
     final imageUrl = _processImageUrl(provider.details[7]);
     print('ImageimageUrl:$imageUrl');
 
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        surfaceTintColor: Colors.white,
         elevation: 0,
         backgroundColor: Colors.white,
         centerTitle: true,
@@ -348,37 +339,23 @@ class _ViewProfileState extends State<ViewProfile> {
               alignment: Alignment.bottomRight,
               children: [
                 Container(
-                  width: 100.w,
-                  height: 100.h,
                   padding: EdgeInsets.all(0.sp),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color.fromRGBO(
-                        0,
-                        0,
-                        0,
-                        0.08,
-                      ), // Equivalent to rgba(0, 0, 0, 0.08)
+                      color: const Color.fromRGBO(0, 0, 0, 0.08), // Equivalent to rgba(0, 0, 0, 0.08)
                       width: 3,
                     ),
                   ),
-                  child: ClipOval(child: _buildImage(imageUrl)),
+                  child: ClipOval(
+                    child: SizedBox(
+                      width: 100.w,
+                      height: 100.h,
+                      child: _buildImage(imageUrl),
+                    ),
+                  ),
                 ),
-                // Pass callback to AvatarPickerButton to refresh image
-                AvatarPickerButton(
-                  onImageUploaded: (newImageUrl) {
-                    final provider = Provider.of<Providers>(
-                      context,
-                      listen: false,
-                    );
-                    provider.setDetailsList(newImageUrl ?? '', 7);
-                    if (newImageUrl != null && newImageUrl.isNotEmpty) {
-                      CachedNetworkImage.evictFromCache(newImageUrl);
-                    }
-                    setState(() => _imageRefreshVersion++);
-                  },
-                ),
+                
               ],
             ),
             const SizedBox(height: 8),
@@ -464,7 +441,7 @@ class _ViewProfileState extends State<ViewProfile> {
                           },
                         ),
                   (dobRaw == 'N/A' || dobRaw.isEmpty || dobRaw == 'null')
-                      ? _buildWarningRow(
+                      ? _buildWarningRow( 
                           context,
                           "Date of Birth",
                           "Add your DOB",
@@ -778,13 +755,8 @@ class _ViewProfileState extends State<ViewProfile> {
       return Image.asset(imageUrl, fit: BoxFit.contain);
     } else {
       // Network image
-      final refreshedImageUrl = imageUrl.contains('?')
-          ? '$imageUrl&v=$_imageRefreshVersion'
-          : '$imageUrl?v=$_imageRefreshVersion';
-
       return CachedNetworkImage(
-        key: ValueKey(refreshedImageUrl),
-        imageUrl: refreshedImageUrl,
+        imageUrl: imageUrl,
         fit: BoxFit.cover,
         placeholder: (context, url) => const Center(
           child: CircularProgressIndicator(

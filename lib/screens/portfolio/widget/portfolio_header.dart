@@ -20,7 +20,7 @@ class PortfolioHeader extends StatelessWidget implements PreferredSizeWidget {
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
- 
+
     return AppBar(
       backgroundColor: Colors.white,
       title: const Text('', style: TextStyle(fontWeight: FontWeight.bold)),

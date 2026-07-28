@@ -3,7 +3,7 @@ import 'package:GapHub/models/savingAllocationexpenditure.dart';
 import 'package:GapHub/models/savingAllocationserver.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'seedtabs.dart';
+import './seedtabs.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:provider/provider.dart';
 

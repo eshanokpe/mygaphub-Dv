@@ -12,7 +12,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:GapHub/widgets/indicators.dart';
 import 'package:GapHub/utils/constants.dart';
 import '../braidetails.dart';
- 
+
 class DashPiechartPort extends StatefulWidget {
   final List data;
 
@@ -39,7 +39,6 @@ class _DashPiechartPortState extends State<DashPiechartPort> {
   void initState() {
     super.initState();
     values = widget.data;
-    
     indicators = _createIndicators();
   }
 
@@ -115,7 +114,6 @@ class _DashPiechartPortState extends State<DashPiechartPort> {
       dataSource: List.generate(3, (index) {
         return {
           'value': values[index],
-          
           'category': _labels[index],
           'color': _labelColors[index],
         };

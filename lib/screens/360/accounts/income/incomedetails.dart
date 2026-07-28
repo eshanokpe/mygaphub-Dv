@@ -10,8 +10,8 @@ import 'package:provider/provider.dart';
 import '../../components/addAccountBtn.dart';
 import '../../threesixty.dart';
 import 'package:GapHub/provider/providers.dart';
-import 'incomeitem.dart';
-import 'incarchives.dart';
+import './incomeitem.dart';
+import './incarchives.dart';
 
 class Incomedetails extends StatefulWidget {
   final List incomeData;
@@ -295,7 +295,7 @@ class _IncomedetailsState extends State<Incomedetails> {
             SizedBox(height: height * .05),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width * .2),
-              child: Addaccountbtn(width: width, index: "Income"),
+              child: const Addaccountbtn(index: "Income"),
             ),
             SizedBox(height: height * .05),
           ],

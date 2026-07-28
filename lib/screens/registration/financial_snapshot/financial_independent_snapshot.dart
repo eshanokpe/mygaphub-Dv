@@ -280,7 +280,7 @@ class _FinancialIndependentSnapshotState
                               borderColor: Colors.white,
                               onPressed: () {
                                 context.read<Providers>().setTotMonthly(total);
-
+ 
                                 navigateWithSlideTransition(
                                   context: context,
                                   destinationScreen:

@@ -22,10 +22,12 @@ class Reapdetails extends StatefulWidget {
   final Map<String, dynamic> reapItem;
   // final bool favorited;
 
-  Reapdetails(this.reapItem);
+  const Reapdetails(
+    this.reapItem, {super.key}
+  );
   @override
   _ReapdetailsState createState() => _ReapdetailsState();
-}
+} 
 
 class _ReapdetailsState extends State<Reapdetails> {
   List options = [
@@ -34,7 +36,7 @@ class _ReapdetailsState extends State<Reapdetails> {
     "Facts & Features",
     "Neigborhood Highlights",
     "Intelligent Report",
-    "Investment Interest Areas",
+    "Investment Interest Areas"
   ];
   Dio dio = Dio();
   bool favColors = false;
@@ -127,147 +129,139 @@ class _ReapdetailsState extends State<Reapdetails> {
       "Neigbourhood Highlights",
       "Intelligent Report",
       "Sight & Sound",
-      "Investment Interest Area",
+      "Investment Interest Area"
     ];
 
     List<Widget> imageList = [
-      for (var i = 0; i < urlChecked.length; i++) images(urlChecked[i]),
+      for (var i = 0; i < urlChecked.length; i++) images(urlChecked[i])
     ];
 
     // List<Widget> imageList = imageLis.removeWhere((element) => false);
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '${widget.reapItem['location']['street']}',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: width * .035,
-          ),
-        ),
+        title: Text('${widget.reapItem['location']['street']}',
+            style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: width * .035)),
         actions: [
           IconButton(
-            icon: favColors
-                ? Image.asset(
-                    'assets/images/favourite-red.png',
-                    color: Theme.of(context).primaryColor,
-                  )
-                : Image.asset('assets/images/favourite.png'),
-            onPressed: () async {
-              var url3 = "$baseUrl/app/acquisition/favourite";
-              Fluttertoast.showToast(
-                msg: !favColors ? "Adding Asset" : "Removing Asset",
-              );
-              var url = !favColors
-                  ? '$baseUrl/app/acquisition/favourite/$id?acquisition=retyanshamdhankdxmp_ashdhgagdhb&signature=ahgfhagbhgsbhgsbyuhjwgs65wytgv7wystdg6tygfvdtydgvgyhdnxngb'
-                  : "$baseUrl/app/acquisition/favourite/$id?acquisition=retyanshamdaahgs_rmzojishjbdx&signature=ahgfhagbhgsbhgsbyuhjwgs65wytgv7wystdg6tygfvdtydgvgyhdnxngb";
-              final prefs = await SharedPreferences.getInstance();
-              var token = prefs.getString('tokenDB');
-              var response = await dio.get(
-                url,
-                options: Options(headers: {"Authorization": 'Bearer $token'}),
-              );
+              icon: favColors
+                  ? Image.asset(
+                      'assets/images/favourite-red.png',
+                      color: Theme.of(context).primaryColor,
+                    )
+                  : Image.asset(
+                      'assets/images/favourite.png',
+                    ),
+              onPressed: () async {
+                var url3 = "$baseUrl/app/acquisition/favourite";
+                Fluttertoast.showToast(
+                    msg: !favColors ? "Adding Asset" : "Removing Asset");
+                var url = !favColors
+                    ? '$baseUrl/app/acquisition/favourite/$id?acquisition=retyanshamdhankdxmp_ashdhgagdhb&signature=ahgfhagbhgsbhgsbyuhjwgs65wytgv7wystdg6tygfvdtydgvgyhdnxngb'
+                    : "$baseUrl/app/acquisition/favourite/$id?acquisition=retyanshamdaahgs_rmzojishjbdx&signature=ahgfhagbhgsbhgsbyuhjwgs65wytgv7wystdg6tygfvdtydgvgyhdnxngb";
+                final prefs = await SharedPreferences.getInstance();
+                var token = prefs.getString('tokenDB');
+                var response = await dio.get(url,
+                    options: Options(
+                      headers: {"Authorization": 'Bearer $token'},
+                    ));
 
-              var response3 = await dio.get(
-                url3,
-                options: Options(headers: {"Authorization": 'Bearer $token'}),
-              );
-              context.read<Providers>().setFavorites(response3.data["assets"]);
+                var response3 = await dio.get(url3,
+                    options: Options(
+                      headers: {"Authorization": 'Bearer $token'},
+                    ));
+                context
+                    .read<Providers>()
+                    .setFavorites(response3.data["assets"]);
 
-              Fluttertoast.showToast(
-                msg: favColors ? "Removed Successfully" : "Added Successfully",
-              );
+                Fluttertoast.showToast(
+                    msg: favColors
+                        ? "Removed Successfully"
+                        : "Added Successfully");
 
-              setState(() {
-                favColors = !favColors;
-              });
-            },
-          ),
+                setState(() {
+                  favColors = !favColors;
+                });
+              }),
           IconButton(
-            icon: Image.asset('assets/images/share.png', color: Colors.black),
-            onPressed: () {
-              // Share.share(
-              //     '$shareBase/acquisition/asset/reap/${id}_${streetName.split(" ").first}');
-            },
-          ),
+              icon: Image.asset(
+                'assets/images/share.png',
+                color: Colors.black,
+              ),
+              onPressed: () {
+                // Share.share(
+                //     '$shareBase/acquisition/asset/reap/${id}_${streetName.split(" ").first}');
+              })
         ],
         elevation: 25,
         centerTitle: true,
         backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
         ),
       ),
-      bottomNavigationBar: BottomNav(2),
+      bottomNavigationBar: const BottomNav(2),
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.symmetric(
-            horizontal: width * .02,
-            vertical: height * .02,
-          ),
+              horizontal: width * .02, vertical: height * .02),
           child: Column(
             children: [
-              Text(
-                'Rental Income: ${widget.reapItem["currency"]}${widget.reapItem["investment"]["net_revenue"]}',
-                style: TextStyle(
-                  fontSize: width * .05,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text( 
+                  'Rental Income: ${widget.reapItem["currency"]}${widget.reapItem["investment"]["net_revenue"]}',
+                  style: TextStyle(
+                      fontSize: width * .05, fontWeight: FontWeight.w600)),
               GestureDetector(
                 onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Carouselfull(imageList),
-                  ),
-                ),
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Carouselfull(imageList))),
                 child: CarouselSlider(
-                  items: imageList,
-                  options: CarouselOptions(
-                    height: height * .3,
-                    aspectRatio: 16 / 9,
-                    initialPage: 0,
-                    enlargeCenterPage: true,
-                    viewportFraction: 0.8,
-                    enableInfiniteScroll: true,
-                    reverse: false,
-                    autoPlay: true,
-                    autoPlayInterval: Duration(seconds: 3),
-                    autoPlayAnimationDuration: Duration(milliseconds: 1500),
-                    autoPlayCurve: Curves.fastOutSlowIn,
-                    scrollDirection: Axis.horizontal,
-                  ),
-                ),
+                    items: imageList,
+                    options: CarouselOptions(
+                        height: height * .3,
+                        aspectRatio: 16 / 9,
+                        initialPage: 0,
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.8,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 3),
+                        autoPlayAnimationDuration: const Duration(milliseconds: 1500),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        scrollDirection: Axis.horizontal)),
               ),
               Text(
-                '${widget.reapItem['location']['street']}, ${widget.reapItem['location']['city']}, ${widget.reapItem['location']['state']}, ${widget.reapItem['location']['country']}.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: width * .04,
-                  fontWeight: FontWeight.w300,
-                ),
+                  '${widget.reapItem['location']['street']}, ${widget.reapItem['location']['city']}, ${widget.reapItem['location']['state']}, ${widget.reapItem['location']['country']}.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: width * .04, fontWeight: FontWeight.w300)),
+              SizedBox(
+                height: height * .05,
               ),
-              SizedBox(height: height * .05),
               Container(
                 padding: EdgeInsets.only(left: width * .02),
                 height: height * .05,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  border: Border.all(width: 0, color: Colors.grey[300]!),
-                ),
+                    color: Colors.grey[300],
+                    border: Border.all(width: 0, color: Colors.grey[300]!)),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Property Details'.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: width * .05,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: Text('Property Details'.toUpperCase(),
+                      style: TextStyle(
+                          fontSize: width * .05, fontWeight: FontWeight.w700)),
                 ),
               ),
-              SizedBox(height: height * .005),
+              SizedBox(
+                height: height * .005,
+              ),
               ExpandablePanel(
                 header: Card(
                   color: Colors.black,
@@ -278,12 +272,11 @@ class _ReapdetailsState extends State<Reapdetails> {
                       height: width * .04,
                     ),
                     title: Text(
-                      '${reapDetails[0]}',
+                      reapDetails[0],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -291,18 +284,16 @@ class _ReapdetailsState extends State<Reapdetails> {
                 collapsed: Container(),
                 expanded: Card(
                   child: Padding(
-                    padding: EdgeInsets.all(width * .02),
-                    child: Text(
-                      '${widget.reapItem["description"]}',
-                      style: TextStyle(
-                        fontSize: width * .035,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
+                      padding: EdgeInsets.all(width * .02),
+                      child: Text('${widget.reapItem["description"]}',
+                          style: TextStyle(
+                              fontSize: width * .035,
+                              fontWeight: FontWeight.w400))),
                 ),
               ),
-              SizedBox(height: height * .005),
+              SizedBox(
+                height: height * .005,
+              ),
               ExpandablePanel(
                 header: Card(
                   color: Colors.black,
@@ -315,10 +306,9 @@ class _ReapdetailsState extends State<Reapdetails> {
                     title: Text(
                       reapDetails[1],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -329,356 +319,310 @@ class _ReapdetailsState extends State<Reapdetails> {
                       Row(
                         children: [
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Sale Price: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["sale_price"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Sale Price: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["sale_price"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Rental Value: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["rental_price"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Rental Value: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["rental_price"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                         ],
                       ),
                       Row(
                         children: [
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Management Fee: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["management_fee"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Management Fee: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["management_fee"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Property Tax: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["tax"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Property Tax: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["tax"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                         ],
                       ),
                       Row(
                         children: [
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Gross ROI: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["investment"]["gross"]}%',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Gross ROI: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["investment"]["gross"]}%',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Misc & Assoc Fee: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["associate_fee"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Misc & Assoc Fee: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["associate_fee"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                         ],
                       ),
                       Row(
                         children: [
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Net Revenue : '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["net_revenue"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Net Revenue : '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["net_revenue"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Rental Income: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["monthly_income"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Rental Income: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["monthly_income"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                         ],
                       ),
                       Row(
                         children: [
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              child: Center(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: width * .035,
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Total Deduction: '),
-                                      TextSpan(
-                                        text:
-                                            '${widget.reapItem["currency"]}${widget.reapItem["investment"]["total_deduction"]}',
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                                child: Center(
+                                  child: RichText(
+                                    text: TextSpan(
                                         style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
+                                            fontSize: width * .035,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                          TextSpan(text: 'Total Deduction: '),
+                                          TextSpan(
+                                            text:
+                                                '${widget.reapItem["currency"]}${widget.reapItem["investment"]["total_deduction"]}',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w800),
+                                          )
+                                        ]),
                                   ),
                                 ),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              )),
                           Expanded(
-                            flex: 1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: width * .001,
-                                ),
-                              ),
-                              height: height * .05,
-                            ),
-                          ),
+                              flex: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                        color: Colors.black,
+                                        width: width * .001)),
+                                height: height * .05,
+                              )),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: height * .005),
+              SizedBox(
+                height: height * .005,
+              ),
 
               ExpandablePanel(
                 header: Card(
@@ -690,12 +634,11 @@ class _ReapdetailsState extends State<Reapdetails> {
                       height: width * .04,
                     ),
                     title: Text(
-                      '${reapDetails[2]}',
+                      reapDetails[2],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -711,158 +654,159 @@ class _ReapdetailsState extends State<Reapdetails> {
                                 null
                             ? Container()
                             : Padding(
-                                padding: EdgeInsets.only(bottom: height * .01),
+                                padding: EdgeInsets.only(
+                                  bottom: height * .01,
+                                ),
                                 child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: width * .035,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
-                                      TextSpan(text: 'Property Type: '),
+                                    text: TextSpan(
+                                        style: TextStyle(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontSize: width * .035,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
+                                      const TextSpan(text: 'Property Type: '),
                                       TextSpan(
                                         text:
                                             '${widget.reapItem["special_feature"]["spec_feature1"]}',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        style: const TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700),
+                                      )
+                                    ])),
                               ),
                         Padding(
-                          padding: EdgeInsets.only(bottom: height * .01),
+                          padding: EdgeInsets.only(
+                            bottom: height * .01,
+                          ),
                           child: RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontSize: width * .035,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              children: [
-                                TextSpan(text: 'Bed: '),
+                              text: TextSpan(
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColor,
+                                      fontSize: width * .035,
+                                      fontWeight: FontWeight.w400),
+                                  children: [
+                                const TextSpan(text: 'Bed: '),
                                 TextSpan(
                                   text:
                                       '${widget.reapItem["special_feature"]["spec_feature2"]}',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                                  style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w700),
+                                )
+                              ])),
                         ),
                         RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: width * .035,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            children: [
-                              TextSpan(text: 'Bath: '),
+                            text: TextSpan(
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: width * .035,
+                                    fontWeight: FontWeight.w400),
+                                children: [
+                              const TextSpan(text: 'Bath: '),
                               TextSpan(
                                 text:
                                     '${widget.reapItem["special_feature"]["spec_feature3"]}',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w700),
+                              )
+                            ])),
                         widget.reapItem["special_feature"]["spec_feature4"] ==
                                 null
                             ? Container()
                             : Padding(
-                                padding: EdgeInsets.only(top: height * .01),
+                                padding: EdgeInsets.only(
+                                  top: height * .01,
+                                ),
                                 child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: width * .035,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
+                                    text: TextSpan(
+                                        style: TextStyle(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontSize: width * .035,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
                                       TextSpan(
                                         text:
                                             '${widget.reapItem["special_feature"]["spec_feature4"]}',
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      )
+                                    ])),
                               ),
                         widget.reapItem["special_feature"]["spec_feature5"] ==
                                 null
                             ? Container()
                             : Padding(
-                                padding: EdgeInsets.only(top: height * .01),
+                                padding: EdgeInsets.only(
+                                  top: height * .01,
+                                ),
                                 child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: width * .035,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
+                                    text: TextSpan(
+                                        style: TextStyle(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontSize: width * .035,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
                                       TextSpan(
                                         text:
                                             '${widget.reapItem["special_feature"]["spec_feature5"]}',
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      )
+                                    ])),
                               ),
                         widget.reapItem["special_feature"]["spec_feature6"] ==
                                 null
                             ? Container()
                             : Padding(
-                                padding: EdgeInsets.only(top: height * .01),
+                                padding: EdgeInsets.only(
+                                  top: height * .01,
+                                ),
                                 child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: width * .035,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
+                                    text: TextSpan(
+                                        style: TextStyle(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontSize: width * .035,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
                                       TextSpan(
                                         text:
                                             '${widget.reapItem["special_feature"]["spec_feature6"]}',
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      )
+                                    ])),
                               ),
                         widget.reapItem["special_feature"]["spec_feature7"] ==
                                 null
                             ? Container()
                             : Padding(
-                                padding: EdgeInsets.only(top: height * .01),
+                                padding: EdgeInsets.only(
+                                  top: height * .01,
+                                ),
                                 child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: width * .035,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    children: [
+                                    text: TextSpan(
+                                        style: TextStyle(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontSize: width * .035,
+                                            fontWeight: FontWeight.w400),
+                                        children: [
                                       TextSpan(
                                         text:
                                             '${widget.reapItem["special_feature"]["spec_feature7"]}',
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      )
+                                    ])),
                               ),
                       ],
                     ),
@@ -879,12 +823,11 @@ class _ReapdetailsState extends State<Reapdetails> {
                       height: width * .04,
                     ),
                     title: Text(
-                      '${reapDetails[3]}',
+                      reapDetails[3],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -897,83 +840,79 @@ class _ReapdetailsState extends State<Reapdetails> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: width * .035,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            children: [
+                            text: TextSpan(
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: width * .035,
+                                    fontWeight: FontWeight.w400),
+                                children: [
                               TextSpan(
-                                text:
-                                    '${widget.reapItem["feature"]["feature1"]}',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          ),
+                                  text:
+                                      '${widget.reapItem["feature"]["feature1"]}',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                  ))
+                            ])),
+                        SizedBox(
+                          height: height * .01,
                         ),
-                        SizedBox(height: height * .01),
                         RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: width * .035,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            children: [
+                            text: TextSpan(
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: width * .035,
+                                    fontWeight: FontWeight.w400),
+                                children: [
                               TextSpan(
                                 text:
                                     '${widget.reapItem["feature"]["feature2"]}',
-                              ),
-                            ],
-                          ),
+                              )
+                            ])),
+                        SizedBox(
+                          height: height * .01,
                         ),
-                        SizedBox(height: height * .01),
                         RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontSize: width * .035,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            children: [
+                            text: TextSpan(
+                                style: TextStyle(
+                                    fontSize: width * .035,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400),
+                                children: [
                               TextSpan(
                                 text:
                                     '${widget.reapItem["feature"]["feature3"]}',
-                              ),
-                            ],
-                          ),
+                              )
+                            ])),
+                        SizedBox(
+                          height: height * .01,
                         ),
-                        SizedBox(height: height * .01),
                         widget.reapItem["feature"]["feature4"] == null
                             ? Container()
                             : RichText(
                                 text: TextSpan(
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: width * .035,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  children: [
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: width * .035,
+                                        fontWeight: FontWeight.w400),
+                                    children: [
                                     TextSpan(
                                       text:
                                           '${widget.reapItem["feature"]["feature4"]}',
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                    )
+                                  ])),
                         widget.reapItem["feature"]["feature4"] == null
                             ? Container()
-                            : SizedBox(height: height * .01),
+                            : SizedBox(
+                                height: height * .01,
+                              ),
                         widget.reapItem["feature"]["feature4"] == null
                             ? Container()
                             : Text(
                                 '${widget.reapItem["feature"]["feature5"]},',
                                 style: TextStyle(
-                                  fontSize: width * .035,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
+                                    fontSize: width * .035,
+                                    fontWeight: FontWeight.w400),
+                              )
                       ],
                     ),
                   ),
@@ -988,20 +927,19 @@ class _ReapdetailsState extends State<Reapdetails> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '${widget.reapItem["neighborhood"]}',
-                          textScaleFactor: 1,
-                          style: TextStyle(
-                            fontSize: width * .035,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
+                        Text('${widget.reapItem["neighborhood"]}',
+                            textScaleFactor: 1,
+                            style: TextStyle(
+                                fontSize: width * .035,
+                                fontWeight: FontWeight.w400))
                       ],
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: height * .005),
+              SizedBox(
+                height: height * .005,
+              ),
               ExpandablePanel(
                 header: Card(
                   color: Colors.black,
@@ -1014,21 +952,22 @@ class _ReapdetailsState extends State<Reapdetails> {
                     title: Text(
                       reapDetails[5],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
                 collapsed: Container(),
                 expanded: Container(
-                  child: Text('Available Upon Request'),
                   height: height * .05,
                   padding: EdgeInsets.only(left: width * .03),
+                  child: Text('Available Upon Request'),
                 ),
               ),
-              SizedBox(height: height * .005),
+              SizedBox(
+                height: height * .005,
+              ),
               ExpandablePanel(
                 header: Card(
                   color: Colors.black,
@@ -1041,25 +980,26 @@ class _ReapdetailsState extends State<Reapdetails> {
                     title: Text(
                       reapDetails[6],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
                 collapsed: Container(),
                 expanded: Container(
-                  child: Text('Available Upon Request'),
                   height: height * .05,
                   padding: EdgeInsets.only(left: width * .03),
+                  child: Text('Available Upon Request'),
                 ),
               ),
-              SizedBox(height: height * .005),
+              SizedBox(
+                height: height * .005,
+              ),
               ExpandablePanel(
                 controller: barController,
                 header: Card(
-                  color: Color.fromRGBO(0, 0, 0, 1),
+                  color: const Color.fromRGBO(0, 0, 0, 1),
                   elevation: 5,
                   child: ListTile(
                     trailing: Image.asset(
@@ -1069,10 +1009,9 @@ class _ReapdetailsState extends State<Reapdetails> {
                     title: Text(
                       reapDetails[7],
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .04,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .04,
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -1080,35 +1019,25 @@ class _ReapdetailsState extends State<Reapdetails> {
                 expanded: Card(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: width * .03,
-                      vertical: height * .03,
-                    ),
+                        horizontal: width * .03, vertical: height * .03),
                     child: Column(
                       children: [
                         SizedBox(height: height * .01),
                         if (["", null].contains(
-                          Provider.of<Providers>(
-                            context,
-                            listen: false,
-                          ).details[3],
-                        ))
+                            Provider.of<Providers>(context, listen: false)
+                                .details[3]))
                           Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Phone Number',
-                              style: TextStyle(
-                                fontSize: width * .045,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        SizedBox(height: height * .005),
+                              alignment: Alignment.centerLeft,
+                              child: Text('Phone Number',
+                                  style: TextStyle(
+                                      fontSize: width * .045,
+                                      fontWeight: FontWeight.w700))),
+                        SizedBox(
+                          height: height * .005,
+                        ),
                         if (["", null].contains(
-                          Provider.of<Providers>(
-                            context,
-                            listen: false,
-                          ).details[3],
-                        ))
+                            Provider.of<Providers>(context, listen: false)
+                                .details[3]))
                           TextFormField(
                             controller: phoneNumsController,
                             textCapitalization: TextCapitalization.sentences,
@@ -1117,38 +1046,30 @@ class _ReapdetailsState extends State<Reapdetails> {
                               fontWeight: FontWeight.w400,
                             ),
                             decoration: InputDecoration(
-                              prefixText: "",
-                              prefixStyle: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: EdgeInsets.only(
-                                left: width * .013,
-                                right: width * .03,
-                              ),
-                              border: OutlineInputBorder(),
-                            ),
+                                prefixText: "",
+                                prefixStyle: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.only(
+                                    left: width * .013, right: width * .03),
+                                border: const OutlineInputBorder()),
                           ),
                         if (["", null].contains(
-                          Provider.of<Providers>(
-                            context,
-                            listen: false,
-                          ).details[3],
-                        ))
+                            Provider.of<Providers>(context, listen: false)
+                                .details[3]))
                           SizedBox(height: height * .03),
                         Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Subject',
-                            style: TextStyle(
-                              fontSize: width * .045,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                            alignment: Alignment.centerLeft,
+                            child: Text('Subject',
+                                style: TextStyle(
+                                    fontSize: width * .045,
+                                    fontWeight: FontWeight.w700))),
+                        SizedBox(
+                          height: height * .005,
                         ),
-                        SizedBox(height: height * .005),
                         TextFormField(
                           controller: subjectController,
                           textCapitalization: TextCapitalization.sentences,
@@ -1157,32 +1078,29 @@ class _ReapdetailsState extends State<Reapdetails> {
                             fontWeight: FontWeight.w400,
                           ),
                           decoration: InputDecoration(
-                            prefixText: "",
-                            prefixStyle: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: EdgeInsets.only(
-                              left: width * .013,
-                              right: width * .03,
-                            ),
-                            border: OutlineInputBorder(),
-                          ),
+                              prefixText: "",
+                              prefixStyle: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: EdgeInsets.only(
+                                  left: width * .013, right: width * .03),
+                              border: const OutlineInputBorder()),
                         ),
-                        SizedBox(height: height * .03),
+                        SizedBox(
+                          height: height * .03,
+                        ),
                         Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Message',
-                            style: TextStyle(
-                              fontSize: width * .045,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                            alignment: Alignment.centerLeft,
+                            child: Text('Message',
+                                style: TextStyle(
+                                    fontSize: width * .045,
+                                    fontWeight: FontWeight.w700))),
+                        SizedBox(
+                          height: height * .005,
                         ),
-                        SizedBox(height: height * .005),
                         TextFormField(
                           controller: messageController,
                           textCapitalization: TextCapitalization.sentences,
@@ -1192,21 +1110,20 @@ class _ReapdetailsState extends State<Reapdetails> {
                           ),
                           maxLines: 7,
                           decoration: InputDecoration(
-                            prefixText: "",
-                            prefixStyle: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: EdgeInsets.only(
-                              left: width * .013,
-                              right: width * .03,
-                            ),
-                            border: OutlineInputBorder(),
-                          ),
+                              prefixText: "",
+                              prefixStyle: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: EdgeInsets.only(
+                                  left: width * .013, right: width * .03),
+                              border: const OutlineInputBorder()),
                         ),
-                        SizedBox(height: height * .005),
+                        SizedBox(
+                          height: height * .005,
+                        ),
                         Center(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -1215,7 +1132,7 @@ class _ReapdetailsState extends State<Reapdetails> {
                             onPressed: () {
                               Save(id);
                             },
-                            child: Text(
+                            child: const Text(
                               'Save',
                               style: TextStyle(color: Colors.white),
                             ),
@@ -1226,50 +1143,47 @@ class _ReapdetailsState extends State<Reapdetails> {
                   ),
                 ),
               ),
-              SizedBox(height: height * .04),
+              SizedBox(
+                height: height * .04,
+              ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(width * .02),
-                  ),
+                      borderRadius: BorderRadius.circular(width * .02)),
                 ),
                 onPressed: () {
                   var dialogBox = DialogBox();
 
-                  dialogBox.options(
-                    context,
-                    "Confirm Reserve Asset",
-                    "Are you sure you want to reserve this asset?",
-                    () {
-                      Reserve(id);
-                    },
-                  );
+                  dialogBox.options(context, "Confirm Reserve Asset",
+                      "Are you sure you want to reserve this asset?", () {
+                    Reserve(id);
+                  });
                 },
-                child: Container(
+                child: SizedBox(
                   height: height * .05,
                   child: Center(
                     child: Text(
                       'Reserve this Asset',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: width * .05,
-                        fontWeight: FontWeight.w700,
-                      ),
+                          color: Colors.white,
+                          fontSize: width * .05,
+                          fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: height * .02),
+              SizedBox(
+                height: height * .02,
+              ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(width * .02),
-                  ),
+                      borderRadius: BorderRadius.circular(width * .02)),
                 ),
                 onPressed: () {},
-                child: Container(
+                child: SizedBox(
                   height: height * .05,
                   child: Center(
                     child: Row(
@@ -1278,10 +1192,9 @@ class _ReapdetailsState extends State<Reapdetails> {
                         Text(
                           'Add to Portfolio Desired Assets',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: width * .05,
-                            fontWeight: FontWeight.w700,
-                          ),
+                              color: Colors.white,
+                              fontSize: width * .05,
+                              fontWeight: FontWeight.w700),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(4.0),
@@ -1289,7 +1202,7 @@ class _ReapdetailsState extends State<Reapdetails> {
                             'assets/images/desired.png',
                             color: Colors.black,
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -1304,9 +1217,12 @@ class _ReapdetailsState extends State<Reapdetails> {
   }
 
   Reserve(assetId) async {
-    EasyLoading.show(status: 'Loading', dismissOnTap: false);
-    var url = Uri.parse("$baseUrl/app/acquisition/investment/reap/${assetId}");
-    var timer = Timer(Duration(milliseconds: 20000), () {
+    EasyLoading.show(
+      status: 'Loading',
+      dismissOnTap: false,
+    );
+    var url = Uri.parse("$baseUrl/app/acquisition/investment/reap/$assetId");
+    var timer = Timer(const Duration(milliseconds: 20000), () {
       Navigator.pop(context);
       dialogBox.information(context, 'Status', 'Service timed out');
       EasyLoading.dismiss();
@@ -1315,10 +1231,8 @@ class _ReapdetailsState extends State<Reapdetails> {
 
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('tokenDB');
-    var reapresponse = await http.post(
-      url,
-      headers: {"Authorization": 'Bearer $token'},
-    );
+    var reapresponse =
+        await http.post(url, headers: {"Authorization": 'Bearer $token'});
     if (reapresponse.statusCode == 200) {
       timer.cancel();
       EasyLoading.dismiss();
@@ -1332,7 +1246,7 @@ class _ReapdetailsState extends State<Reapdetails> {
   }
 
   Save(assetId) async {
-    print("asset id: ${assetId}");
+    print("asset id: $assetId");
     // if (
     //     ["", null].contains(subjectController.text.trim()) ||
     //     ["", null].contains(messageController.text.trim())) {
@@ -1362,10 +1276,7 @@ class _ReapdetailsState extends State<Reapdetails> {
           ["", null].contains(messageController.text.trim())) {
         var dialogBox = DialogBox();
         dialogBox.information(
-          context,
-          'Provide All Details',
-          'All fields must be filled',
-        );
+            context, 'Provide All Details', 'All fields must be filled');
         return;
       }
       var data = {
@@ -1373,17 +1284,13 @@ class _ReapdetailsState extends State<Reapdetails> {
         "phone": phoneNumsController.text.trim(),
         "subject": subjectController.text.trim(),
       };
-      var url = Uri.parse(
-        "$baseUrl/app/acquisition/investment/reap/${assetId}",
-      );
+      var url =
+          Uri.parse("$baseUrl/app/acquisition/investment/reap/$assetId");
 
       final prefs = await SharedPreferences.getInstance();
       var token = prefs.getString('tokenDB');
-      var response = await http.post(
-        url,
-        body: data,
-        headers: {"Authorization": 'Bearer $token'},
-      );
+      var response = await http
+          .post(url, body: data, headers: {"Authorization": 'Bearer $token'});
       if (response.statusCode == 200) {
         var body = jsonDecode(response.body);
         Fluttertoast.showToast(msg: "Interest has been recorded");
@@ -1401,17 +1308,13 @@ class _ReapdetailsState extends State<Reapdetails> {
           "message": messageController.text.trim(),
           "subject": subjectController.text.trim(),
         };
-        var url = Uri.parse(
-          "$baseUrl/app/acquisition/interest/reap/${assetId}",
-        );
+        var url =
+            Uri.parse("$baseUrl/app/acquisition/interest/reap/$assetId");
 
         final prefs = await SharedPreferences.getInstance();
         var token = prefs.getString('tokenDB');
-        var response = await http.post(
-          url,
-          body: data,
-          headers: {"Authorization": 'Bearer $token'},
-        );
+        var response = await http
+            .post(url, body: data, headers: {"Authorization": 'Bearer $token'});
         if (response.statusCode == 200) {
           var body = jsonDecode(response.body);
           Fluttertoast.showToast(msg: "Interest has been recorded");
@@ -1425,10 +1328,7 @@ class _ReapdetailsState extends State<Reapdetails> {
       } else {
         var dialogBox = DialogBox();
         dialogBox.information(
-          context,
-          'Provide All Details',
-          'All fields must be filled',
-        );
+            context, 'Provide All Details', 'All fields must be filled');
       }
     }
   }

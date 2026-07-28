@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'searchFilter.dart';
 
 class Search extends StatefulWidget {
-  const Search({key});
+  const Search({super.key});
 
   @override
   State<Search> createState() => _SearchState();
@@ -89,7 +89,7 @@ class _SearchState extends State<Search> {
           ),
         ),
         SizedBox(height: height * .01),
-        Container(
+        SizedBox(
           width: width * .9,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -165,7 +165,7 @@ class _SearchState extends State<Search> {
                         ),
                         isScrollControlled: true,
                         builder: (BuildContext context) {
-                          return Container(
+                          return SizedBox(
                             height: height * .80,
                             child: const SearchFilter(title: 'Filter By'),
                           );

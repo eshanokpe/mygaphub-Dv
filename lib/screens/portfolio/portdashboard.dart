@@ -18,6 +18,7 @@ import 'braidetails.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
+
 import 'widget/asset_class_widget.dart';
 import 'widget/bar_view_content.dart';
 import 'widget/global_view_content.dart';
@@ -26,6 +27,7 @@ import 'widget/portfolio_income_widget.dart';
 import 'widget/returnInvestmentCard.dart';
 import 'widget/tabar_section.dart';
 
+// ignore: must_be_immutable
 class Portdashboard extends StatefulWidget {
   final bool investmentModal;
   const Portdashboard({super.key, this.investmentModal = false});
@@ -36,136 +38,105 @@ class Portdashboard extends StatefulWidget {
 
 class _PortdashboardState extends State<Portdashboard>
     with SingleTickerProviderStateMixin {
-  final Color leftBarColor  = const Color(0xffE6C069);
+  final Key _pageStrKey4 = const PageStorageKey('pageFour');
+  final Color leftBarColor = const Color(0xffE6C069);
   final Color rightBarColor = const Color(0xffED3237);
-  final double barWidth     = 7;
-
+  final double width = 7;
+  bool switcher = false;
   String c = '';
-  List<BarChartGroupData> rawBarGroups     = [];
+  Map data = {};
+  List assetValue = [];
+  List<BarChartGroupData> rawBarGroups = [];
   List<BarChartGroupData> showingBarGroups = [];
 
-  Dio   dio = Dio();
-  bool  a   = false;
-  bool  _dropdownShown   = false;
-  bool  _isFetching      = false;
-
+  Dio dio = Dio();
+  bool a = false;
+  int touchedGroupIndex = 0;
   TabController? _tabController;
-  Timer?         _timer;
-
+  Timer? _timer;
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    rawBarGroups = [
-      makeGroupData(0, 0,  0),
-      makeGroupData(1, 10, 8),
-      makeGroupData(2, 7,  3),
-      makeGroupData(3, 2,  9),
-      makeGroupData(4, 7,  7),
-      makeGroupData(5, 6,  9),
-      makeGroupData(6, 0,  0),
+    final barGroup0 = makeGroupData(0, 0, 0);
+    final barGroup1 = makeGroupData(1, 10, 8);
+    final barGroup2 = makeGroupData(2, 7, 3);
+    final barGroup3 = makeGroupData(3, 2, 9);
+    final barGroup4 = makeGroupData(4, 7, 7);
+    final barGroup5 = makeGroupData(5, 6, 9);
+    final barGroup6 = makeGroupData(6, 0, 0);
+    final items = [
+      barGroup0,
+      barGroup1,
+      barGroup2,
+      barGroup3,
+      barGroup4,
+      barGroup5,
+      barGroup6,
     ];
-    showingBarGroups = rawBarGroups;
 
+    rawBarGroups = items;
+
+    showingBarGroups = rawBarGroups;
+    data = context.read<Providers>().portfolio;
+    // print("data:${data['data']["roi_watch"]["braid_roi"]}");
     a = context.read<Providers>().newPort;
     c = splitit(context.read<Providers>().currency);
-
     _timer = Timer(const Duration(seconds: 5), () {
-      if (mounted) context.read<Providers>().setNewPort(false);
+      context.read<Providers>().setNewPort(false);
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ensurePortfolioLoaded();
-      if (widget.investmentModal && mounted) dropdown(context);
+    // Timer.run(() {
+    //   if (widget.investmentModal) {
+    //     dropdown(context);
+    //   }
+    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.investmentModal) {
+        dropdown(context);
+      }
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _tabController?.dispose();
+    _timer?.cancel(); // Cancel the timer
+    _tabController!.dispose();
     super.dispose();
   }
 
-  // Fetch portfolio only if not already loaded
-  Future<void> _ensurePortfolioLoaded() async {
-    if (!mounted) return;
-
-    final existing = context.read<Providers>().portfolio;
-    // Already has data — nothing to do
-    if (existing['data'] != null) return;
-
-    if (_isFetching) return;
-    _isFetching = true;
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('tokenDB');
-      if (token == null || token.isEmpty) return;
-
-      final response = await dio.get(
-        '$baseUrl/app/portfolio',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      ).timeout(const Duration(seconds: 15));
-
-      if (mounted && response.data != null) {
-        context.read<Providers>().setPortfolio(response.data);
-      }
-    } catch (e) {
-      debugPrint('Portfolio fetch error: $e');
-    } finally {
-      _isFetching = false;
-    }
-  }
-
+  final ScrollController _scrollController = ScrollController();
   void dropdown(BuildContext context) {
-    showDialog(context: context, builder: (context) => const Select());
+    showDialog(context: context, builder: (context) => Select());
   }
 
   @override
   Widget build(BuildContext context) {
-    // context.watch — widget rebuilds when setPortfolio is called
-    final Map portfolioData = context.watch<Providers>().portfolio;
-
-    final orientation = MediaQuery.of(context).orientation;
+    Orientation orientation = MediaQuery.of(context).orientation;
     final height = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.height
         : MediaQuery.of(context).size.width;
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
-
-    // Guard — show loader until data structure is valid
-    final rawData   = portfolioData['data'];
-    final bool isDataReady = rawData != null &&
-        rawData['roi_watch'] != null &&
-        rawData['roi_watch']['braid_roi'] != null;
-
-    if (!isDataReady) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
-      );
+    List dataList = data['data']["roi_watch"]["braid_roi"];
+    DialogBox dialogBox = DialogBox();
+    pop() {
+      SystemNavigator.pop();
     }
 
-    // Safe from here down
-    final List dataList =
-        (rawData['roi_watch']['braid_roi'] as List).take(3).toList();
-
-    if (a && !_dropdownShown) {
-      _dropdownShown = true;
-      Future.delayed(Duration.zero, () => dropdown(context));
-    }
-
-    final DialogBox dialogBox = DialogBox();
-
+    if (a) Future.delayed(Duration.zero, () => dropdown(context));
     return SafeArea(
       child: WillPopScope(
-        onWillPop: () async => dialogBox.options(
-          context, 'Exit', 'Are you sure you want to exit?',
-          () => SystemNavigator.pop(),
-        ),
+        onWillPop: () async {
+          // Show a dialog and return the result
+          return await dialogBox.options(
+            context,
+            'Exit',
+            'Are you sure you want to exit?',
+            pop,
+          );
+        },
         child: Scaffold(
           body: SingleChildScrollView(
             child: Column(
@@ -175,6 +146,7 @@ class _PortdashboardState extends State<Portdashboard>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Header section
                       Text(
                         'Global Asset Portfolio Management',
                         style: TextStyle(
@@ -208,11 +180,13 @@ class _PortdashboardState extends State<Portdashboard>
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            Center(child: GlobalViewContent(data: portfolioData)),
+                            Center(child: GlobalViewContent(data: data)),
                             Center(child: BarViewContent(dataList: dataList)),
                           ],
                         ),
                       ),
+
+                      // SizedBox(height: 5.h),
                       Align(
                         alignment: Alignment.center,
                         child: Text(
@@ -226,7 +200,8 @@ class _PortdashboardState extends State<Portdashboard>
                         ),
                       ),
                       SizedBox(height: 14.h),
-                      ReturnInvestmentCard(data: portfolioData),
+
+                      ReturnInvestmentCard(data: data),
                       SizedBox(height: 24.h),
                       Align(
                         alignment: Alignment.center,
@@ -241,7 +216,7 @@ class _PortdashboardState extends State<Portdashboard>
                       ),
                       InvestmentPerformanceWidget(showingBarGroups),
                       SizedBox(height: height * 0.03),
-                      const PortfolioIncomeWidget(),
+                      PortfolioIncomeWidget(),
                     ],
                   ),
                 ),
@@ -269,12 +244,15 @@ class _PortdashboardState extends State<Portdashboard>
                   text: 'Add Asset',
                   onPressed: () {
                     final provider = context.read<Providers>();
+
                     getAssetClasses(context, () async {
                       provider.addAssetAcquisition(provider.httpData);
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AssetClasses(const ["existing"]),
+                          builder: (context) =>
+                              AssetClasses(const ["existing"]),
                         ),
                       );
                     });
@@ -289,39 +267,42 @@ class _PortdashboardState extends State<Portdashboard>
     );
   }
 
-  void getAssetClasses(BuildContext context, Function doing) {
+  getAssetClasses(context, Function doing) {
     connectTo(context, "get", "/app/portfolio/information", {}, shoot: doing);
   }
 
-  Future<void> getData(String cap, String small) async {
-    final timer = Timer(
-      const Duration(seconds: 40),
-      () => EasyLoading.dismiss(),
-    );
-    EasyLoading.show(status: 'Loading', dismissOnTap: false);
-    try {
-      final url   = Uri.parse("$baseUrl/app/portfolio/$small");
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('tokenDB');
-      final response = await http.get(
-        url,
-        headers: {"Authorization": 'Bearer $token'},
-      );
-      if (response.statusCode == 200) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                Braidetails(cap, jsonDecode(response.body), false),
-          ),
-        );
-      } else {
-        Fluttertoast.showToast(msg: "Error");
-      }
-    } finally {
-      timer.cancel();
+  getData(String cap, String small) async {
+    // Fluttertoast.showToast(msg: "Opening");
+    Timer timer = Timer(const Duration(seconds: 40), () {
       EasyLoading.dismiss();
+      return;
+    });
+    EasyLoading.show(status: 'Loading', dismissOnTap: false);
+    var url = Uri.parse("$baseUrl/app/portfolio/$small");
+    final prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('tokenDB');
+
+    var response = await http.get(
+      url,
+      headers: {"Authorization": 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      var bus = jsonDecode(response.body);
+      print("business:$bus");
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              Braidetails(cap, jsonDecode(response.body), false),
+        ),
+      );
+    } else {
+      Fluttertoast.showToast(msg: "Error");
     }
+    timer.cancel();
+    EasyLoading.dismiss();
   }
 
   BarChartGroupData makeGroupData(int x, double y1, double y2) {
@@ -333,13 +314,13 @@ class _PortdashboardState extends State<Portdashboard>
           borderRadius: BorderRadius.zero,
           toY: y1,
           color: leftBarColor,
-          width: barWidth,
+          width: width,
         ),
         BarChartRodData(
           borderRadius: BorderRadius.zero,
           toY: y2,
           color: rightBarColor,
-          width: barWidth,
+          width: width,
         ),
       ],
     );
@@ -348,15 +329,18 @@ class _PortdashboardState extends State<Portdashboard>
 
 class Tabledata extends StatelessWidget {
   const Tabledata({super.key, required this.text, required this.thick});
+
   final String text;
-  final bool   thick;
+  final bool thick;
 
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
+    Orientation orientation = MediaQuery.of(context).orientation;
+
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
+
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Text(
@@ -374,97 +358,98 @@ class Tabledata extends StatelessWidget {
 class Select extends StatelessWidget {
   const Select({super.key});
 
-  void _getAssetClasses(BuildContext context, Function doing) {
-    connectTo(context, "get", "/app/portfolio/information", {}, shoot: doing);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
+    Orientation orientation = MediaQuery.of(context).orientation;
     final height = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.height
         : MediaQuery.of(context).size.width;
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
-
     return AlertDialog(
       insetPadding: EdgeInsets.zero,
       titlePadding: EdgeInsets.only(top: width * .01),
       elevation: 5,
       title: Image.asset("assets/images/plus.png", height: height * .06),
       content: StatefulBuilder(
-        builder: (context, setState) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff7F7F7F),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(width * .01),
+        builder: (context, StateSetter setState) {
+          return Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff7F7F7F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(width * .01),
+                    ),
+                  ),
+                  onPressed: () {
+                    getAssetClasses(context, () {
+                      context.read<Providers>().addAssetAcquisition(
+                        context.read<Providers>().httpData,
+                      );
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (ctx) => AssetClasses(const ["existing"]),
+                        ),
+                      );
+                    });
+                  },
+                  child: Text(
+                    "Existing Asset (Currently Owned)",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                      fontSize: width * .04,
+                    ),
                   ),
                 ),
-                onPressed: () {
-                  _getAssetClasses(context, () {
-                    context.read<Providers>().addAssetAcquisition(
-                      context.read<Providers>().httpData,
-                    );
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (ctx) => AssetClasses(const ["existing"]),
-                      ),
-                    );
-                  });
-                },
-                child: Text(
-                  "Existing Asset (Currently Owned)",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
-                    fontSize: width * .04,
+                SizedBox(height: height * .01),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff7F7F7F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(width * .01),
+                    ),
+                  ),
+                  onPressed: () {
+                    getAssetClasses(context, () async {
+                      context.read<Providers>().addAssetAcquisition(
+                        context.read<Providers>().httpData,
+                      );
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssetClasses(const ["desired"]),
+                        ),
+                      );
+                    });
+                  },
+                  child: Text(
+                    "Desired Asset (Investment Goal)",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                      fontSize: width * .04,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: height * .01),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff7F7F7F),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(width * .01),
-                  ),
-                ),
-                onPressed: () {
-                  _getAssetClasses(context, () async {
-                    context.read<Providers>().addAssetAcquisition(
-                      context.read<Providers>().httpData,
-                    );
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AssetClasses(const ["desired"]),
-                      ),
-                    );
-                  });
-                },
-                child: Text(
-                  "Desired Asset (Investment Goal)",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
-                    fontSize: width * .04,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
     );
+  }
+
+  getAssetClasses(context, Function doing) {
+    connectTo(context, "get", "/app/portfolio/information", {}, shoot: doing);
   }
 }

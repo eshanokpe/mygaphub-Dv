@@ -1,12 +1,12 @@
 import 'package:GapHub/screens/360/addaccount.dart';
 import 'package:GapHub/screens/360/decider.dart';
+import 'package:GapHub/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Addaccountbtn extends StatelessWidget {
-  const Addaccountbtn({super.key, required this.width, required this.index});
+  const Addaccountbtn({super.key, required this.index});
 
-  final double width;
   final String index;
 
   @override
@@ -15,14 +15,8 @@ class Addaccountbtn extends StatelessWidget {
       showDialog(context: context, builder: (context) => const Addaccount());
     }
 
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).primaryColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(width * .01),
-        ),
-      ),
-      onPressed: () {
+    return GestureDetector(
+      onTap: () {
         switch (index) {
           case "Protection":
             Navigator.push(
@@ -70,13 +64,21 @@ class Addaccountbtn extends StatelessWidget {
             dropdown();
         }
       },
-      child: Text(
-        "Add Account",
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 14.sp,
-        ),
+
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.add, color: AppColors.primaryColor),
+          const SizedBox(width: 6),
+          Text(
+            "Add Account",
+            style: TextStyle(
+              color: AppColors.primaryColor,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

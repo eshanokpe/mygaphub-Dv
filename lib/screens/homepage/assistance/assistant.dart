@@ -8,7 +8,6 @@ import 'package:GapHub/screens/analytics/edits/alpha.dart';
 import 'package:GapHub/screens/analytics/edits/beta.dart';
 import 'package:GapHub/screens/analytics/edits/credit.dart';
 import 'package:GapHub/screens/analytics/edits/debt.dart';
-import 'package:GapHub/screens/analytics/edits/editpage.dart';
 import 'package:GapHub/screens/analytics/edits/education.dart';
 import 'package:GapHub/screens/analytics/edits/freedom.dart';
 import 'package:GapHub/screens/analytics/edits/grand.dart';

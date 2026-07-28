@@ -82,6 +82,18 @@ class _FiCardState extends State<FiCard> {
     return _getGradientForPercentage(numericValue);
   }
 
+  double _readSnapshotNumber(Map snapshot, String key) {
+    final value = snapshot[key];
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.replaceAll(',', '')) ?? 0;
+    return 0;
+  }
+
+  String _formatSnapshotValue(double value) {
+    if (value % 1 == 0) return value.toInt().toString();
+    return value.toStringAsFixed(1);
+  }
+
   // Custom CircularPercentIndicator with gradient - BOLD COLORS
   Widget _buildGradientCircularIndicator({
     required double radius,
@@ -166,18 +178,18 @@ class _FiCardState extends State<FiCard> {
     // Get snapshot data
     final snapshot = context.watch<Providers>().snapshotmodel.snapshot;
 
-    String current = snapshot["currentper"].toString();
-    String time360 = snapshot["currenttime"].toString();
+    final currentValue = _readSnapshotNumber(snapshot, "currentper");
+    final time360Value = _readSnapshotNumber(snapshot, "currenttime");
+    final timeValue = _readSnapshotNumber(snapshot, "timeper");
+
+    String current = _formatSnapshotValue(currentValue);
+    String time360 = _formatSnapshotValue(time360Value);
 
     // String current = 55.toString();
     // String time360 = 80.toString();
 
-    current = current.replaceAll(',', '');
-    String time = snapshot["timeper"].toString();
-    time = time.replaceAll(',', '');
-
-    double currentPer = double.parse(current) / 100;
-    double timePer = double.parse(time) / 100;
+    double currentPer = currentValue / 100;
+    double timePer = timeValue / 100;
 
     // Get gradients based on percentage values - BOLD COLORS
     final timeGradient = _getGradientForValue(time360);
@@ -229,7 +241,7 @@ class _FiCardState extends State<FiCard> {
                             center: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                int.tryParse(time360)! > 1000
+                                time360Value > 1000
                                     ? _buildGradientText(
                                         text: '999+',
                                         gradientColors: timeGradient,
@@ -338,7 +350,7 @@ class _FiCardState extends State<FiCard> {
                             center: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                int.tryParse(current)! > 1000
+                                currentValue > 1000
                                     ? _buildGradientText(
                                         text: '999+%',
                                         gradientColors: percentGradient,

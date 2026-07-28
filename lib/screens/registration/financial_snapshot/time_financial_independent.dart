@@ -16,7 +16,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
+ 
 class TimeFinancialIndependent extends StatefulWidget {
   final dynamic shortfalls;
   final dynamic suggestedInvestment;
@@ -28,7 +28,7 @@ class TimeFinancialIndependent extends StatefulWidget {
 
   final TextEditingController roceController;
   final TextEditingController investController;
-
+ 
   const TimeFinancialIndependent({
     super.key,
     required this.seedCost,
@@ -198,7 +198,7 @@ class _TimeFinancialIndependentState extends State<TimeFinancialIndependent> {
       ],
     );
   }
-
+ 
   Widget _buildChart(String symbol, BuildContext context) {
     final now = DateTime.now();
     double timeValue = double.tryParse(timeFiniancial) ?? 0.0;

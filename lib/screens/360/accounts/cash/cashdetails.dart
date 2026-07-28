@@ -547,7 +547,7 @@ class _CashdetailsState extends State<Cashdetails> {
             SizedBox(height: height * .02),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width * .2),
-              child: Addaccountbtn(width: width, index: "Cash"),
+              child: const Addaccountbtn(index: "Cash"),
             ),
             SizedBox(height: height * .05),
           ],

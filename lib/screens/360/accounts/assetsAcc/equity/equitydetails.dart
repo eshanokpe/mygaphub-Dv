@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../components/addAccountBtn.dart';
+import '../../../threesixty.dart';
 import '../../../../../widgets/clock_widget.dart';
 import '../../../../../widgets/piechart.dart';
 import 'equarchives.dart';
@@ -287,7 +288,7 @@ class _EquitydetailsState extends State<Equitydetails> {
             SizedBox(height: height * .02),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width * .2),
-              child: Addaccountbtn(width: width, index: "Assets"),
+              child: const Addaccountbtn(index: "Assets"),
             ),
             SizedBox(height: height * .05),
           ],

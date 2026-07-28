@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 2.2.0+42
+version: 2.2.0+43
  
 environment:   
   sdk: ^3.11.5
@@ -150,6 +150,7 @@ flutter:
     - assets/images/logoo.json
     - assets/icons/
     - assets/wheel_segments/
+    - assets/action_plan/
     - assets/currencywithsymbols.json
 
   # An asset can be a file or a directory. If a directory is specified, all

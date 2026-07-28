@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:GapHub/screens/acquisition/actionplan/actionplan.dart';
 import 'package:GapHub/screens/homepage/assistance/assistant.dart';
 import 'package:GapHub/screens/homepage/assistance/personal_assistant.dart';
 import 'package:GapHub/utils/constants.dart';
@@ -14,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/screens/acquisition/opportunities.dart';
 import 'package:flutter/material.dart';
+import 'actionplan/presentation/action_plan_strategy.dart';
 import 'widget/acquisitionHeader.dart';
 import 'widget/gradientimagecard.dart';
 
@@ -38,7 +38,7 @@ class _PreacquisitionState extends State<Preacquisition> {
 
     return SafeArea(
       child: Scaffold(
-        // appBar: CustomAppBarAcquisition(),
+        appBar: const CustomAppBarAcquisition(),
         backgroundColor: const Color(0XFFF6F6F6),
         body: SingleChildScrollView(
           key: _pageStrKey3,
@@ -235,10 +235,9 @@ class _PreacquisitionState extends State<Preacquisition> {
 
         Navigator.pop(context);
         timer.cancel();
-        //Navigator.of(context).pushNamed('Actionplan');
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Actionplan()),
+          MaterialPageRoute(builder: (context) => const ActionPlanStrategy()),
         );
       } else {
         timer.cancel();

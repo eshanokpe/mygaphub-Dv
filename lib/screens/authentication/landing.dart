@@ -535,7 +535,7 @@ class _LandingState extends State<Landing> {
       "Authorization": 'Bearer $token',
       "Accept": "application/json",
     };
-
+ 
     final results = await Future.wait([
       _fetchUserDetails(token, headers),
       _fetchEditDetails(token, headers),
@@ -588,7 +588,7 @@ class _LandingState extends State<Landing> {
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch snapshot: ${response.statusCode}');
     }
-    return Snapshotmodel.fromJson(jsonDecode(response.body));
+    return Snapshotmodel.fromJson(jsonDecode(response.body)); 
   }
 
   Future<Sevengeemodel> _fetchSevenG(

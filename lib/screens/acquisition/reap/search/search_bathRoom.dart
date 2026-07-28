@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SearchBathRooms extends StatefulWidget {
-  const SearchBathRooms({key});
+  const SearchBathRooms({super.key});
 
   @override
   State<SearchBathRooms> createState() => _SearchBathRoomsState();
@@ -22,18 +22,22 @@ class _SearchBathRoomsState extends State<SearchBathRooms> {
             padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
             child: GestureDetector(
               onTap: () {
-                acquisitionProvider
-                    .onBathroomsChanged(acquisitionProvider.bathRoom[index]);
+                acquisitionProvider.onBathroomsChanged(
+                  acquisitionProvider.bathRoom[index],
+                );
               },
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: acquisitionProvider.isSelectedBathRoom[index]
                       ? Colors.black
                       : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Color(0xffe5e5e5),
+                    color: const Color(0xffe5e5e5),
                     width: 0.5,
                   ),
                 ),
@@ -51,15 +55,9 @@ class _SearchBathRoomsState extends State<SearchBathRooms> {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    SizedBox(
-                      width: 5,
-                    ),
+                    const SizedBox(width: 5),
                     if (acquisitionProvider.isSelectedBathRoom[index])
-                      Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 15,
-                      ),
+                      const Icon(Icons.check, color: Colors.white, size: 15),
                   ],
                 ),
               ),

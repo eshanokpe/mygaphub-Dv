@@ -1,12 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:convert';
+
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
-import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -15,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class EditNameScreen extends StatefulWidget {
   final String initialName;
   final bool isFirstName;
-
+ 
   const EditNameScreen({
     super.key,
     required this.initialName,
@@ -23,7 +22,6 @@ class EditNameScreen extends StatefulWidget {
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _EditNameScreenState createState() => _EditNameScreenState();
 }
 
@@ -79,16 +77,9 @@ class _EditNameScreenState extends State<EditNameScreen> {
 
       if (response.statusCode == 200) {
         Navigator.pop(context, updatedName); // Return the updated name
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return const SuccessModal(message: "Name updated successfully");
-          },
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Name updated successfully')),
         );
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('TesttName updated successfully')),
-        // );
       } else if (response.statusCode == 429) {
         final body = jsonDecode(response.body);
         print('Error 429: ${body['message']}');
@@ -168,22 +159,6 @@ class _EditNameScreenState extends State<EditNameScreen> {
                     },
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide.none,
                       ),

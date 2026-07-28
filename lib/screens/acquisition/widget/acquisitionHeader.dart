@@ -7,7 +7,7 @@ class CustomAppBarAcquisition extends StatelessWidget
     implements PreferredSizeWidget {
   const CustomAppBarAcquisition({super.key});
 
-  @override 
+  @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override

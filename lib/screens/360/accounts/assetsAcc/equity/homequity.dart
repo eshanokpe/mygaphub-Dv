@@ -82,63 +82,41 @@ class _HomequityState extends State<Homequity> {
 
   debt(String currency) async {
     var url = Uri.parse("$baseUrl/app/360/equity/info");
-    const fetchMortgagesUrl = "$baseUrl/app/360/mortgage";
+    // var url = Uri.parse("$baseUrl/app/360/mortgage");
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('tokenDB');
     var response = await http.get(
       url,
       headers: {"Authorization": 'Bearer $token'},
     );
-    Response fetchMortgagesResponse = await dio.get(
-      fetchMortgagesUrl,
-      options: Options(headers: {"Authorization": 'Bearer $token'}),
-    );
 
     if (response.statusCode == 200) {
-      final mortgagesData = fetchMortgagesResponse.data;
-      final seveng = mortgagesData["seveng"];
-      // final mapListLite = mortgagesData["mortgages_detail"];
-      // print("mortgages_seveng:$seveng");
-
       Map body = jsonDecode(response.body);
       List mortgages = body["mortgages_available"];
-      // print("mortgages222:$mortgages");
+      print("mortgages:$mortgages");
+      List mortgagesList = mortgages
+          // .where((e) =>
+          //     e["creditor_name"] !=
+          //     'null')
+          .map((e) {
+            String creditorName = e["creditor_name"];
+            num currentBalance = e["current_balance"];
 
-      List<String> tempMortgagesList = mortgages.map((e) {
-        String creditorName = e["creditor_name"];
-        // Handle null or empty creditor name
-        if (creditorName == 'null' || creditorName.isEmpty) {
-          creditorName = "Debt";
-        }
+            // Construct formatted string
+            String formattedString =
+                "$creditorName (${currency}${currentBalance.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')})";
 
-        dynamic currentBalance = e["current_balance"];
+            return formattedString;
+          })
+          .toList();
 
-        // Format balance - handle null
-        String balanceDisplay = '';
-        if (currentBalance != null) {
-          String balanceStr = currentBalance.toString();
-          balanceDisplay = balanceStr.replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (Match m) => '${m[1]},',
-          );
-        } else {
-          balanceDisplay = '0';
-        }
-
-        // Construct formatted string
-        String formattedString = "$creditorName ($currency$balanceDisplay)";
-        return formattedString;
-      }).toList();
-
-      tempMortgagesList.insert(0, "-Select-");
-
-      setState(() {
-        mortgagesList = tempMortgagesList;
-        this.mortgages = mortgages;
-      });
-
+      mortgagesList.insert(0, "-Select-");
       context.read<Providers>().setMortgages(mortgages);
-      context.read<Providers>().setMortgagesList(tempMortgagesList);
+      context.read<Providers>().setMortgagesList(mortgagesList);
+
+      // List countries = body["countries"];
+      // countries.insert(0, "-Select-");
+      // context.read<Providers>().setCountries(countries);
     }
   }
 
@@ -147,7 +125,7 @@ class _HomequityState extends State<Homequity> {
     String currency = context.watch<Providers>().snapshotmodel.currency;
 
     mortgagesList = context.read<Providers>().mortgagesList;
-    // print("mortgagesList:$mortgagesList");
+    print("mortgagesList:$mortgagesList");
     debt(currency);
     Orientation orientation = MediaQuery.of(context).orientation;
 

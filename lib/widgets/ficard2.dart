@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 
 import '../utils/colors.dart';
@@ -507,7 +506,7 @@ class _FiCard2State extends State<FiCard2> {
               child: currentPerValue * 100 == 0
                   ? RichText(
                       textAlign: TextAlign.center,
-                      maxLines: 6,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         style: TextStyle(
@@ -561,7 +560,7 @@ class _FiCard2State extends State<FiCard2> {
                     )
                   : RichText(
                       textAlign: TextAlign.center,
-                      maxLines: 6,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         style: TextStyle(
