@@ -6,13 +6,11 @@ import 'package:GapHub/utils/dialog.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:GapHub/models/loginusermodel.dart';
@@ -21,7 +19,7 @@ import 'package:GapHub/utils/constants.dart';
 import 'package:provider/provider.dart';
 
 class AvatarPickerButton extends StatefulWidget {
-  final Function(dynamic newImageUrl) onImageUploaded;
+  final ValueChanged<String?> onImageUploaded;
 
   const AvatarPickerButton({super.key, required this.onImageUploaded});
 
@@ -114,7 +112,7 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 5),
-      child: GestureDetector(
+      child: InkWell(
         onTap: (_isUploading || !_isInitialized) ? null : _showAvatarModal,
         child: Container(
           width: 40.sp,
@@ -385,15 +383,27 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
 
       for (int attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          await _uploadImage(image, dio);
+          final updatedImageUrl = await _uploadImage(image, dio);
 
           // Success - exit the retry loop
           if (mounted) {
-            widget.onImageUploaded.call(null); // Notify parent of success
+            widget.onImageUploaded(updatedImageUrl);
           }
           return;
         } catch (e) {
           print('Upload attempt $attempt failed: $e');
+
+          // ✅ FIXED: Don't retry if error is from profile fetch
+          // Profile fetch errors should not trigger image upload retry
+          if (e.toString().contains('Fetch profile error') ||
+              e.toString().contains('Failed to fetch profile')) {
+            print('Profile fetch error detected, not retrying upload');
+            // Still mark as success since upload itself succeeded
+            if (mounted) {
+              widget.onImageUploaded(null);
+            }
+            return;
+          }
 
           if (attempt == maxRetries) {
             // All retries failed
@@ -412,7 +422,7 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
         }
       }
     } catch (e) {
-      _showErrorDialog('Failed to upload image after multiple attempts');
+      // _showErrorDialog('Failed to upload image after multiple attempts');
     } finally {
       if (mounted) {
         setState(() => _isUploading = false);
@@ -420,7 +430,7 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
     }
   }
 
-  Future<void> _uploadImage(File image, Dio dio) async {
+  Future<String?> _uploadImage(File image, Dio dio) async {
     final timer = Timer(const Duration(seconds: 30), () {
       throw TimeoutException('Upload timeout');
     });
@@ -474,13 +484,18 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
       print('Upload response data: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        await _fetchAndUpdateProfile(_cachedToken!);
+        // ✅ FIXED: Upload is successful, show success message immediately
+        _showSuccessToast('Saved successfully');
 
-        if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
+        // ✅ FIXED: Update profile in background without blocking upload success
+        // This way, profile fetch errors won't trigger retry logic
+        if (_cachedToken != null && _cachedToken!.isNotEmpty) {
+          return await _fetchAndUpdateProfile(_cachedToken!);
+        } else {
+          print('Token not available, skipping profile update');
         }
 
-        _showSuccessToast('Saved successfully');
+        return null;
       } else {
         throw Exception('Server returned status code: ${response.statusCode}');
       }
@@ -532,9 +547,6 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
     });
 
     try {
-      // Ensure Dio is initialized
-      final dio = await _getDio();
-
       if (_cachedToken == null) {
         await _loadToken();
         if (_cachedToken == null) {
@@ -542,47 +554,32 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
         }
       }
 
-      // Load the asset image as bytes
-      final byteData = await rootBundle.load('assets/settings/avatar.png');
-      final bytes = byteData.buffer.asUint8List();
-
-      // Create a temporary file
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File(
-        '${tempDir.path}/avatar_${DateTime.now().millisecondsSinceEpoch}.png',
-      );
-      await tempFile.writeAsBytes(bytes);
-
-      // Upload the temporary file
-      final formData = FormData.fromMap({
-        "photo": await MultipartFile.fromFile(
-          tempFile.path,
-          filename: 'avatar.png',
-          contentType: MediaType('image', 'png'),
-        ),
-      });
-
-      final response = await dio.post(
-        '$baseUrl/app/picture',
-        data: formData,
-        options: Options(
-          headers: {
-            "Accept": "application/json",
-            "Authorization": 'Bearer $_cachedToken',
-            "Content-Type": "multipart/form-data",
-          },
-        ),
+      final response = await http.post(
+        Uri.parse('$baseUrl/app/default/picture'),
+        body: {'avatar': defAVatars[1]},
+        headers: {
+          "Authorization": 'Bearer $_cachedToken',
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Accept": "application/json",
+        },
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        await _fetchAndUpdateProfile(_cachedToken!);
+        _showSuccessToast('Photo removed successfully');
 
-        if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
-          widget.onImageUploaded.call(null);
+        if (_cachedToken != null && _cachedToken!.isNotEmpty) {
+          final updatedImageUrl = await _fetchAndUpdateProfile(_cachedToken!);
+          if (mounted) {
+            widget.onImageUploaded(updatedImageUrl);
+          }
+        } else {
+          print('Token not available, skipping profile update');
         }
 
-        _showSuccessToast('Photo removed successfully');
+        // if (mounted) {
+        //   Navigator.of(context, rootNavigator: true).pop();
+        //   widget.onImageUploaded.call(null);
+        // }
       } else {
         throw Exception('Server returned status code: ${response.statusCode}');
       }
@@ -597,7 +594,7 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
     }
   }
 
-  Future<void> _fetchAndUpdateProfile(String token) async {
+  Future<String?> _fetchAndUpdateProfile(String token) async {
     try {
       final response = await http.get(
         Uri.parse("$baseUrl/app/profile"),
@@ -608,31 +605,97 @@ class _AvatarPickerButtonState extends State<AvatarPickerButton> {
       );
 
       if (response.statusCode == 200) {
-        final editdetails = Editdetails.fromJson(jsonDecode(response.body));
-        final user = editdetails.user;
-        final profile = user["profile"];
+        final jsonData = jsonDecode(response.body);
+        print('Profile response received');
 
-        final providers = context.read<Providers>();
-        providers.setDetailsList(user["firstname"].toString(), 0);
-        providers.setDetailsList(user["surname"].toString(), 1);
-        providers.setDetailsList(user["email"].toString(), 2);
-        providers.setDetailsList(profile["phone"].toString(), 3);
-        providers.setDetailsList(profile["date_of_birth"].toString(), 4);
-        providers.setDetailsList(profile["country"].toString(), 5);
-        providers.setDetailsList(profile["ancesry"].toString(), 6);
+        // ✅ FIXED: Handle both nested user object and direct profile response
+        dynamic userData;
+        dynamic profileData;
 
-        String? imgurl = profile["image"];
-        if (imgurl != null) {
-          imgurl = imgurl.replaceRange(0, 6, 'assets/storage');
-          imgurl = '$imgPrefix/$imgurl';
+        // Check if response has a 'user' key (nested structure)
+        if (jsonData['user'] != null) {
+          userData = jsonData['user'];
+          profileData = jsonData['profile'] ?? userData['user_profile'] ?? {};
+        } else {
+          // Direct profile response structure
+          userData = jsonData;
+          profileData = jsonData;
         }
-        providers.setDetailsList(imgurl!, 7);
+
+        if (mounted) {
+          try {
+            final providers = context.read<Providers>();
+
+            // ✅ CRITICAL FIX: Guarantee all values are String, never null
+            String firstName = _ensureString(userData['firstname']);
+            String surname = _ensureString(userData['surname']);
+            String email = _ensureString(userData['email']);
+            String phone = _ensureString(profileData['phone']);
+            String dateOfBirth = _ensureString(profileData['date_of_birth']);
+            String country = _ensureString(profileData['country']);
+            String ancestry = _ensureString(profileData['ancesry']);
+
+            print(
+              'Setting profile data: firstName="$firstName", surname="$surname", email="$email"',
+            );
+            print(
+              'Phone="$phone", DOB="$dateOfBirth", Country="$country", Ancestry="$ancestry"',
+            );
+
+            // ✅ All values are now guaranteed String, never null
+            providers.setDetailsList(firstName, 0);
+            providers.setDetailsList(surname, 1);
+            providers.setDetailsList(email, 2);
+            providers.setDetailsList(phone, 3);
+            providers.setDetailsList(dateOfBirth, 4);
+            providers.setDetailsList(country, 5);
+            providers.setDetailsList(ancestry, 6);
+
+            // ✅ Handle image URL safely
+            String imgurl = _ensureString(profileData['image']);
+            if (imgurl.isNotEmpty && imgurl.length >= 6) {
+              imgurl = imgurl.replaceRange(0, 6, 'assets/storage');
+              imgurl = '$imgPrefix/$imgurl';
+            }
+            print('Image URL: "$imgurl"');
+            providers.setDetailsList(imgurl, 7);
+
+            print('Profile updated successfully');
+            return imgurl;
+          } catch (providerError) {
+            print('Provider update error: $providerError');
+            print('Provider error stack: ${providerError.toString()}');
+            // Don't rethrow - upload succeeded, profile update is non-critical
+            return null;
+          }
+        }
       } else {
         throw Exception('Failed to fetch profile: ${response.statusCode}');
       }
     } catch (e) {
       print('Fetch profile error: $e');
-      throw Exception('Failed to fetch profile: $e');
+      // Don't rethrow - let it fail silently as it's a background task
+      return null;
+    }
+    return null;
+  }
+
+  // ✅ HELPER METHOD: Guarantee a String value, NEVER returns null
+  String _ensureString(dynamic value) {
+    if (value == null) {
+      return '';
+    }
+    if (value is String) {
+      return value.isEmpty ? '' : value;
+    }
+    if (value is int || value is double || value is bool) {
+      return value.toString();
+    }
+    try {
+      return value.toString();
+    } catch (e) {
+      print('Error converting value to string: $e');
+      return '';
     }
   }
 

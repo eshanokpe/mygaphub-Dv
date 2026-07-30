@@ -319,10 +319,6 @@ class _SetgivingState extends State<Setgiving> {
       Navigator.pop(context);
       Navigator.pop(context);
       context.read<Providers>().setphilanList(response2.data);
-      // Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //         builder: (context) => Philanthropy(response2.data, currency)));
       Navigator.push(
         context,
         MaterialPageRoute(

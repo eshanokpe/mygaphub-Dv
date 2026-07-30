@@ -5,6 +5,7 @@ import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/widgets/navigateWithSlideTransition.dart';
+import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,7 +15,6 @@ import 'package:phone_number/phone_number.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
- 
 import 'verify_number.dart';
 
 class EditPhoneScreen extends StatefulWidget {
@@ -38,6 +38,7 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
   Country _selectedCountry = Country.parse('GB'); // Default to UK
   bool _isSaving = false;
   bool _isPhoneValid = false;
+  bool _hasRequiredPhoneDigits = false;
   final PhoneNumberUtil _phoneUtil = PhoneNumberUtil();
   late List<Country> _allCountries;
   bool _hasShownEmptyFieldPopup = false;
@@ -111,6 +112,23 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
     'DE': 10, // Germany (for Euro)
   };
 
+  String _ensureLeadingZero(String number) {
+    final trimmedNumber = number.trim();
+    if (trimmedNumber.isEmpty) {
+      return '';
+    }
+
+    return trimmedNumber.startsWith('0') ? trimmedNumber : '0$trimmedNumber';
+  }
+
+  String _stripLeadingZero(String number) {
+    final trimmedNumber = number.trim().replaceAll(' ', '');
+    if (trimmedNumber.startsWith('0') && trimmedNumber.length > 1) {
+      return trimmedNumber.substring(1);
+    }
+    return trimmedNumber;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -119,11 +137,16 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
     String nationalNumber = '';
     if (widget.initialPhone.trim().isNotEmpty &&
         widget.initialPhone.trim().toLowerCase() != 'null') {
-      String fullNumber = widget.initialPhone;
+      String fullNumber = widget.initialPhone.trim().replaceAll(' ', '');
+      if (!fullNumber.startsWith('+')) {
+        fullNumber = '+$fullNumber';
+      }
 
       // Try to extract country code and find the national number
-      for (var country in _allCountries) {
-        String countryCode = '+${country.phoneCode}';
+      final sortedCountries = [..._allCountries]
+        ..sort((a, b) => b.phoneCode.length.compareTo(a.phoneCode.length));
+      for (var country in sortedCountries) {
+        final countryCode = '+${country.phoneCode}';
         if (fullNumber.startsWith(countryCode)) {
           nationalNumber = fullNumber.substring(countryCode.length);
           _selectedCountry = country; // Set the correct country
@@ -134,9 +157,14 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
       if (nationalNumber.isEmpty) {
         nationalNumber = fullNumber;
       }
+
+      nationalNumber = _ensureLeadingZero(nationalNumber);
     }
 
-    _numberController = TextEditingController(text: nationalNumber);
+    _numberController = TextEditingController(
+      text: _ensureLeadingZero(nationalNumber),
+    );
+    _hasRequiredPhoneDigits = _hasRequiredDigits(_numberController.text);
     _focusNode = FocusNode();
     _allCountries = CountryService().getAll();
 
@@ -144,8 +172,49 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
     _loadPopularCurrencies();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkInitialEmptyField();
+      _syncCountryFromInitialPhone();
     });
+  }
+
+  Future<void> _syncCountryFromInitialPhone() async {
+    final initialPhone = widget.initialPhone.trim().replaceAll(' ', '');
+    if (initialPhone.isEmpty || initialPhone.toLowerCase() == 'null') return;
+
+    final fullNumber = initialPhone.startsWith('+')
+        ? initialPhone
+        : '+$initialPhone';
+
+    try {
+      final parsed = await _phoneUtil.parse(fullNumber);
+      final country = Country.tryParse(parsed.regionCode);
+      if (!mounted || country == null) return;
+
+      setState(() {
+        _selectedCountry = country;
+        _numberController.text = _ensureLeadingZero(parsed.nationalNumber);
+        _hasRequiredPhoneDigits = _hasRequiredDigits(_numberController.text);
+      });
+      _checkPhoneValidity(_numberController.text);
+    } catch (e) {
+      _syncCountryFromDialCode(fullNumber);
+    }
+  }
+
+  void _syncCountryFromDialCode(String fullNumber) {
+    final sortedCountries = [..._allCountries]
+      ..sort((a, b) => b.phoneCode.length.compareTo(a.phoneCode.length));
+
+    for (final country in sortedCountries) {
+      final countryCode = '+${country.phoneCode}';
+      if (fullNumber.startsWith(countryCode)) {
+        if (!mounted) return;
+        setState(() {
+          _selectedCountry = country;
+          _hasRequiredPhoneDigits = _hasRequiredDigits(_numberController.text);
+        });
+        return;
+      }
+    }
   }
 
   // Add the missing method here
@@ -286,8 +355,12 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
     // Get dial code from selected country
     final dialCode = '+${_selectedCountry.phoneCode}';
 
-    if (_numberController.text.isNotEmpty) {
-      _validatePhoneNumber(_numberController.text);
+    if (_numberController.text.isNotEmpty &&
+        !await _checkPhoneValidity(
+          _numberController.text,
+          showInvalidError: true,
+        )) {
+      return;
     }
 
     setState(() {
@@ -312,7 +385,7 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
 
         // Format the phone number with dial code
         final formattedPhoneNumber =
-            '$dialCode${_numberController.text.replaceAll(' ', '')}';
+            '$dialCode${_ensureLeadingZero(_numberController.text.replaceAll(' ', ''))}';
 
         provider.updatePhoneNumber(formattedPhoneNumber);
 
@@ -331,9 +404,18 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
         if (response.statusCode == 200) {
           // Return the formatted phone number to the previous screen
           Navigator.pop(context, formattedPhoneNumber);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Phone number updated successfully')),
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return const SuccessModal(
+                message: "Phone number updated successfully",
+              );
+            },
           );
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   const SnackBar(content: Text('Phone number updated successfully')),
+          // );
         } else if (response.statusCode == 429) {
           final body = jsonDecode(response.body);
           print('Error 429: ${body['message']}');
@@ -378,7 +460,9 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
   Future<String> sendOtp(String phoneNumber) async {
     try {
       final dialCode = '+${_selectedCountry.phoneCode}';
-      var number = _numberController.text.replaceAll(' ', '');
+      var number = _ensureLeadingZero(
+        _numberController.text.replaceAll(' ', ''),
+      );
       print('phoneNumber:$dialCode$number');
 
       final response = await http.post(
@@ -622,9 +706,13 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
                                           countryCode,
                                         );
                                         if (country != null) {
-                                          setState(
-                                            () => _selectedCountry = country,
-                                          );
+                                          setState(() {
+                                            _selectedCountry = country;
+                                            _hasRequiredPhoneDigits =
+                                                _hasRequiredDigits(
+                                                  _numberController.text,
+                                                );
+                                          });
                                           Navigator.pop(context);
                                           _checkPhoneValidity(
                                             _numberController.text,
@@ -733,8 +821,17 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
     final expectedLength = _countryPhoneLengths[countryCode];
     if (expectedLength == null) return true;
 
-    final digitsOnly = phoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+    final digitsOnly = _stripLeadingZero(phoneNumber);
     return digitsOnly.length == expectedLength;
+  }
+
+  bool _hasRequiredDigits(String phoneNumber) {
+    final expectedLength = _getPhoneLengthFromCountryCode(
+      _selectedCountry.countryCode,
+    );
+    if (expectedLength == null) return phoneNumber.trim().isNotEmpty;
+
+    return _stripLeadingZero(phoneNumber).length == expectedLength;
   }
 
   @override
@@ -745,6 +842,7 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          surfaceTintColor: Colors.white,
           elevation: 0,
           backgroundColor: Colors.white,
           leading: IconButton(
@@ -818,40 +916,59 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
                       ),
                       SizedBox(width: 10.w),
                       Expanded(
-                        child: TextFormField(
-                          focusNode: _focusNode,
-                          keyboardType: TextInputType.phone,
-                          controller: _numberController,
-                          textAlign: TextAlign.center,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(15),
-                          ],
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          validator: _validatePhoneNumber,
-                          decoration: InputDecoration(
-                            hintText: '123 123456',
-                            hintStyle: GoogleFonts.nunitoSans(
+                        child: Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: TextFormField(
+                            focusNode: _focusNode,
+                            keyboardType: TextInputType.phone,
+                            controller: _numberController,
+                            textAlign: TextAlign.left,
+                            textDirection: TextDirection.ltr,
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(15),
+                            ],
+                            style: GoogleFonts.nunitoSans(
                               fontSize: 22.sp,
-                              color: AppColors.grayColor,
+                              fontWeight: FontWeight.w600,
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
+                            validator: _validatePhoneNumber,
+                            decoration: InputDecoration(
+                              hintText: '123 123456',
+                              hintStyle: GoogleFonts.nunitoSans(
+                                fontSize: 22.sp,
+                                color: const Color.fromARGB(88, 128, 128, 128),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xfff3f3f3),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10.h,
+                                horizontal: 8.w,
+                              ),
                             ),
-                            filled: true,
-                            fillColor: const Color(0xfff3f3f3),
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: 10.h,
-                              horizontal: 8.w,
-                            ),
+                            onChanged: (value) {
+                              if (value.isNotEmpty && !value.startsWith('0')) {
+                                final updatedValue = _ensureLeadingZero(value);
+                                _numberController.value = TextEditingValue(
+                                  text: updatedValue,
+                                  selection: TextSelection.collapsed(
+                                    offset: updatedValue.length,
+                                  ),
+                                );
+                                value = updatedValue;
+                              }
+                              setState(() {
+                                _hasRequiredPhoneDigits = _hasRequiredDigits(
+                                  value,
+                                );
+                              });
+                              _checkPhoneValidity(value);
+                            },
                           ),
-                          onChanged: (value) {
-                            _checkPhoneValidity(value);
-                          },
                         ),
                       ),
                     ],
@@ -864,7 +981,7 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
                   ),
 
                   ElevatedButton(
-                    onPressed: _isPhoneValid ? _saveNumber : null,
+                    onPressed: _hasRequiredPhoneDigits ? _saveNumber : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       minimumSize: Size.fromHeight(60.h),
@@ -900,33 +1017,41 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
     return 'Enter $expectedLength-digit phone number for ${_selectedCountry.name}';
   }
 
-  Future<void> _checkPhoneValidity(String value) async {
+  Future<bool> _checkPhoneValidity(
+    String value, {
+    bool showInvalidError = false,
+  }) async {
     final region = _selectedCountry.countryCode;
     final dialCode = '+${_selectedCountry.phoneCode}';
 
-    if (dialCode == null) return;
+    if (dialCode == null) return false;
 
-    final numberDigitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
+    final numberDigitsOnly = _stripLeadingZero(value);
 
     // Check length first before making API calls
     final expectedLength = _getPhoneLengthFromCountryCode(region);
     final currentLength = numberDigitsOnly.length;
+    final hasRequiredDigits =
+        expectedLength == null ||
+        (numberDigitsOnly.isNotEmpty && currentLength == expectedLength);
 
     // Show validation response for invalid length
     if (expectedLength != null &&
         numberDigitsOnly.isNotEmpty &&
         currentLength != expectedLength) {
-      if (currentLength > expectedLength) {
+      if (currentLength > expectedLength && showInvalidError) {
         validationResponse(
           context,
           'Error',
           'The phone number you provided is invalid. Please enter a correct one.',
         );
       }
+      if (!mounted || value != _numberController.text) return false;
       setState(() {
+        _hasRequiredPhoneDigits = false;
         _isPhoneValid = false;
       });
-      return;
+      return false;
     }
 
     try {
@@ -937,16 +1062,37 @@ class _EditPhoneScreenState extends State<EditPhoneScreen> {
 
       final valid = isValid && isLengthValid;
 
+      if (!mounted || value != _numberController.text) return valid;
       setState(() {
+        _hasRequiredPhoneDigits = hasRequiredDigits;
         _isPhoneValid = valid;
       });
 
+      if (!valid && showInvalidError) {
+        validationResponse(
+          context,
+          'Error',
+          'The phone number you provided is invalid. Please enter a correct one.',
+        );
+      }
+
       print('valid:$valid');
       print('_isPhoneValid:$_isPhoneValid');
+      return valid;
     } catch (e) {
+      if (!mounted || value != _numberController.text) return false;
       setState(() {
+        _hasRequiredPhoneDigits = hasRequiredDigits;
         _isPhoneValid = false;
       });
+      if (showInvalidError) {
+        validationResponse(
+          context,
+          'Error',
+          'The phone number you provided is invalid. Please enter a correct one.',
+        );
+      }
+      return false;
     }
   }
 

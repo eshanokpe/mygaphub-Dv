@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
-import './charts/itemshealthchart.dart';
+import 'charts/itemshealthchart.dart';
 import 'charts/assetvaluechart.dart';
 import 'package:flutter/services.dart';
 import 'charts/netincomechart.dart';
@@ -27,11 +27,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/utils/dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import './braidetails.dart';
+import 'braidetails.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
-import './summary.dart';
-import './financial.dart';
+import 'summary.dart';
+import 'financial.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:provider/provider.dart';
 
@@ -537,10 +537,14 @@ class _BraiditemState extends State<Braiditem> {
 
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.black, size: 20.sp),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [widget.archived ? topMenuArchived() : topMenu()],
       ),
       bottomNavigationBar: const BottomNav(3),

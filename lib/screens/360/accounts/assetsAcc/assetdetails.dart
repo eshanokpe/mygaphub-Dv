@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:GapHub/screens/360/accounts/cash/cashdetails.dart';
 import 'package:GapHub/screens/360/accounts/investment/investdash.dart';
-import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
+import 'package:GapHub/screens/360/accounts/retirement/retiredash.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/httpErrorDisplay.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
@@ -26,7 +26,6 @@ class Assetdetails extends StatefulWidget {
   final List bespokes;
   final Map? pensions;
   final invSum;
-  final Map<String, dynamic>? braidTable;
 
   const Assetdetails({
     super.key,
@@ -38,7 +37,6 @@ class Assetdetails extends StatefulWidget {
     required this.equityDataLite,
     required this.invSum,
     required this.bespokes,
-    required this.braidTable,
   });
   @override
   _AssetdetailsState createState() => _AssetdetailsState();
@@ -272,10 +270,7 @@ class _AssetdetailsState extends State<Assetdetails> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Investdash(
-                          sums: widget.invSum,
-                          braidTable: widget.braidTable,
-                        ),
+                        builder: (context) => Investdash(sums: widget.invSum),
                       ),
                     );
                   },
@@ -511,7 +506,8 @@ class _AssetdetailsState extends State<Assetdetails> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const Retiredash(),
+                              builder: (context) =>
+                                  Retiredash(response.data, response2.data),
                             ),
                           );
                         } else {
@@ -744,7 +740,7 @@ class _AssetdetailsState extends State<Assetdetails> {
             SizedBox(height: height * .02),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width * .2),
-              child: const Addaccountbtn(index: "Assets"),
+              child: Addaccountbtn(width: width, index: "Assets"),
             ),
             SizedBox(height: height * .05),
           ],

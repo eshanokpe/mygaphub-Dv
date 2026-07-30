@@ -7,7 +7,7 @@ import 'package:GapHub/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './seedtabs.dart';
+import 'seedtabs.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:provider/provider.dart';
 

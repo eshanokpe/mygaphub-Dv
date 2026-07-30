@@ -1,6 +1,6 @@
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:flutter/material.dart';
-import './incomeitem.dart';
+import 'incomeitem.dart';
 
 class Incarchives extends StatelessWidget {
   final Map data;

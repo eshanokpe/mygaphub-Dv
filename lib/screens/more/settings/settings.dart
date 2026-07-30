@@ -49,6 +49,7 @@ class _SettingsState extends State<Settings> {
   String? _baseCurrency;
   bool _isLoading = true;
   bool _isSignInPrefsLoading = false;
+  int _imageRefreshVersion = 0;
 
   // MARK: - Constants
   static const String _defaultAvatarPath = 'assets/settings/avatar.png';
@@ -56,11 +57,25 @@ class _SettingsState extends State<Settings> {
       '$imgPrefix//assets/storage/avatar/default.png';
   static const String _maleAvatarUrl =
       '$imgPrefix/assets/storage/avatar/Avatar_Male 1.png';
+  static const List<String> _settingsTileIcons = [
+    'assets/settings/changepword.png',
+    'assets/settings/fingerprint.png',
+    'assets/settings/settings.png',
+    'assets/settings/paint_roller.png',
+    'assets/settings/exchange.png',
+    'assets/settings/currency.png',
+    'assets/settings/documents.png',
+    'assets/settings/rate.png',
+    'assets/settings/socialmedia.png',
+  ];
 
   @override
   void initState() {
     super.initState();
     _initializeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _precacheSettingsIcons();
+    });
     _fetchBaseCurrency();
   }
 
@@ -71,7 +86,7 @@ class _SettingsState extends State<Settings> {
   }
 
   String _buildFullName(Providers provider) {
-    return "${provider.details[0]} ${provider.details[1]}";
+    return "${provider.details[0]} ${provider.details[1]}".trim();
   }
 
   // MARK: - Authentication
@@ -113,8 +128,13 @@ class _SettingsState extends State<Settings> {
     } else if (imageUrl == _maleAvatarUrl) {
       return Image.asset(_defaultAvatarPath, fit: BoxFit.contain);
     } else {
+      final refreshedImageUrl = imageUrl.contains('?')
+          ? '$imageUrl&v=$_imageRefreshVersion'
+          : '$imageUrl?v=$_imageRefreshVersion';
+
       return CachedNetworkImage(
-        imageUrl: imageUrl,
+        key: ValueKey(refreshedImageUrl),
+        imageUrl: refreshedImageUrl,
         fit: BoxFit.cover,
         placeholder: (_, __) => const Center(
           child: CircularProgressIndicator(
@@ -132,6 +152,12 @@ class _SettingsState extends State<Settings> {
       color: Colors.grey[200],
       child: Icon(Icons.person, size: 50.sp, color: Colors.grey[500]),
     );
+  }
+
+  Future<void> _precacheSettingsIcons() async {
+    for (final iconPath in _settingsTileIcons) {
+      await precacheImage(AssetImage(iconPath), context);
+    }
   }
 
   // MARK: - Currency Formatting
@@ -225,19 +251,19 @@ class _SettingsState extends State<Settings> {
   Future<Map<String, dynamic>?> _fetchExchangeRates(String token) async {
     const url = "$baseUrl/app/exchange";
 
-    final response = await _dio
-        .get(
-          url,
-          options: Options(
-            headers: {
-              "Authorization": 'Bearer $token',
-              "Content-Type": 'application/json',
-              "Accept": "application/json",
-            },
-          ),
-        )
-        .timeout(const Duration(seconds: 30));
-
+    final response = await _dio.get(
+      url,
+      options: Options(
+        headers: {
+          "Authorization": 'Bearer $token',
+          "Content-Type": 'application/json',
+          "Accept": "application/json",
+        },
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+      ),
+    );
+    print('Exchange rates response: ${response.data}');
     if (response.statusCode == 200 || response.statusCode == 201) {
       final result = response.data as Map;
 
@@ -498,7 +524,6 @@ class _SettingsState extends State<Settings> {
         : 'https://apps.apple.com/us/app/gaphub/id1577758374';
 
     final canLaunchUrl = await canLaunch(url);
-
     if (canLaunchUrl) {
       await launch(url);
     } else {
@@ -534,8 +559,11 @@ class _SettingsState extends State<Settings> {
             AvatarPickerButton(
               onImageUploaded: (newImageUrl) {
                 final provider = Provider.of<Providers>(context, listen: false);
-                provider.details[7] = newImageUrl;
-                setState(() {});
+                provider.setDetailsList(newImageUrl ?? '', 7);
+                if (newImageUrl != null && newImageUrl.isNotEmpty) {
+                  CachedNetworkImage.evictFromCache(newImageUrl);
+                }
+                setState(() => _imageRefreshVersion++);
               },
             ),
           ],
@@ -725,6 +753,7 @@ class _SettingsState extends State<Settings> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
+      surfaceTintColor: Colors.white,
       backgroundColor: Colors.white,
       foregroundColor: Colors.white,
       title: Text(

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../charts/detailsvaluechart.dart';
+import 'detailsvaluechart.dart';
 
 class Finanexpenchart extends StatefulWidget {
   const Finanexpenchart({

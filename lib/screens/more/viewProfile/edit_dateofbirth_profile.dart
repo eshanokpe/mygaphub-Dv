@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
+import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_holo_date_picker/date_picker.dart';
@@ -14,18 +17,14 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'view_profile.dart';
-
 class EditDateOfBirthScreen extends StatefulWidget {
   final String initialDate;
   final List<String> details;
-  final String? sourcePage;
 
   const EditDateOfBirthScreen({
     super.key,
     required this.initialDate,
     required this.details,
-    this.sourcePage,
   });
 
   @override
@@ -112,21 +111,34 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Date of birth updated successfully')),
+        final dashboardResponse = await http.get(
+          Uri.parse('$baseUrl/app/dashboard'),
+          headers: {
+            "Authorization": 'Bearer $token',
+            "Accept": "application/json",
+          },
         );
-        // ✅ Only close both screens if coming from Retirement page
-        if (widget.sourcePage == 'retirement') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ViewProfile(),
-            ),
+
+        if (dashboardResponse.statusCode == 200 && mounted) {
+          final dashboardData = jsonDecode(dashboardResponse.body);
+          context.read<Providers>().setAssistance(
+            Map<String, dynamic>.from(dashboardData['assistance'] ?? {}),
           );
-        } else {
-          // ✅ Normal flow for all other pages
-          Navigator.pop(context);
         }
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return SuccessModal(
+              message: "Date of birth updated successfully",
+              onClose: () {
+                Navigator.of(context).pop();
+                Navigator.of(this.context).pop();
+              },
+            );
+          },
+        );
       } else if (response.statusCode == 429) {
         final body = jsonDecode(response.body);
         print('Error 429: ${body['message']}');

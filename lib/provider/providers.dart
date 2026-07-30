@@ -186,7 +186,6 @@ class Providers extends ChangeNotifier {
   //Protection
   List protectionList = [];
   Map protectionListLite = {};
-  Map protectionDistribution = {};
 
   List accommodationdata = [];
 
@@ -775,11 +774,6 @@ class Providers extends ChangeNotifier {
 
   setProtectionListLite(Map data) {
     protectionListLite = data;
-    notifyListeners();
-  }
-
-  setProtectionDistribution(Map data) {
-    protectionDistribution = data;
     notifyListeners();
   }
 

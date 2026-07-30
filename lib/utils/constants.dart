@@ -1,18 +1,18 @@
-import './regex.dart';
+import 'regex.dart';
 
-// const baseUrl = "https://app.mygaphub.com/api/v2";
-// const imgPrefix = "https://app.mygaphub.com";
-// const imgPrefixAssets = "https://app.mygaphub.com/api/v2/assets";
-// const assetBaseUrl = "https://gappropertyhub.com/wp-json/custom-api";
-// const hubImageUrl = "http://www.gapassethub.com";
-// const shareBase = "https://app.mygaphub.com/api/v2";
-
-const baseUrl = "https://appstaging.mygaphub.com/api/v2";
-const imgPrefix = "https://appstaging.mygaphub.com/api/v2";
-const imgPrefixAssets = "https://appstaging.mygaphub.com/assets";
+const baseUrl = "https://app.mygaphub.com/api/v2";
+const imgPrefix = "https://app.mygaphub.com";
+const imgPrefixAssets = "https://app.mygaphub.com/api/v2/assets";
 const assetBaseUrl = "https://gappropertyhub.com/wp-json/custom-api";
-const hubImageUrl = "https://www.gapassethub.com";
-const shareBase = "https://appstaging.mygaphub.com/api/v2";
+const hubImageUrl = "http://www.gapassethub.com";
+const shareBase = "https://app.mygaphub.com/api/v2";
+
+// const baseUrl = "https://appstaging.mygaphub.com/api/v2";
+// const imgPrefix = "https://appstaging.mygaphub.com/api/v2";
+// const imgPrefixAssets = "https://appstaging.mygaphub.com/assets";
+// const assetBaseUrl = "https://gappropertyhub.com/wp-json/custom-api";
+// const hubImageUrl = "https://www.gapassethub.com";
+// const shareBase = "https://appstaging.mygaphub.com/api/v2";
 
 const token2 =
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9hcHBzdGFnaW5nLm15Z2FwaHViLmNvbVwvYXBpXC92MlwvbXlnYXBcL2xvZ2luIiwiaWF0IjoxNjU3Nzg3MzQyLCJleHAiOjE2NjI5NzEzNDIsIm5iZiI6MTY1Nzc4NzM0MiwianRpIjoiWUhNTUtya1ViODlHQW5RRyIsInN1YiI6MzcsInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.XZjLxr4tylO0Ex84L5BnlKvjH79XpmWNR1POt8048Zg';
@@ -299,4 +299,3 @@ const Map<String, String> currencyToPhonePrefix = {
   "Rp IDR": '+62',
   '-Select-': '', // No prefix if '-Select-' is chosen
 };
-

@@ -35,13 +35,11 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
   final dio = Dio();
   static const int _pinLength = 6;
 
-  // Shake animation controller
   final ShakeAnimationController _shakeController = ShakeAnimationController();
 
   @override
   void initState() {
     super.initState();
-    // Auto-focus the pin field when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_pinFocusNode);
     });
@@ -51,7 +49,7 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
   void dispose() {
     _controller.dispose();
     _pinFocusNode.dispose();
-    _shakeController.dispose(); // Dispose the shake controller
+    _shakeController.dispose();
     super.dispose();
   }
 
@@ -60,110 +58,137 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Icon(Icons.arrow_back_ios, color: Colors.black, size: 20.sp),
         ),
         actions: const [HelpWidget()],
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20.h),
-            _buildTitle(),
-            SizedBox(height: 10.h),
-            _buildSubtitle(),
-            if (_errorMessage.isNotEmpty) _buildErrorMessage(),
-            SizedBox(height: 90.h),
-            _buildPinCodeField(),
-            if (_isLoading) _buildLoadingIndicator(),
-            Expanded(child: _buildNumPad()),
-          ],
+      body: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Container(
+          height:
+              MediaQuery.of(context).size.height -
+              MediaQuery.of(context).padding.top -
+              kToolbarHeight -
+              MediaQuery.of(context).padding.bottom,
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Header Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Re-type your ',
+                          style: GoogleFonts.nunitoSans(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 22.sp,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'GAPhub',
+                          style: GoogleFonts.nunitoSans(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 22.sp,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' passcode',
+                          style: GoogleFonts.nunitoSans(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 22.sp,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Text(
+                    'Let\'s make sure it\'s correct',
+                    textAlign: TextAlign.left,
+                    style: GoogleFonts.nunitoSans(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.grayColor,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Pin Dots
+              ShakeAnimation(
+                controller: _shakeController,
+                child: _buildPinDots(),
+              ),
+
+              // Hidden TextField
+              _buildHiddenTextField(),
+
+              // Loading Indicator
+              if (_isLoading) ...[
+                const SpinKitCircle(color: Colors.black, size: 40.0),
+              ],
+
+              // Number Pad
+              SizedBox(
+                width: double.infinity,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double spacing = 20.h;
+                    final double buttonSize =
+                        (constraints.maxWidth - spacing * 4) / 3;
+                    return Column(
+                      children: [
+                        _buildNumberRow(['1', '2', '3'], buttonSize, spacing),
+                        SizedBox(height: spacing),
+                        _buildNumberRow(['4', '5', '6'], buttonSize, spacing),
+                        SizedBox(height: spacing),
+                        _buildNumberRow(['7', '8', '9'], buttonSize, spacing),
+                        SizedBox(height: spacing),
+                        _buildNumberRow(
+                          ['', '0', 'Clear'],
+                          buttonSize,
+                          spacing,
+                          isLastRow: true,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTitle() {
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: 'Re-type your ',
-            style: GoogleFonts.nunitoSans(
-              color: Colors.black,
-              fontWeight: FontWeight.w700,
-              fontSize: 22.sp,
-            ),
+  Widget _buildPinDots() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(_pinLength, (index) {
+        final bool isFilled = index < _currentPin.length;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          margin: EdgeInsets.symmetric(horizontal: 8.w),
+          width: isFilled ? 16.w : 12.w,
+          height: isFilled ? 16.w : 12.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isFilled ? Colors.black : const Color(0xffe4e4e4),
           ),
-          TextSpan(
-            text: 'GAPhub',
-            style: GoogleFonts.nunitoSans(
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w700,
-              fontSize: 22.sp,
-            ),
-          ),
-          TextSpan(
-            text: ' passcode',
-            style: GoogleFonts.nunitoSans(
-              color: Colors.black,
-              fontWeight: FontWeight.w700,
-              fontSize: 22.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return Text(
-      'Let\'s make sure it\'s correct',
-      textAlign: TextAlign.left,
-      style: GoogleFonts.nunitoSans(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w400,
-        color: AppColors.grayColor,
-      ),
-    );
-  }
-
-  Widget _buildErrorMessage() {
-    return Padding(
-      padding: EdgeInsets.only(top: 16.h),
-      child: Text(
-        _errorMessage,
-        style: GoogleFonts.nunitoSans(color: Colors.red, fontSize: 14.sp),
-      ),
-    );
-  }
-
-  Widget _buildLoadingIndicator() {
-    return Column(
-      children: [
-        SizedBox(height: 20.h),
-        const Center(child: SpinKitCircle(color: Colors.black, size: 50.0)),
-      ],
-    );
-  }
-
-  Widget _buildPinCodeField() {
-    return ShakeAnimation(
-      controller: _shakeController,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 100.w),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            _buildPinDots(),
-            Positioned(top: -100, child: _buildHiddenTextField()),
-          ],
-        ),
-      ),
+        );
+      }),
     );
   }
 
@@ -174,13 +199,15 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
       child: TextField(
         focusNode: _pinFocusNode,
         controller: _controller,
-        keyboardType: TextInputType.number,
+        keyboardType: TextInputType.none,
         maxLength: _pinLength,
+        readOnly: true,
         enableSuggestions: false,
         autocorrect: false,
         autofocus: false,
         showCursor: false,
-        style: const TextStyle(fontSize: 0, color: Colors.transparent),
+        enableInteractiveSelection: false,
+        style: const TextStyle(color: Colors.transparent),
         decoration: const InputDecoration(
           border: InputBorder.none,
           counterText: "",
@@ -201,86 +228,63 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
     );
   }
 
-  Widget _buildPinDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.max,
-      children: List.generate(_pinLength, (index) {
-        final bool isFilled = index < _currentPin.length;
-        final bool isActive =
-            index == _currentPin.length && _currentPin.isNotEmpty;
-
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: isFilled ? 16.w : 12.w,
-          height: isFilled ? 16.w : 12.w,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isFilled
-                ? Colors.black
-                : isActive
-                ? Colors.grey.shade400
-                : const Color(0xffe4e4e4),
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _buildNumPad() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double spacing = 20.h;
-        double buttonSize = (constraints.maxWidth - spacing * 4) / 3;
-
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumberRow([1, 2, 3], buttonSize, spacing),
-            SizedBox(height: spacing),
-            _buildNumberRow([4, 5, 6], buttonSize, spacing),
-            SizedBox(height: spacing),
-            _buildNumberRow([7, 8, 9], buttonSize, spacing),
-            SizedBox(height: spacing),
-            _buildBottomRow(buttonSize),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildNumberRow(List<int> numbers, double buttonSize, double spacing) {
+  Widget _buildNumberRow(
+    List<String> values,
+    double buttonSize,
+    double spacing, {
+    bool isLastRow = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: numbers
-          .map((number) => _buildNumberButton(number, buttonSize))
-          .toList(),
+      children: values.map((value) {
+        if (value.isEmpty) {
+          return SizedBox(width: buttonSize, height: buttonSize);
+        }
+        if (value == 'Clear') {
+          return _buildClearButton();
+        }
+        return _buildNumberButton(value, buttonSize);
+      }).toList(),
     );
   }
 
-  Widget _buildBottomRow(double buttonSize) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        SizedBox(width: buttonSize),
-        _buildNumberButton(0, buttonSize),
-        _buildClearButton(buttonSize),
-      ],
-    );
-  }
-
-  Widget _buildClearButton(double size) {
+  Widget _buildNumberButton(String number, double size) {
     return SizedBox(
       width: size,
       height: size,
-      child: TextButton(
-        onPressed: _clearPin,
+      child: CustomAnimatedNumPad(
+        onPressed: () => _onNumberPressed(int.parse(number)),
         child: Text(
-          'Clear',
+          number.toString(),
           style: GoogleFonts.nunitoSans(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
+            fontSize: 24.sp,
+            fontWeight: FontWeight.w800,
             color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClearButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _clearPin,
+        borderRadius: BorderRadius.circular(35.r),
+        child: Container(
+          width: 70.w,
+          height: 70.h,
+          decoration: const BoxDecoration(shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              'Clear',
+              style: GoogleFonts.nunitoSans(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
           ),
         ),
       ),
@@ -294,32 +298,12 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
         _currentPin = _controller.text;
       });
 
-      // Auto-validate when PIN is complete
       if (_controller.text.length == _pinLength) {
         _validateAndSavePasscode(_controller.text);
       }
     }
   }
 
-  Widget _buildNumberButton(int number, double size) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomAnimatedNumPad(
-        onPressed: () => _onNumberPressed(number),
-        child: Text(
-          number.toString(),
-          style: GoogleFonts.nunitoSans(
-            fontSize: 24.sp,
-            fontWeight: FontWeight.w800,
-            color: Colors.black,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Method to trigger the shake animation
   void _triggerShake() {
     _shakeController.shake();
   }
@@ -350,13 +334,11 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
     _handleSaveResponse(response);
   }
 
-  // In RetryPasscodeScreen - modify _handleSaveResponse method
   void _handleSaveResponse(http.Response response) {
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
 
       if (responseData['success'] == true) {
-        // Instead of showing modal here, pop with success result
         if (mounted) {
           Navigator.of(context).pop(true);
           Navigator.of(context).pop(true);
@@ -371,18 +353,15 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
     }
   }
 
-  // Also update the _validateAndSavePasscode catch block
   void _validateAndSavePasscode(String retypedPin) async {
     if (_isLoading) return;
 
-    // First validate that both pins match
     if (widget.originalPin != retypedPin) {
       setState(() {
         _errorMessage = "Passcodes don't match. Please try again.";
         _controller.clear();
         _currentPin = "";
       });
-      // Trigger shake animation when pins don't match
       _triggerShake();
       _showErrorBottomSheet('Passcodes do not match. Please try again.');
       return;
@@ -406,13 +385,13 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
     } catch (e) {
       _handleSaveError('An error occurred. Please try again.');
     }
-    // Remove the finally block that sets isLoading to false since we're popping the screen
   }
 
   void _handleSessionExpired() {
     setState(() {
       _errorMessage = 'Session expired. Please login again.';
       _clearPin();
+      _isLoading = false;
     });
     Navigator.pushReplacementNamed(context, '/login');
   }
@@ -420,12 +399,12 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
   void _handleSaveError(String message) {
     if (!mounted) return;
 
-    // Trigger shake animation when there's a save error
     _triggerShake();
 
     setState(() {
       _errorMessage = message;
       _clearPin();
+      _isLoading = false;
     });
     _showErrorBottomSheet(message);
   }
@@ -440,8 +419,7 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
       backgroundColor: Colors.white,
       builder: (BuildContext context) {
         return Container(
-          margin: EdgeInsets.only(top: 10.h),
-          padding: EdgeInsets.symmetric(horizontal: 24.h, vertical: 20.w),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -494,7 +472,7 @@ class _RetryPasscodeScreenState extends State<RetryPasscodeScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 40.h),
+              SizedBox(height: 20.h),
             ],
           ),
         );

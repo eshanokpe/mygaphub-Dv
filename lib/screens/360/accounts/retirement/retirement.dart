@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
-import 'presentation/retiredash.dart';
+import 'retiredash.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
@@ -642,11 +642,6 @@ class _RetirementState extends State<Retirement> {
           options: Options(headers: {"Authorization": 'Bearer $token'}),
         );
         context.read<Providers>().setRecent(response3.data["tiles"]);
-        final roiData = response.data['data'] as Map? ?? {};
-        final retirementData = response2.data['data'] as Map? ?? {};
-        context.read<Providers>()
-          ..setretiredata(roiData)
-          ..setpensions(retirementData);
         print('done');
         timer.cancel();
         Navigator.pop(context);
@@ -658,7 +653,9 @@ class _RetirementState extends State<Retirement> {
         );
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Retiredash()),
+          MaterialPageRoute(
+            builder: (context) => Retiredash(response.data, response2.data),
+          ),
         );
       } else {
         timer.cancel();

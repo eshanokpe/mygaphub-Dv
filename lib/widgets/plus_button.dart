@@ -15,7 +15,7 @@ class PlusButton extends StatelessWidget {
   final double? minFontSize; // Minimum font size for smaller screens
 
   const PlusButton({
-    super.key,
+    Key? key,
     this.isButtonEnabled = false,
     required this.icons,
     required this.iconsColor,
@@ -77,15 +77,15 @@ class PlusButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: isButtonEnabled ? null : onPressed,
       style: ButtonStyle(
-        padding: WidgetStateProperty.all(EdgeInsets.zero),
-        elevation: WidgetStateProperty.all(0),
-        backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        padding: MaterialStateProperty.all(EdgeInsets.zero),
+        elevation: MaterialStateProperty.all(0),
+        backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.disabled)) {
             return Colors.grey[300]!; // Color for disabled state
           }
           return color; // Default button color
         }),
-        shape: WidgetStateProperty.all(
+        shape: MaterialStateProperty.all(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
             side: const BorderSide(
@@ -94,7 +94,7 @@ class PlusButton extends StatelessWidget {
             ),
           ),
         ),
-        minimumSize: WidgetStateProperty.all(
+        minimumSize: MaterialStateProperty.all(
           Size(
             size.width * 0.15,
             size.height * 0.045,

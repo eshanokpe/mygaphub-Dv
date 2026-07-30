@@ -540,7 +540,7 @@ void _applyBudgetToState(Map<String, dynamic> data) {
 
                                 // Dismiss loading dialog before navigation
                                 Navigator.pop(context);
-   
+
                                 // Navigate to result screen with slide transition
                                 navigateWithSlideTransition(
                                   context: context,

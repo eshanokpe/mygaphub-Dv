@@ -182,8 +182,9 @@ class _MortgagedetailsState extends State<Mortgagedetails> {
               physics: const ScrollPhysics(),
               itemCount: widget.seveng.length,
               itemBuilder: (context, index) {
-                if (widget.seveng[index]['isArchive'] == 1)
+                if (widget.seveng[index]['isArchive'] == 1) {
                   return const SizedBox();
+                }
 
                 final item = widget.seveng[index];
                 final creditorName = item['creditor_name'] ?? 'Debt';

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:GapHub/models/analyticsinfo.dart';
 import 'package:GapHub/screens/360/accounts/assetsAcc/assetdetails.dart';
-import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
+import 'package:GapHub/screens/360/accounts/retirement/retiredash.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
@@ -409,7 +409,7 @@ class _NetworthdetailsState extends State<Networthdetails> {
             const ClockWidget(1),
             Padding(
               padding: EdgeInsets.all(width * .2),
-              child: const Addaccountbtn(index: ""),
+              child: Addaccountbtn(width: width, index: ""),
             ),
           ],
         ),
@@ -472,7 +472,7 @@ class _NetworthdetailsState extends State<Networthdetails> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const Retiredash(),
+          builder: (context) => Retiredash(response.data, response2.data),
         ),
       );
     }
@@ -516,8 +516,7 @@ class _NetworthdetailsState extends State<Networthdetails> {
       var cashListLite = response.data["cash_detail"];
       var seveng = response.data["seveng"];
       var bespokes = response.data["bespokes"];
-      var invSum = response3.data['data']["investment_sum"];
-      var braidTable = response3.data['data']["braid_table"];
+      var invSum = response3.data["investment_sum"];
       var pensions = response4.data["retirement_detail"];
 
       Navigator.pop(context);
@@ -534,7 +533,6 @@ class _NetworthdetailsState extends State<Networthdetails> {
             bespokes: bespokes,
             invSum: invSum,
             pensions: pensions,
-            braidTable: braidTable,
           ),
         ),
       );
@@ -573,7 +571,7 @@ class _NetworthdetailsState extends State<Networthdetails> {
       int creditCurrentInt = int.tryParse(creditCurrent) ?? 0;
       var cc = jsonDecode(response2.body);
       Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(cc["data"]);
-      creditCurrent = analyticsinfo.credit["current"].toString();
+      creditCurrent = analyticsinfo.credit!["current"].toString();
       num total = 0;
       List real = [];
       if (seveng.isNotEmpty) {

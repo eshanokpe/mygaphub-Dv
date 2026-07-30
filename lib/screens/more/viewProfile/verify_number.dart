@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:GapHub/provider/providers.dart';
-import 'package:GapHub/screens/helpWidget/help_widget.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
+import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -275,8 +275,17 @@ class _VerifyNumberProfileState extends State<VerifyNumberProfile> {
           // Return the formatted phone number to the previous screen
           Navigator.pop(context, formattedPhoneNumber);
           Navigator.pop(context, formattedPhoneNumber);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Phone number updated successfully')),
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   const SnackBar(content: Text('Phone number updated successfully')),
+          // );
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return const SuccessModal(
+                message: "Phone number updated successfully",
+              );
+            },
           );
         } else if (response.statusCode == 429) {
           final body = jsonDecode(response.body);

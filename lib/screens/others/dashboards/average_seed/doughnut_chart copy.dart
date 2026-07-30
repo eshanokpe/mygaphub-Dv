@@ -4,54 +4,81 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DoughnutChart extends StatelessWidget {
   final List<int> values;
-  final List<Color> hexColors;
+  final List<String> hexColors;
   final List<String> labels;
 
-  DoughnutChart({
-    super.key,
+  const DoughnutChart({
     required this.values,
-    required List<String> hexColors, // List of hexadecimal color strings
+    required this.hexColors,
     required this.labels,
-  }) : hexColors = hexColors.map((color) => Color(int.parse(color))).toList();
-
+    super.key,
+  });
+ 
   @override
   Widget build(BuildContext context) {
-    int total = values.fold(0, (sum, value) => sum + value);
+    // Validate input
+    assert(values.length == hexColors.length);
+    assert(values.length == labels.length,
+        'Values, hexColors, and labels must have the same length.');
 
+    final total = values.fold(0, (sum, item) => sum + item);
+
+    // Create chart data - even if total is 0, we still create data with 0 values
     List<ChartData> chartData = List.generate(values.length, (index) {
-      double percentage = (values[index] / total) * 100.0;
+      double percentage = total == 0 ? 0 : (values[index] / total) * 100.0;
       return ChartData(
         labels[index],
         values[index],
-        hexColors[index],
+        Color(int.parse(hexColors[index])),
         percentage,
       );
     });
 
     return Center(
       child: SizedBox(
-        height: 14.h,
-        // width: MediaQuery.of(context).size.width * 0.5,
+        height: 270.h, 
         child: SfCircularChart(
-          series: <CircularSeries>[
+          series: <CircularSeries<ChartData, String>>[
             DoughnutSeries<ChartData, String>(
               dataSource: chartData,
               pointColorMapper: (ChartData data, _) => data.color,
               xValueMapper: (ChartData data, _) => data.x,
               yValueMapper: (ChartData data, _) => data.y,
-              dataLabelSettings: const DataLabelSettings(
+              dataLabelSettings: DataLabelSettings(
                 isVisible: true,
+                // Set to none to prevent any label hiding
+                labelIntersectAction: LabelIntersectAction.none,
+                labelAlignment: ChartDataLabelAlignment.outer,
                 labelPosition: ChartDataLabelPosition.outside,
-                connectorLineSettings: ConnectorLineSettings(
+                // Use shorter connector lines to prevent overlap
+                connectorLineSettings: const ConnectorLineSettings(
                   type: ConnectorType.line,
-                  length: '30%',
+                  length: '10%',
                   color: Color(0xff777777),
                 ),
+                // Use builder to display percentage with the label
+                builder: (dynamic data, dynamic point, dynamic series,
+                    int pointIndex, int seriesIndex) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(horizontal: 2.w),
+                    child: Text(
+                      '${data.percentage.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                },
               ),
-              dataLabelMapper: (ChartData data, _) =>
-                  '${data.percentage.toStringAsFixed(0)}%',
+              // Ensure all data points have labels
+              enableTooltip: true,
+              radius: '80%',
             ),
           ],
+          // Disable tooltip to avoid interference
+          tooltipBehavior: TooltipBehavior(enable: false),
         ),
       ),
     );

@@ -6,19 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import './charts/finanexpenchart.dart';
+import 'charts/finanexpenchart.dart';
 
 class Financial extends StatefulWidget {
   final Map data;
   final String type;
   final String id;
 
-  const Financial({
-    super.key,
-    required this.data,
-    required this.type,
-    required this.id,
-  });
+  const Financial({required this.data, required this.type, required this.id});
   @override
   _FinancialState createState() => _FinancialState();
 }
@@ -38,10 +33,10 @@ class _FinancialState extends State<Financial> {
     0xff77A2BB,
     0xffE28394,
   ];
-   Color color1 = Color(0xff479CC6);
-   Color color2 = Color(0xffBBC3A4);
-   Color color3 = Color(0xffFF8F28);
-   Color color4 = Color(0xff414141);
+  final Color color1 = Color(0xff479CC6);
+  final Color color2 = Color(0xffBBC3A4);
+  final Color color3 = Color(0xffFF8F28);
+  final Color color4 = Color(0xff414141);
 
   List<TableRow> expenInfo = [];
   List<TableRow> cumuInfo = [];
@@ -158,7 +153,7 @@ class _FinancialState extends State<Financial> {
     } else {
       bigNumExpen = bigNumExpe;
     }
-    final barCum0 = makeCumu(1, 0, const Color(0xffffffff));
+    final barCum0 = makeCumu(1, 0, Color(0xffffffff));
     List<BarChartGroupData> itemsExpen = [];
     List<BarChartGroupData> itemsCumu = [barCum0];
 
@@ -171,7 +166,7 @@ class _FinancialState extends State<Financial> {
         ),
       );
     }
-    itemsCumu.add(makeCumu(lengthCumu + 1 + 1, 0, const Color(0xffffffff)));
+    itemsCumu.add(makeCumu(lengthCumu + 1 + 1, 0, Color(0xffffffff)));
 
     for (var i = 0; i < lengthExpen; i++) {
       itemsExpen.add(
@@ -240,11 +235,12 @@ class _FinancialState extends State<Financial> {
 
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
         elevation: 0,
-        backgroundColor: const Color(0xffffffff),
+        backgroundColor: Color(0xffffffff),
         leading: IconButton(
           onPressed: () => Navigator.pop(context, true),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Colors.black),
         ),
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -257,7 +253,7 @@ class _FinancialState extends State<Financial> {
                         return SizedBox(
                           width: width * .1,
                           height: width * .1,
-                          child: const Center(
+                          child: Center(
                             child: CircularProgressIndicator(strokeWidth: 1),
                           ),
                         );
@@ -286,7 +282,7 @@ class _FinancialState extends State<Financial> {
                             placeholder: (context, url) => SizedBox(
                               width: width * .1,
                               height: width * .1,
-                              child: const Center(
+                              child: Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 0.5,
                                 ),
@@ -300,7 +296,7 @@ class _FinancialState extends State<Financial> {
                         return SizedBox(
                           width: width * .1,
                           height: width * .1,
-                          child: const Center(
+                          child: Center(
                             child: CircularProgressIndicator(strokeWidth: 1),
                           ),
                         );
@@ -333,14 +329,14 @@ class _FinancialState extends State<Financial> {
           ],
         ),
         centerTitle: true,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Icon(Icons.edit, color: Color(0xff808080)),
           ),
         ],
       ),
-      bottomNavigationBar: const BottomNav(3),
+      bottomNavigationBar: BottomNav(3),
       body: Container(
         padding: EdgeInsets.symmetric(
           horizontal: width * .04,
@@ -455,12 +451,12 @@ class _FinancialState extends State<Financial> {
 
 class Tabledata2 extends StatelessWidget {
   const Tabledata2({
-    super.key,
+    Key? key,
     required this.text,
     required this.thick,
     this.big = false,
     this.boxColor = Colors.white,
-  });
+  }) : super(key: key);
 
   final String text;
   final bool thick;
@@ -479,7 +475,7 @@ class Tabledata2 extends StatelessWidget {
       color: boxColor,
       padding: const EdgeInsets.all(5.0),
       child: Text(
-        text,
+        "$text",
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: big ? width * .027 : width * .035,

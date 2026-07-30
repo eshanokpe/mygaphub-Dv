@@ -78,22 +78,16 @@ class _HomepageState extends State<Homepage> {
 
   Dio dio = Dio();
 
-  // ------------------------------
-  // Properties State
-  // ------------------------------
-  List<PropertyModel> _properties = [];
-  bool _isLoadingProperties = true;
-  String? _propertiesError;
-
-  // ------------------------------
-  // Pie / Bar Chart Helpers
-  // ------------------------------
   void _generatePieData(List values) {
     try {
+      // Ensure values has at least 2 elements to avoid index errors
       final safeValues = values.length >= 2 ? values : [0, 0];
+
+      // Convert values to integers (rounding if necessary)
       int homeValue = safeValues[1] is double
           ? safeValues[1].round()
           : (safeValues[1] is int ? safeValues[1] : 0);
+
       int mortgageValue = safeValues[0] is double
           ? safeValues[0].round()
           : (safeValues[0] is int ? safeValues[0] : 0);
@@ -118,7 +112,8 @@ class _HomepageState extends State<Homepage> {
         ),
       );
     } catch (e) {
-      debugPrint("Error generating pie data: $e");
+      print("Error generating pie data: $e");
+      // Add empty/default series on error
       _seriesPieData.add(
         charts.Series(
           data: [],
@@ -130,16 +125,23 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
-  void _generateBarData(List? values, String currency) {
-    List safeValues = values == null || values.isEmpty
-        ? [0.0, 0.0]
-        : values.length == 1
-        ? [values[0] ?? 0.0, 0.0]
-        : [values[0] ?? 0.0, values[1] ?? 0.0];
+  _generateBarData(List? values, String currency) {
+    // Ensure values is not null and has at least 2 elements
+    List safeValues = [];
 
+    if (values == null || values.isEmpty) {
+      safeValues = [0.0, 0.0];
+    } else if (values.length == 1) {
+      safeValues = [values[0] ?? 0.0, 0.0];
+    } else {
+      safeValues = [values[0] ?? 0.0, values[1] ?? 0.0];
+    }
+
+    // Convert to double values
     double assetValue = safeValues[0] is int
         ? (safeValues[0] as int).toDouble()
         : (safeValues[0] as num?)?.toDouble() ?? 0.0;
+
     double liabilityValue = safeValues[1] is int
         ? (safeValues[1] as int).toDouble()
         : (safeValues[1] as num?)?.toDouble() ?? 0.0;
@@ -169,7 +171,7 @@ class _HomepageState extends State<Homepage> {
         labelAccessorFn: (Networths net, _) =>
             '$currency${net.value.toStringAsFixed(2)}'.replaceAllMapped(
               RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-              (m) => '${m[1]},',
+              (Match m) => '${m[1]},',
             ),
       ),
     );
@@ -184,7 +186,7 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
-    _loadProperties(); // ✅ Load properties on init
+    fetchProperties();
     Loginusermodel loginDetails = context.read<Providers>().loginDetails;
     unseenNotifications = loginDetails.unseenNotifications!;
     dashData = context.read<Providers>().dashdata;
@@ -202,120 +204,28 @@ class _HomepageState extends State<Homepage> {
     residential = dashData["residential"]?["primary"] ?? {};
 
     _seriesPieData = [];
+
+    // Safely access nested data with null checks and provide empty List fallback
     final values = residential["chart"]?["values"] ?? [];
     _generatePieData(values is List ? values : []);
+    // _seriesBarData = [];
     String currency = splitit(context.read<Providers>().currency);
+    // print("currency:$currency");
     _generateBarData(netData["values"], currency);
   }
 
-  // ------------------------------
-  // ✅ Exact Working fetchProperties
-  // ------------------------------
-  Future<void> _loadProperties() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoadingProperties = true;
-      _propertiesError = null;
-    });
-
-    final client = HttpClient();
-    try {
-      final uri = Uri.parse('$assetBaseUrl/property-listing');
-      debugPrint('🌐 Fetching properties from: $uri');
-
-      final request = await client.getUrl(uri);
-      request.headers.set('Content-Type', 'application/json');
-      request.headers.set('Accept', 'application/json');
-
-      final response = await request.close().timeout(
-        const Duration(seconds: 30),
-      );
-      debugPrint('📥 Properties status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        final responseBody = await response.transform(utf8.decoder).join();
-        final body = jsonDecode(responseBody);
-
-        final List<PropertyModel> loadedProperties = [];
-        if (body['properties_list'] != null) {
-          for (var propertyJson in body['properties_list']) {
-            try {
-              loadedProperties.add(PropertyModel.fromJson(propertyJson));
-            } catch (parseErr) {
-              debugPrint('⚠️ Skipping invalid property: $parseErr');
-            }
-          }
-        }
-
-        if (!mounted) return;
-        setState(() {
-          _properties = loadedProperties;
-          _isLoadingProperties = false;
-        });
-        debugPrint('✅ Loaded ${_properties.length} properties');
-      } else {
-        throw Exception('Server returned ${response.statusCode}');
-      }
-    } on TimeoutException {
-      _propertiesError = 'Request timed out';
-      debugPrint('❌ Properties timeout');
-    } on SocketException {
-      _propertiesError = 'No internet connection';
-      debugPrint('❌ Network error');
-    } catch (e) {
-      _propertiesError = e.toString();
-      debugPrint('❌ Properties error: $e');
-    } finally {
-      client.close();
-      if (mounted) setState(() => _isLoadingProperties = false);
-    }
-  }
-
-  // ------------------------------
-  // ✅ _buildAcquisitionCard
-  // ------------------------------
-  Widget _buildAcquisitionCard() {
-    if (_isLoadingProperties) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-    if (_propertiesError != null) {
-      return Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Text(
-            'Failed to load properties: $_propertiesError',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-    if (_properties.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(
-          child: Text(
-            'No Acquisition properties available right now.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-    return Acquisitioncard(properties: _properties);
-  }
-
-  // ------------------------------
-  // Rest of your build method (unchanged)
-  // ------------------------------
+  List<PropertyModel> properties = [];
   @override
   Widget build(BuildContext context) {
     context.watch<Providers>().supportData;
+
     var sorts = sortDash.values.toList();
     List<num> indices = [];
+
     for (var i = 0; i < sorts.length; i++) {
-      if (sorts[i]) indices.add(i);
+      if (sorts[i]) {
+        indices.add(i);
+      }
     }
 
     String date = DateFormat.d().format(DateTime.now());
@@ -381,21 +291,35 @@ class _HomepageState extends State<Homepage> {
         subtitle: "A measure of your Rainy Day funds saved up",
       ),
     ];
-
+    // Get the widgets to display based on indices
     List<Widget> displayedWidgets = [];
+
     if (indices.isEmpty) {
-      displayedWidgets = [sortWidgets[0], sortWidgets[1], sortWidgets[2]];
+      // If no indices are selected, show default widgets (e.g., first 3)
+      displayedWidgets = [
+        sortWidgets[0], // Homequitydash
+        sortWidgets[1], // Networthcard
+        sortWidgets[2], // Donutdash
+      ];
     } else {
+      // Add widgets based on indices, with bounds checking
       for (var index in indices) {
         int intIndex = index.toInt();
-        if (intIndex >= 0 && intIndex < sortWidgets.length)
+        if (intIndex >= 0 && intIndex < sortWidgets.length) {
           displayedWidgets.add(sortWidgets[intIndex]);
+        }
       }
-      if (displayedWidgets.isEmpty)
+
+      // If after filtering we have no widgets, show defaults
+      if (displayedWidgets.isEmpty) {
         displayedWidgets = [sortWidgets[0], sortWidgets[1], sortWidgets[2]];
+      }
     }
 
-    pop() => SystemNavigator.pop();
+    pop() {
+      SystemNavigator.pop();
+    }
+
     final scrollController = ScrollController();
     Orientation orientation = MediaQuery.of(context).orientation;
     final height = orientation == Orientation.portrait
@@ -405,21 +329,23 @@ class _HomepageState extends State<Homepage> {
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
 
+    // return Container();
     return SafeArea(
       child: WillPopScope(
-        onWillPop: () async => dialogBox.options(
-          context,
-          'Exit',
-          'Are you sure you want to exit?',
-          pop,
-        ),
+        onWillPop: () async {
+          return await dialogBox.options(
+            context,
+            'Exit',
+            'Are you sure you want to exit?',
+            pop,
+          );
+        },
         child: RefreshIndicator(
           backgroundColor: Colors.white,
           color: Theme.of(context).primaryColor,
           strokeWidth: 2,
-          onRefresh: () async {
-            await _loadProperties();
-            await refresh();
+          onRefresh: () {
+            return refresh();
           },
           child: SingleChildScrollView(
             controller: scrollController,
@@ -428,22 +354,27 @@ class _HomepageState extends State<Homepage> {
               key: _pageStrKey1,
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Hi ${context.watch<Providers>().details[0]} 👋🏽',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 20.sp,
-                      fontFamily: 'Nunito',
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Hi ${context.watch<Providers>().details[0]} 👋🏽',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 20.sp,
+                        fontFamily: 'Nunito',
+                      ),
                     ),
                   ),
-                  Text(
-                    greetings[day],
-                    style: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 16.sp,
-                      fontFamily: 'Nunito',
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      greetings[day],
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 16.sp,
+                        fontFamily: 'Nunito',
+                      ),
                     ),
                   ),
                   SizedBox(height: 32.h),
@@ -453,53 +384,63 @@ class _HomepageState extends State<Homepage> {
                     detailText: 'View Details',
                     onTap: () async {
                       dialogBox.waiting(context, "Loading");
+
                       try {
                         var url = "$baseUrl/app/360/income";
                         final prefs = await SharedPreferences.getInstance();
                         var token = prefs.getString('tokenDB');
+
                         var response = await dio.get(
                           url,
                           options: Options(
                             headers: {"Authorization": 'Bearer $token'},
                           ),
                         );
+
                         if (response.statusCode == 200) {
                           var data = response.data;
+                          var assets = data["portfolio_asset"];
+                          var incomeData = data["incomes"];
+
                           var currentPortfolio =
                               data["income_info"]["current_portfolio"].round();
                           context.read<Providers>().setCurrentPortfolio(
                             currentPortfolio,
                           );
-                          var incomeData = data["incomes"];
+
                           var amounts = incomeData
                               .map((item) => item["amount"])
                               .toList();
-                          amounts.fold(
+                          var total = amounts.fold(
                             0,
                             (prev, amount) => prev + amount.round(),
                           );
+
                           var incomeDataLite = data["income_detail"];
                           var listofassets = ['-Select-'];
+
                           var incomeAudit = data["income_audit"];
                           var allocated = incomeAudit != null
                               ? num.parse(
                                   incomeAudit["income_allocated"].toString(),
                                 )
                               : 1;
-                          var assets = data["portfolio_asset"];
+
                           for (var asset in assets) {
                             if (asset["isArchive"] != 1) {
                               listofassets.add(
                                 "${asset["name"]} (${asset["asset_currency"]}${asset["monthly_roi"].toStringAsFixed(2)})"
                                     .replaceAllMapped(
                                       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                      (m) => '${m[1]},',
+                                      (match) => '${match[1]},',
                                     ),
                               );
                             }
                           }
+
                           var incomeInfo =
                               data["income_info"]["portfolio_diff"];
+
                           context.read<Providers>().setAssets(listofassets);
                           context.read<Providers>().setPortfolioDiff(
                             incomeInfo.toDouble(),
@@ -508,8 +449,9 @@ class _HomepageState extends State<Homepage> {
                           context.read<Providers>().setincomeDataLite(
                             incomeDataLite,
                           );
-                          Navigator.pop(context);
+
                           if (incomeInfo > 0) {
+                            Navigator.pop(context);
                             navigateWithSlideTransition(
                               context: context,
                               destinationScreen: Decider("Income"),
@@ -523,6 +465,7 @@ class _HomepageState extends State<Homepage> {
                             context.read<Providers>().addIncomeChart(
                               data["income_chart"],
                             );
+                            Navigator.pop(context);
                             navigateWithSlideTransition(
                               context: context,
                               destinationScreen: Incomedash(
@@ -541,25 +484,34 @@ class _HomepageState extends State<Homepage> {
                           Fluttertoast.showToast(msg: 'Failed to fetch data');
                         }
                       } catch (error) {
-                        Navigator.pop(context);
                         Fluttertoast.showToast(
                           msg: 'Check your internet connection',
                         );
-                        debugPrint("Income error: $error");
+
+                        print("Error: $error");
+                        // Navigator.pop(context);
                       }
                     },
                   ),
                   SizedBox(height: 12.h),
-                  const Incomecard(),
+
+                  Incomecard(),
                   SizedBox(height: widget.height * 0.02),
+
                   FiCard(
                     width: widget.width,
                     height: widget.height,
                     yes: false,
                   ),
                   SizedBox(height: widget.height * .02),
+                  // Display the filtered widgets
                   ...displayedWidgets,
-                  _buildAcquisitionCard(),
+
+                  // indices[2] != null
+                  //     ? sortWidgets[indices[2].toInt()]
+                  //     : Container(),
+                  // DONUT
+                  Acquisitioncard(properties: properties),
                   SizedBox(height: widget.height * .02),
                   Container(
                     key: widget.sliderKey,
@@ -577,11 +529,12 @@ class _HomepageState extends State<Homepage> {
                           realColors: widget.realColors,
                         );
                       } catch (e) {
-                        debugPrint("Assistant error: $e");
+                        print("Error loading Assistant: $e");
                         return SizedBox(height: widget.height * .02);
                       }
                     },
                   ),
+
                   SizedBox(height: widget.height * .02),
                   PlusButton(
                     color: Colors.white,
@@ -589,17 +542,18 @@ class _HomepageState extends State<Homepage> {
                     textColor: AppColors.blackColor,
                     icons: Icons.edit,
                     text: 'Manage Snapshot View',
-                    onPressed: () => navigateWithSlideTransition(
-                      context: context,
-                      destinationScreen: Sort(),
-                      transitionDuration: const Duration(milliseconds: 200),
-                    ),
+                    onPressed: () {
+                      navigateWithSlideTransition(
+                        context: context,
+                        destinationScreen: Sort(),
+                        transitionDuration: const Duration(milliseconds: 200),
+                      );
+                    },
                   ),
                   SizedBox(height: height * .02),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: width * .04),
                     child: RichText(
-                      textAlign: TextAlign.center,
                       text: TextSpan(
                         text:
                             '“Personal finance is only 20% head knowledge. It’s 80% behavior!” ',
@@ -607,10 +561,10 @@ class _HomepageState extends State<Homepage> {
                           fontSize: 14.sp,
                           fontStyle: FontStyle.italic,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xff808080),
+                          color: const Color(0xff808080),
                           fontFamily: 'Nunito',
                         ),
-                        children: [
+                        children: <TextSpan>[
                           TextSpan(
                             text: '- Dave Ramsey',
                             style: TextStyle(
@@ -623,8 +577,11 @@ class _HomepageState extends State<Homepage> {
                           ),
                         ],
                       ),
+                      textAlign:
+                          TextAlign.center, // Optional: Align text to center
                     ),
                   ),
+
                   SizedBox(height: widget.height * .08),
                 ],
               ),
@@ -635,7 +592,7 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  Future<void> refresh() async {
+  refresh() async {
     var urld = "$baseUrl/app/dashboard";
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('tokenDB');
@@ -655,20 +612,70 @@ class _HomepageState extends State<Homepage> {
         responseD.data["gap_currencies"]["system_currencies"],
       );
       context.read<Providers>().setAssistance(responseD.data["assistance"]);
+
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const Dashboard(index: 0)),
+      );
     }
   }
 
-  Future<void> toHomeEquity() async {
+  Future<void> fetchProperties() async {
+    final client = HttpClient();
+
+    try {
+      final request = await client.getUrl(
+        Uri.parse('$assetBaseUrl/propery-listing'),
+      );
+      request.headers.set('Content-Type', 'application/json');
+      request.headers.set('Accept', 'application/json');
+
+      final response = await request.close().timeout(
+        const Duration(seconds: 30),
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.transform(utf8.decoder).join();
+        final body = jsonDecode(responseBody);
+        final List<PropertyModel> loadedProperties = [];
+
+        for (var propertyJson in body['properties_list']) {
+          loadedProperties.add(PropertyModel.fromJson(propertyJson));
+        }
+
+        setState(() {
+          properties = loadedProperties;
+        });
+      } else {
+        print('Failed to load properties. Status code: ${response.statusCode}');
+      }
+    } on TimeoutException {
+      print('Request timed out');
+    } on SocketException catch (e) {
+      print('Network error: $e');
+    } catch (e) {
+      print('Unexpected error: $e');
+    } finally {
+      client.close();
+    }
+  }
+
+  toHomeEquity() async {
     var timer = Timer(const Duration(seconds: 40), () {
       Navigator.pop(context);
       dialogBox.information(context, 'Status', 'Service timed out');
+      return;
     });
     dialogBox.waiting(context, "Loading");
+
     var url = "$baseUrl/app/360/cash";
     var url2 = "$baseUrl/app/360/equity";
     var url3 = "$baseUrl/app/360/investment";
+
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('tokenDB');
+    Dio dio = Dio();
     var response = await dio.get(
       url,
       options: Options(headers: {"Authorization": 'Bearer $token'}),
@@ -681,17 +688,24 @@ class _HomepageState extends State<Homepage> {
       url3,
       options: Options(headers: {"Authorization": 'Bearer $token'}),
     );
+
     if (response.statusCode == 200 &&
         response2.statusCode == 200 &&
         response3.statusCode == 200) {
-      timer.cancel();
+      var equityList = response2.data["equity"];
+      var equityListLite = response2.data["equity_detail"];
+      var cashList = response.data["cash"];
+      var cashListLite = response.data["cash_detail"];
+      var seveng = response.data["seveng"];
+      var bespokes = response.data["bespokes"];
+      var invSum = response3.data["investment_sum"];
+
       Navigator.pop(context);
+      //Navigator.pop(context);
+      timer.cancel();
       navigateWithSlideTransition(
         context: context,
-        destinationScreen: Equitydetails(
-          response2.data["equity"],
-          response2.data["equity_detail"],
-        ),
+        destinationScreen: Equitydetails(equityList, equityListLite),
         transitionDuration: const Duration(milliseconds: 200),
       );
     }

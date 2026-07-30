@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'widget/customlisttile.dart';
 
 class UpcomingPayments extends StatefulWidget {
-  const UpcomingPayments({super.key});
+  const UpcomingPayments({Key? key});
 
   @override
   State<UpcomingPayments> createState() => _UpcomingPaymentsState();
@@ -40,15 +40,17 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: const BorderSide(
+        side: BorderSide(
           color: Color.fromARGB(255, 241, 241, 241),
           width: 1.5,
         ),
       ),
-      color: const Color.fromARGB(255, 253, 253, 253),
+      color: Color.fromARGB(255, 253, 253, 253),
       child: Column(
         children: [
-          SizedBox(height: height * .01),
+          SizedBox(
+            height: height * .01,
+          ),
           Padding(
             padding: const EdgeInsets.only(left: 8.0, right: 8, top: 10),
             child: RowViewDetails(
@@ -58,8 +60,10 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
               arrowTap: true,
             ),
           ),
-          SizedBox(height: height * .01),
-          const Divider(
+          SizedBox(
+            height: height * .01,
+          ),
+          Divider(
             height: 10,
             thickness: 0.2,
             color: Color.fromARGB(133, 128, 128, 128),
@@ -68,9 +72,7 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
               ? Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: width * .0,
-                    vertical: height * .02,
-                  ),
+                      horizontal: width * .0, vertical: height * .02),
                   child: Column(
                     children: [
                       CustomListTile(
@@ -82,21 +84,20 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
                         amount: 5.99,
                       ),
                       SizedBox(height: height * 0.01),
-                      const Divider(
+                      Divider(
                         thickness: 1.5,
                         color: Color(0xffF1F1F1),
                         indent: 70,
                       ),
                       CustomListTile(
-                        currency: currency,
-                        imagePath: 'assets/icons/google_pay.png',
-                        title: 'Google Subscri... ',
-                        subtitle: 'Monthly on 22nd',
-                        width: width,
-                        amount: 7.99,
-                      ),
+                          currency: currency,
+                          imagePath: 'assets/icons/google_pay.png',
+                          title: 'Google Subscri... ',
+                          subtitle: 'Monthly on 22nd',
+                          width: width,
+                          amount: 7.99),
                       SizedBox(height: height * 0.02),
-                      const Divider(
+                      Divider(
                         thickness: 1.5,
                         color: Color(0xffF1F1F1),
                         indent: 70,
@@ -109,7 +110,7 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
                         width: width,
                         amount: 177.00,
                       ),
-                      const Divider(
+                      Divider(
                         thickness: 1.5,
                         color: Color(0xffF1F1F1),
                         indent: 70,
@@ -126,10 +127,8 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(
-                              right: 13.0,
-                              top: 12,
-                            ),
+                            padding:
+                                const EdgeInsets.only(right: 13.0, top: 12),
                             child: PlusButton(
                               color: Colors.white,
                               iconsColor: AppColors.primaryColor,
@@ -148,9 +147,7 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
               : Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: width * .04,
-                    vertical: height * .02,
-                  ),
+                      horizontal: width * .04, vertical: height * .02),
                   child: Column(
                     children: [
                       SizedBox(height: height * 0.03),
@@ -161,10 +158,9 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
                             'You have no Upcoming Payments',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: const Color(0xff666666),
-                              fontSize: width * 0.04,
-                              fontStyle: FontStyle.italic,
-                            ),
+                                color: Color(0xff666666),
+                                fontSize: width * 0.04,
+                                fontStyle: FontStyle.italic),
                           ),
                         ],
                       ),
@@ -180,7 +176,7 @@ class _UpcomingPaymentsState extends State<UpcomingPayments> {
                       SizedBox(height: height * 0.03),
                     ],
                   ),
-                ),
+                )
         ],
       ),
     );

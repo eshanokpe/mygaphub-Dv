@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:GapHub/models/network_checker.dart';
 import 'package:GapHub/screens/authentication/login/login.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';

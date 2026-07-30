@@ -328,140 +328,175 @@ class _PasscodeState extends State<Passcode22> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 0.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Container(
+          height:
+              MediaQuery.of(context).size.height -
+              MediaQuery.of(context).padding.top -
+              kToolbarHeight -
+              MediaQuery.of(context).padding.bottom,
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
                 children: [
-                  // Top Section - Header (Fixed but flexible)
-                  Flexible(
-                    flex: 3, // 30% of available space
-                    child: Container(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Header(
-                            width: constraints.maxWidth * 0.9,
-                            height: constraints.maxHeight * 0.4,
-                            imgurl: imgurl,
-                            details: Loginusermodel(),
-                            firstName: '',
-                            surName: '',
-                            email: email,
-                          ),
-                          SizedBox(height: 10.h),
-                          Center(
-                            child: Text(
-                              'Please enter your passcode',
-                              style: GoogleFonts.nunitoSans(
-                                fontSize: 14.sp,
-                                color: AppColors.grayColor,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 30.h),
-                        ],
+                  Header(
+                    width: MediaQuery.of(context).size.width * 1.0,
+                    height: MediaQuery.of(context).size.height * 0.25,
+                    imgurl: imgurl,
+                    details: Loginusermodel(),
+                    firstName: '',
+                    surName: '',
+                    email: email,
+                  ),
+                  // Top Section - Header
+                  SizedBox(height: 5.h),
+                  Center(
+                    child: Text(
+                      'Please enter your passcode',
+                      style: GoogleFonts.nunitoSans(
+                        fontSize: 14.sp,
+                        color: AppColors.grayColor,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                  // Middle Section - Passcode dots and status
-                  Flexible(
-                    flex: 1, // 20% of available space
-                    child: Container(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Passcode Dots
-                          Center(
-                            child: ShakeAnimation(
-                              animate: _triggerShake,
-                              child: _buildPinDots(),
-                            ),
-                          ),
-
-                          // Loading Indicator
-                          if (_isProcessing) ...[
-                            const Center(
-                              child: SpinKitCircle(
-                                color: Colors.black,
-                                size: 50.0,
-                              ),
-                            ),
-                          ],
-
-                          // Error Message
-                          if (errorMessage != null) ...[
-                            SizedBox(height: 10.h),
-                            Center(
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 20.w,
-                                  vertical: 8.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  errorMessage!,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          ] else if (!_isProcessing) ...[
-                            // Reserve space for potential error message
-                            SizedBox(height: 20.h),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Bottom Section - Number Pad
-                  Flexible(
-                    flex: 5, // 40% of available space
-                    child: Container(
-                      child: GridView.count(
-                        crossAxisCount: 3,
-                        padding: EdgeInsets.zero,
-                        physics: const NeverScrollableScrollPhysics(),
-                        childAspectRatio: 1.5,
-                        children: [
-                          ...List.generate(9, (index) {
-                            final number = (index + 1).toString();
-                            return _buildKey(
-                              number,
-                              onTap: () => _onKeyTap(number),
-                            );
-                          }),
-                          _buildKeyForgot('', onTap: null, color: Colors.black),
-                          _buildKey('0', onTap: () => _onKeyTap('0')),
-                          _buildKeyForgot(
-                            'Clear',
-                            onTap: () {
-                              _onBackspace();
-                            },
-                            color: Colors.black,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: 50.h),
                 ],
               ),
-            );
-          },
+
+              SizedBox(height: 20.h),
+
+              // Dots
+              Column(
+                children: [
+                  ShakeAnimation(
+                    animate: _triggerShake,
+                    child: _buildPinDots(),
+                  ),
+
+                  // Single reserved slot for BOTH spinner and error
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.06,
+                    child: _isProcessing
+                        ? const Center(
+                            child: SpinKitCircle(
+                              color: Colors.black,
+                              size: 40.0,
+                            ),
+                          )
+                        : errorMessage != null
+                        ? Center(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 6.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.sp,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+
+              // Bottom Section - Number Pad
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    _buildNumberRow(['1', '2', '3']),
+                    SizedBox(height: 12.h),
+                    _buildNumberRow(['4', '5', '6']),
+                    SizedBox(height: 12.h),
+                    _buildNumberRow(['7', '8', '9']),
+                    SizedBox(height: 12.h),
+                    _buildNumberRow(['', '0', 'Clear'], isLastRow: true),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNumberRow(List<String> values, {bool isLastRow = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: values.map((value) {
+        if (value.isEmpty) {
+          return SizedBox(width: 80.w, height: 70.h);
+        }
+        if (value == 'Clear') {
+          return _buildClearButton();
+        }
+        return _buildNumberButton(value);
+      }).toList(),
+    );
+  }
+
+  Widget _buildNumberButton(String number) {
+    final size = MediaQuery.of(context).size;
+    final buttonSize = size.width * 0.18; // responsive size
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _onKeyTap(number),
+        borderRadius: BorderRadius.circular(35.r),
+        child: Container(
+          width: buttonSize,
+          height: buttonSize,
+          decoration: const BoxDecoration(shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              number,
+              style: GoogleFonts.nunitoSans(
+                fontSize: 24.sp,
+                fontWeight: FontWeight.w800,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClearButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _onBackspace,
+        borderRadius: BorderRadius.circular(35.r),
+        child: Container(
+          width: 70.w,
+          height: 70.h,
+          decoration: const BoxDecoration(shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              'Clear',
+              style: GoogleFonts.nunitoSans(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ),
         ),
       ),
     );

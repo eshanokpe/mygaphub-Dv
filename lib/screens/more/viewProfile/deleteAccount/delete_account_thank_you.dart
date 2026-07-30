@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'package:GapHub/screens/authentication/login/login.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/dialog.dart';
-import 'package:GapHub/screens/helpWidget/help_widget.dart';
-import 'package:GapHub/widgets/navigateWithSlideTransition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

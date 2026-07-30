@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:GapHub/screens/homepage/assistance/assistant.dart';
+import 'package:GapHub/screens/acquisition/actionplan/actionplan.dart';
 import 'package:GapHub/screens/homepage/assistance/personal_assistant.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';
@@ -13,8 +13,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/screens/acquisition/opportunities.dart';
 import 'package:flutter/material.dart';
-import 'actionplan/presentation/action_plan_strategy.dart';
-import 'widget/acquisitionHeader.dart';
 import 'widget/gradientimagecard.dart';
 
 class Preacquisition extends StatefulWidget {
@@ -26,6 +24,30 @@ class Preacquisition extends StatefulWidget {
 class _PreacquisitionState extends State<Preacquisition> {
   DialogBox dialogBox = DialogBox();
   final Key _pageStrKey3 = const PageStorageKey('pageThree');
+
+  // Guards against precaching more than once — didChangeDependencies can
+  // fire multiple times (e.g. on theme/locale changes), and we only want
+  // the decode cost paid a single time per app session.
+  bool _imagesPrecached = false;
+
+  static const _busAssetsPath = 'assets/images/acquisition/bus_assets.jpeg';
+  static const _appreciatingPath =
+      'assets/images/acquisition/appreciating.jpeg';
+  static const _riskPath = 'assets/images/acquisition/risk.jpeg';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_imagesPrecached) {
+      _imagesPrecached = true;
+      // Decode once here instead of paying the cost inline during
+      // IndexedStack layout on every tab switch.
+      precacheImage(const AssetImage(_busAssetsPath), context);
+      precacheImage(const AssetImage(_appreciatingPath), context);
+      precacheImage(const AssetImage(_riskPath), context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Orientation orientation = MediaQuery.of(context).orientation;
@@ -36,11 +58,14 @@ class _PreacquisitionState extends State<Preacquisition> {
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: const CustomAppBarAcquisition(),
-        backgroundColor: const Color(0XFFF6F6F6),
-        body: SingleChildScrollView(
+    // No nested Scaffold — this page lives inside Dashboard's IndexedStack,
+    // and Dashboard already provides the Scaffold chrome. A plain
+    // Container + SafeArea gives the same background/inset behavior
+    // without the extra layout pass a Scaffold performs.
+    return Container(
+      color: const Color(0XFFF6F6F6),
+      child: SafeArea(
+        child: SingleChildScrollView(
           key: _pageStrKey3,
           child: SizedBox(
             width: width,
@@ -80,7 +105,7 @@ class _PreacquisitionState extends State<Preacquisition> {
                       ),
                       SizedBox(height: height * .03),
                       GradientImageCard(
-                        imagePath: 'assets/images/acquisition/bus_assets.jpeg',
+                        imagePath: _busAssetsPath,
                         title: 'Business Asset',
                         description:
                             'Buy an existing business currently generating revenue. An asset that can run without your physical presence',
@@ -98,8 +123,7 @@ class _PreacquisitionState extends State<Preacquisition> {
                       ),
                       SizedBox(height: height * .03),
                       GradientImageCard(
-                        imagePath:
-                            'assets/images/acquisition/appreciating.jpeg',
+                        imagePath: _appreciatingPath,
                         title: 'Appreciating Asset',
                         description:
                             'Buy an existing business currently generating revenue. An asset that can run without your physical presence',
@@ -117,7 +141,7 @@ class _PreacquisitionState extends State<Preacquisition> {
                       ),
                       SizedBox(height: height * .03),
                       GradientImageCard(
-                        imagePath: 'assets/images/acquisition/risk.jpeg',
+                        imagePath: _riskPath,
                         title: 'Risk Assets',
                         description:
                             'Explore the world of stocks and share. Many retirement plans in the world today are based on this vehicle.',
@@ -237,7 +261,7 @@ class _PreacquisitionState extends State<Preacquisition> {
         timer.cancel();
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ActionPlanStrategy()),
+          MaterialPageRoute(builder: (context) => Actionplan()),
         );
       } else {
         timer.cancel();

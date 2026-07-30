@@ -25,6 +25,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../analytics/edits/editpage.dart';
+
 class Assistant extends StatefulWidget {
   final bool newUserAnalytics;
   final Analyticsinfo analyticsInfo;
@@ -45,7 +47,6 @@ class _AssistantState extends State<Assistant> {
   Map assistance = {};
   String empty = "";
   List payments = [];
-  bool _isLoading = false;
   DialogBox dialogBox = DialogBox();
 
   @override
@@ -64,7 +65,7 @@ class _AssistantState extends State<Assistant> {
   @override
   Widget build(BuildContext context) {
     // Watch for changes - this will auto-update when Provider changes
-    assistance = context.watch<Providers>().assistance ?? {};
+    assistance = context.watch<Providers>().assistance;
 
     // Safe access with null checks
     int dueday = 0;
@@ -83,8 +84,6 @@ class _AssistantState extends State<Assistant> {
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
-
-    String currency = splitit(context.watch<Providers>().currency);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,68 +106,21 @@ class _AssistantState extends State<Assistant> {
             children: [
               Visibility(
                 visible: assistance["priority"] == null,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 12,
+                  ),
                   child: RowViewDetails(
                     mainText: 'Priority Actions',
                     detailText: 'View all',
-                    // onTap: () async {
-                    //   var timer = Timer(
-                    //     const Duration(milliseconds: 20000),
-                    //     () {
-                    //       if (mounted) {
-                    //         Navigator.pop(context);
-                    //         dialogBox.information(
-                    //           context,
-                    //           'Status',
-                    //           'Service timed out',
-                    //         );
-                    //       }
-                    //       return;
-                    //     },
-                    //   );
-                    //   dialogBox.waiting(context, 'Loading');
-                    //   var url = Uri.parse('$baseUrl/app/seveng/edit');
-
-                    //   final prefs = await SharedPreferences.getInstance();
-                    //   String? finalToken = prefs.getString('tokenDB');
-
-                    //   var response = await http.get(
-                    //     url,
-                    //     headers: {"Authorization": 'Bearer $finalToken'},
-                    //   );
-
-                    //   if (response.statusCode == 200 && mounted) {
-                    //     var body = jsonDecode(response.body);
-                    //     var analyticsdata = body["data"];
-
-                    //     Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(
-                    //       analyticsdata,
-                    //     );
-                    //     context.read<Providers>().setAnalyticsInfo(
-                    //       analyticsinfo,
-                    //     );
-                    //     Navigator.pop(context);
-                    //     timer.cancel();
-                    //     print(
-                    //       'Analytics data fetched successfully:${widget.realColors}',
-                    //     );
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //         builder: (context) => Editpage(
-                    //           widget.realColors,
-                    //           analyticsinfo,
-                    //           widget.newUserAnalytics,
-                    //           fromSave: true,
-                    //         ),
-                    //       ),
-                    //     );
-                    //   } else if (mounted) {
-                    //     Navigator.pop(context);
-                    //     timer.cancel();
-                    //   }
-                    // },
+                    onTap: () {
+                      if (assistance["personal"]?["type"] == 'profile') {
+                        _handleProfileTap();
+                      } else if (assistance["personal"]?["type"] == '7g') {
+                        _handlePersonalSetupTap();
+                      }
+                    },
                     arrowTap: true,
                   ),
                 ),
@@ -580,9 +532,7 @@ class _AssistantState extends State<Assistant> {
   }
 
   Future<void> _refreshAssistanceData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() {});
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -615,9 +565,7 @@ class _AssistantState extends State<Assistant> {
       // }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() {});
       }
     }
   }

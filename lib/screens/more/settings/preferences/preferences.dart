@@ -45,102 +45,110 @@ class _PreferencesState extends State<Preferences> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PreferenceItem(
-              title: 'Payment Reminders',
-              subtitle: 'Alerts for upcoming or overdue bills and all payments',
-              value: settings.paymentReminders,
-              onChanged: (bool value) {
-                settings.updateSetting('payment_reminders', value);
-              },
-            ),
-            PreferenceItem(
-              title: 'Acquisition Opportunities',
-              subtitle:
-                  'Alerts for promising new asset acquisition opportunities that could be advantageous',
-              value: settings.acquisitionOpportunities,
-              onChanged: (bool value) {
-                settings.updateSetting('acquisition_opportunities', value);
-              },
-            ),
-            PreferenceItem(
-              title: 'News & Updates',
-              subtitle:
-                  'Receive emails and push notifications about exclusive offers we think you\'ll love',
-              value: settings.newsUpdates,
-              onChanged: (bool value) {
-                settings.updateSetting('news_updates', value);
-              },
-            ),
-            PreferenceItem(
-              title: 'Personal Strategy',
-              subtitle:
-                  'Key reminders for your personal strategies aimed at achieving your goals',
-              value: settings.personalStrategy,
-              onChanged: (bool value) {
-                settings.updateSetting('personal_strategy', value);
-              },
-            ),
-            PreferenceItem(
-              title: 'Personalised Insights',
-              subtitle: 'Spending analysis, financial tips, or market updates',
-              value: settings.personalizedInsights,
-              onChanged: (bool value) {
-                settings.updateSetting('personalized_insights', value);
-              },
-            ),
-            const Divider(color: Color(0xffeeeeee), thickness: 0.5, height: 32),
-            PreferenceItem2(
-              title: 'Marketing & Promotions',
-              subtitle:
-                  'Get personalised marketing, news, promotions, and offers from myGAPHub',
-              value: settings.marketingPromotions,
-              onChanged: (bool value) {
-                settings.updateSetting('marketing_promotions', value);
-              },
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                'Marketing Communication',
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w600,
-                  color: settings.marketingPromotions
-                      ? Colors.black
-                      : Colors.grey, // Greyed out when toggle is off
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PreferenceItem(
+                title: 'Payment Reminders',
+                subtitle:
+                    'Alerts for upcoming or overdue bills and all payments',
+                value: settings.paymentReminders,
+                onChanged: (bool value) {
+                  settings.updateSetting('payment_reminders', value);
+                },
+              ),
+              PreferenceItem(
+                title: 'Acquisition Opportunities',
+                subtitle:
+                    'Alerts for promising new asset acquisition opportunities that could be advantageous',
+                value: settings.acquisitionOpportunities,
+                onChanged: (bool value) {
+                  settings.updateSetting('acquisition_opportunities', value);
+                },
+              ),
+              PreferenceItem(
+                title: 'News & Updates',
+                subtitle:
+                    'Receive emails and push notifications about exclusive offers we think you\'ll love',
+                value: settings.newsUpdates,
+                onChanged: (bool value) {
+                  settings.updateSetting('news_updates', value);
+                },
+              ),
+              PreferenceItem(
+                title: 'Personal Strategy',
+                subtitle:
+                    'Key reminders for your personal strategies aimed at achieving your goals',
+                value: settings.personalStrategy,
+                onChanged: (bool value) {
+                  settings.updateSetting('personal_strategy', value);
+                },
+              ),
+              PreferenceItem(
+                title: 'Personalised Insights',
+                subtitle:
+                    'Spending analysis, financial tips, or market updates',
+                value: settings.personalizedInsights,
+                onChanged: (bool value) {
+                  settings.updateSetting('personalized_insights', value);
+                },
+              ),
+              const Divider(
+                color: Color(0xffeeeeee),
+                thickness: 0.5,
+                height: 32,
+              ),
+              PreferenceItem2(
+                title: 'Marketing & Promotions',
+                subtitle:
+                    'Get personalised marketing, news, promotions, and offers from myGAPHub',
+                value: settings.marketingPromotions,
+                onChanged: (bool value) {
+                  settings.updateSetting('marketing_promotions', value);
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  'Marketing Communication',
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: settings.marketingPromotions
+                        ? Colors.black
+                        : Colors.grey, // Greyed out when toggle is off
+                  ),
                 ),
-              ),
-              subtitle: Text(
-                settings.marketingDeliveryMethod == 'push'
-                    ? 'Push Notifications'
-                    : settings.marketingDeliveryMethod == 'email'
-                    ? 'Email'
-                    : settings.marketingDeliveryMethod == 'all'
-                    ? 'All'
-                    : 'None',
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
-                  color: settings.marketingPromotions
-                      ? Colors.black87
-                      : Colors.grey, // Greyed out too
+                subtitle: Text(
+                  settings.marketingDeliveryMethod == 'push'
+                      ? 'Push Notifications'
+                      : settings.marketingDeliveryMethod == 'email'
+                      ? 'Email'
+                      : settings.marketingDeliveryMethod == 'all'
+                      ? 'All'
+                      : 'None',
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: settings.marketingPromotions
+                        ? Colors.black87
+                        : Colors.grey, // Greyed out too
+                  ),
                 ),
+                trailing: Icon(
+                  Icons.arrow_forward_ios,
+                  color: settings.marketingPromotions
+                      ? const Color(0xffa6a6a6)
+                      : Colors.grey, // Dims the icon
+                  size: 16.sp,
+                ),
+                onTap: settings.marketingPromotions
+                    ? () => _showMarketingCommunicationBottomSheet(settings)
+                    : null,
               ),
-              trailing: Icon(
-                Icons.arrow_forward_ios,
-                color: settings.marketingPromotions
-                    ? const Color(0xffa6a6a6)
-                    : Colors.grey, // Dims the icon
-                size: 16.sp,
-              ),
-              onTap: settings.marketingPromotions
-                  ? () => _showMarketingCommunicationBottomSheet(settings)
-                  : null,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Saddnote.dart';
+import 'saddnote.dart';
 import 'saving_allocation_summary.dart';
 import 'swipeTransaction.dart';
 

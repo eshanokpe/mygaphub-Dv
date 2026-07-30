@@ -450,8 +450,7 @@ class _NetworthState extends State<Networth> {
       var cashListLite = response.data["cash_detail"];
       var seveng = response.data["seveng"];
       var bespokes = response.data["bespokes"];
-      var invSum = response3.data["data"]["investment_sum"];
-      var braidTable = response3.data['data']['braid_table'];
+      var invSum = response3.data["investment_sum"];
       print("invSum:$invSum");
       timer.cancel();
       Navigator.pop(context);
@@ -466,7 +465,6 @@ class _NetworthState extends State<Networth> {
             equityDataLite: equityListLite,
             bespokes: bespokes,
             invSum: invSum,
-            braidTable: braidTable,
           ),
         ),
       );
@@ -524,7 +522,7 @@ class _NetworthState extends State<Networth> {
       var creditCurrent = "0";
       var info = jsonDecode(response2.body);
       Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(info["data"]);
-      creditCurrent = analyticsinfo.credit["current"].toString();
+      creditCurrent = analyticsinfo.credit!["current"].toString();
       num total = 0;
       List real = [];
       if (seveng.isNotEmpty) {

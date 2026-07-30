@@ -775,6 +775,7 @@ class _MortgageState extends State<Mortgage> {
         "repayment": repayment.text,
         "analytics": show.toString(),
       };
+      print('data:$data');
       if (dateDB.isNotEmpty) {
         data["target_date"] = dateDB;
       }
@@ -904,8 +905,11 @@ class _MortgageState extends State<Mortgage> {
         await _handleSuccessfulSave(token, timer);
       }
     } on DioException catch (e) {
+      print("_handleDioError:$e");
       await _handleDioError(e, timer);
     } catch (e) {
+      print("_handleUnexpectedError:$e");
+
       await _handleUnexpectedError(e, timer);
     }
   }
@@ -966,7 +970,7 @@ class _MortgageState extends State<Mortgage> {
       'current_bal': _cleanFormattedNumber(current.text),
       'interest': _cleanFormattedNumber(interest.text),
       'month_pay': _cleanFormattedNumber(monthly.text),
-      'repayment': repayment.text,
+      'repayment_plan': repayment.text,
       'analytics': show.toString(),
       'seveng': 'pakmamkanknmjkmnzkmnjmnd',
     };
