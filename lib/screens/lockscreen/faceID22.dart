@@ -36,14 +36,6 @@ class _FaceID22State extends State<FaceID22> {
   bool _triggerShake = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _authenticateWithFaceID();
-    });
-  }
-
-  @override
   void dispose() {
     _errorMessageTimer?.cancel();
     super.dispose();

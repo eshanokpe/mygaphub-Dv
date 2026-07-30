@@ -119,7 +119,6 @@ class _PortarchivesState extends State<Portarchives> {
 
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.white,
         elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),

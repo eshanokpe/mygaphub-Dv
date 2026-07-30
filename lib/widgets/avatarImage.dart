@@ -74,7 +74,7 @@ class AvatarImage extends StatelessWidget implements PreferredSizeWidget {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 0, 16.w, 0),
-      child: InkWell(
+      child: GestureDetector(
         onTap: () async {
           if (baseCurrency.isEmpty) {
             await context.read<CurrencyProvider>().fetchBaseCurrency();
@@ -100,7 +100,8 @@ class AvatarImage extends StatelessWidget implements PreferredSizeWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(width * .06),
             child: SizedBox(
-              height: 25.h,
+              width: 28.w,
+              height: 28.h,
               child: isNetwork
                   ? CachedNetworkImage(
                       imageUrl: imgurl,

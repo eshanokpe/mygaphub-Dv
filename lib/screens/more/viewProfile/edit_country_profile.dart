@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
-import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:country_picker/country_picker.dart';
@@ -250,36 +249,10 @@ class _EditCountryScreenState extends State<EditCountryScreen> {
       );
 
       if (response.statusCode == 200) {
-        final dashboardResponse = await http.get(
-          Uri.parse('$baseUrl/app/dashboard'),
-          headers: {
-            "Authorization": 'Bearer $token',
-            "Accept": "application/json",
-          },
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Country updated successfully')),
         );
-
-        if (dashboardResponse.statusCode == 200 && mounted) {
-          final dashboardData = jsonDecode(dashboardResponse.body);
-          context.read<Providers>().setAssistance(
-            Map<String, dynamic>.from(dashboardData['assistance'] ?? {}),
-          );
-        }
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return SuccessModal(
-              message: "Country updated successfully",
-              onClose: () {
-                Navigator.of(context).pop();
-                Navigator.of(this.context).pop();
-              },
-            );
-          },
-        );
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('Country updated successfully')),
-        // );
       } else if (response.statusCode == 429) {
         final body = jsonDecode(response.body);
         print('Error 429: ${body['message']}');

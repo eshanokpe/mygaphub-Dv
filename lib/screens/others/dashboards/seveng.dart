@@ -1,5 +1,5 @@
 import 'package:GapHub/models/chartsmodel.dart';
-import 'package:GapHub/screens/360/accounts/retirement/retiredash.dart';
+import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
 import 'package:flutter/material.dart';
 import 'package:nimble_charts/flutter.dart' as charts;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -483,15 +483,15 @@ class _SevengState extends State<Seveng> {
       );
 
       if (response.statusCode == 200 && response2.statusCode == 200) {
-        context.read<Providers>().setretiredata(response.data);
-        context.read<Providers>().setpensions(response2.data);
+        context.read<Providers>().setretiredata(response.data['data']);
+        context.read<Providers>().setpensions(response2.data['data']);
 
         Navigator.pop(context);
         timer.cancel();
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Retiredash(response.data, response2.data),
+            builder: (context) => Retiredash(),
           ),
         );
       } else {

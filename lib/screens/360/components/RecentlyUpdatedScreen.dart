@@ -24,7 +24,8 @@ import '../accounts/networth/networth.dart';
 import '../accounts/networth/networthdetails.dart';
 import '../accounts/philanthropy/philanthropy.dart';
 import '../accounts/protection/protectiondetails.dart';
-import '../accounts/retirement/retiredash.dart';
+import '../accounts/retirement/presentation/retiredash.dart';
+import 'addAccountBtn.dart';
 
 class RecentlyUpdatedScreen extends StatefulWidget {
   final List data;
@@ -71,8 +72,10 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
                   shrinkWrap: true,
                   physics: const ScrollPhysics(),
                   itemBuilder: (context, index) {
-                    String accountName = "${data[index]['account_name']}";
-                    String accountType = "${data[index]['account_type']}";
+                    String accountName = "${data[index]['account_name']}"
+                        .capitalize();
+                    String accountType = "${data[index]['account_type']}"
+                        .capitalize();
 
                     // FIXED: Format the amount to always have 2 decimal places
                     dynamic sumValue = data[index]['sum'];
@@ -132,24 +135,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
                   },
                 ),
           SizedBox(height: height * .05),
-          GestureDetector(
-            onTap: () {},
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.add, color: AppColors.primaryColor),
-                const SizedBox(width: 6),
-                Text(
-                  "Add Account",
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const Addaccountbtn(index: "0"),
         ],
       ),
     );
@@ -211,7 +197,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       return;
     });
     dialogBox.waiting(context, "Loading");
-    var url = "$baseUrl/app/360/net";
+    var url = "$baseUrl/app/360/net-worth";
     var url2 = "$baseUrl/app/360/equity";
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('tokenDB');
@@ -226,7 +212,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
 
     Navigator.pop(context);
     // Navigator.pop(context);
-    if (response.data["isNet"]["net_confirm"] == 0) {
+    if (response.data['data']["isNet"]["net_confirm"] == 0) {
       timer.cancel();
       Navigator.push(
         context,
@@ -275,57 +261,56 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       final headers = {'Authorization': 'Bearer $token'};
 
       // Make API call
-      const url = "$baseUrl/app/360/cash";
+      const url =
+          "$baseUrl/app/360/cash?archive=0&header=&access=&account=&kpi=";
       final response = await dio.get(url, options: Options(headers: headers));
 
       // Check if request was successful
       if (response.statusCode == 200) {
-        // Extract data from response with null safety
-        final cashData = response.data["cash"];
-        final sevengData = response.data["seveng"];
-        final cashDetailData = response.data["cash_detail"];
-        final bespokesData = response.data["bespokes"];
+        // Check the response structure - it has a status and data wrapper
+        final responseData = response.data;
 
-        // Validate required data
-        if (cashData == null) {
-          throw Exception('Invalid response format: missing cash data');
-        }
+        if (responseData is Map && responseData['status'] == true) {
+          // Extract the actual data from the 'data' field
+          final cashResponseData = responseData['data'] as Map? ?? {};
 
-        // Update providers with data (only if data exists)
-        context.read<Providers>().setcashData(cashData);
+          // Extract data from response with null safety
+          final cashData = cashResponseData["cash"] as List? ?? [];
+          final sevengData = cashResponseData["seveng"] as List? ?? [];
+          final cashDetailData = cashResponseData["cash_detail"] as Map? ?? {};
+          final bespokesData = cashResponseData["bespokes"] as List? ?? [];
 
-        if (cashDetailData != null) {
+          // Update providers with data
+          context.read<Providers>().setcashData(cashData);
           context.read<Providers>().setcashDataLite(cashDetailData);
-        }
-
-        if (sevengData != null) {
           context.read<Providers>().setcashseveng(sevengData);
-        }
-
-        if (bespokesData != null) {
           context.read<Providers>().setcashbespokes(bespokesData);
-        }
 
-        // Cancel timer since request completed successfully
-        timer.cancel();
+          // Cancel timer since request completed successfully
+          timer.cancel();
 
-        // Close loading dialog
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
+          // Close loading dialog
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
 
-        // Navigate to cash details screen with all available data
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Cashdetails(
-              cashData,
-              cashDetailData ?? [], // Provide empty list as fallback
-              sevengData ?? [], // Provide empty list as fallback
-              bespokesData ?? [], // Provide empty list as fallback
+          // Navigate to cash details screen with all available data
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Cashdetails(
+                cashData,
+                cashDetailData,
+                sevengData,
+                bespokesData,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          throw Exception(
+            'API returned error: ${responseData['message'] ?? 'Unknown error'}',
+          );
+        }
       } else {
         throw Exception(
           'Failed to load cash data (Status: ${response.statusCode})',
@@ -425,7 +410,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       int creditCurrentInt = int.tryParse(creditCurrent) ?? 0;
       var cc = jsonDecode(response2.body);
       Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(cc["data"]);
-      creditCurrent = analyticsinfo.credit!["current"].toString();
+      creditCurrent = analyticsinfo.credit["current"].toString();
       num total = 0;
       List real = [];
       if (seveng.isNotEmpty) {
@@ -589,35 +574,60 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       final headers = {'Authorization': 'Bearer $token'};
 
       // Make API call
-      const url = "$baseUrl/app/360/protection";
+      const url =
+          "$baseUrl/app/360/protection?archive=0&header=&access=&account=";
       final response = await dio.get(url, options: Options(headers: headers));
 
       // Check if request was successful
       if (response.statusCode == 200) {
-        // Cancel timer since request completed successfully
-        timer.cancel();
+        // Check if API returned success status
+        final responseData = response.data;
 
-        // Extract data from response
-        final protectionList = response.data["protection"];
-        final protectionDetailList = response.data["protection_detail"];
+        if (responseData['status'] == true) {
+          print("response.data: $responseData");
 
-        // Validate data
-        if (protectionList == null || protectionDetailList == null) {
-          throw Exception('Invalid response format: missing required data');
+          // Cancel timer since request completed successfully
+          timer.cancel();
+
+          // Extract data from the "data" field in the response
+          final protectionData = responseData["data"];
+
+          // Get the lists from the data object
+          final protectionList = protectionData["protection"] ?? [];
+          final protectionDetailList =
+              protectionData["protection_detail"] ?? [];
+
+          // Validate data
+          if (protectionList.isEmpty) {
+            print('No protection data found');
+            // You might want to show a message to user
+          }
+
+          // Update providers with data
+          if (context.mounted) {
+            context.read<Providers>().setProtectionList(protectionList);
+            context.read<Providers>().setProtectionListLite(
+              protectionDetailList,
+            );
+          }
+          // Close loading dialog
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          // Navigate to protection details screen
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const Protectiondetails(),
+              ),
+            );
+          }
+        } else {
+          throw Exception(
+            responseData['message'] ?? 'Failed to load protection data',
+          );
         }
-
-        // Update providers with data
-        context.read<Providers>().setProtectionList(protectionList);
-        context.read<Providers>().setProtectionListLite(protectionDetailList);
-
-        // Close loading dialog
-        Navigator.pop(context);
-
-        // Navigate to protection details screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Protectiondetails()),
-        );
       } else {
         throw Exception(
           'Failed to load protection data (Status: ${response.statusCode})',
@@ -626,11 +636,6 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
     } catch (e) {
       // Cancel timer on error
       timer.cancel();
-
-      // Close loading dialog if still showing
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
 
       // Handle error
       _handleError(e);
@@ -650,7 +655,8 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       }
 
       final headers = {'Authorization': 'Bearer $token'};
-      const url = "$baseUrl/app/360/philantrophy";
+      const url =
+          "$baseUrl/app/360/philantrophy?archive=0&header=&access=&account=&period=&income=&crd=&alo=";
       final response = await dio.get(url, options: Options(headers: headers));
 
       if (response.statusCode == 200) {
@@ -730,10 +736,11 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       final response = await dio.get(url, options: Options(headers: headers));
 
       if (response.statusCode == 200) {
+        final responseData = response.data;
         timer.cancel();
-
-        final expenditureList = response.data["expenditure"];
-        final expenditureDetailList = response.data["expenditure_detail"];
+        final expenditureData = responseData["data"];
+        final expenditureList = expenditureData["expenditure"];
+        final expenditureDetailList = expenditureData["expenditure_detail"];
 
         // Validate required data
         if (expenditureList == null) {
@@ -749,8 +756,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
           );
         }
 
-        // Store currency if needed (uncomment if you have a setCurrency method)
-        // context.read<Providers>().setcurrency(currency);
+        context.read<Providers>().setcurrency(currency);
 
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
@@ -787,19 +793,20 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       }
 
       final headers = {'Authorization': 'Bearer $token'};
-      const url = "$baseUrl/app/360/income";
+      const url =
+          "$baseUrl/app/360/income?archive=0&header=&access=&account=&period=&income=&crd=&alo=";
       final response = await dio.get(url, options: Options(headers: headers));
 
       if (response.statusCode == 200) {
         timer.cancel();
 
         // Extract data from response with null safety
-        final assets = response.data["portfolio_asset"] as List? ?? [];
-        final incomeData = response.data["incomes"] as List? ?? [];
-        final incomeDataLite = response.data["income_detail"];
-        final incomeInfo = response.data["income_info"] ?? {};
-        final incomeAudit = response.data["income_audit"];
-        final incomeChart = response.data["income_chart"];
+        final assets = response.data["data"]["portfolio_asset"] as List? ?? [];
+        final incomeData = response.data["data"]["incomes"] as List? ?? [];
+        final incomeDataLite = response.data["data"]["income_detail"];
+        final incomeInfo = response.data["data"]["income_info"] ?? {};
+        final incomeAudit = response.data["data"]["income_audit"];
+        final incomeChart = response.data["data"]["income_chart"];
 
         // Parse current portfolio
         int currentPortfolio = 0;
@@ -945,7 +952,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
           options: Options(headers: headers),
         ),
         dio.get(
-          '$baseUrl/app/360/retirement',
+          '$baseUrl/app/360/retirement?archive=0&header=&access=&account=',
           options: Options(headers: headers),
         ),
       ]);
@@ -957,9 +964,8 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       if (roiResponse.statusCode == 200 &&
           retirementResponse.statusCode == 200) {
         // Update providers with data
-        context.read<Providers>().setretiredata(roiResponse.data);
-        context.read<Providers>().setpensions(retirementResponse.data);
-
+        context.read<Providers>().setretiredata(roiResponse.data['data']);
+        context.read<Providers>().setpensions(retirementResponse.data['data']);
         // Cancel timer since request completed successfully
         timer.cancel();
 
@@ -971,7 +977,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
           context,
           MaterialPageRoute(
             builder: (context) =>
-                Retiredash(roiResponse.data, retirementResponse.data),
+                Retiredash(),
           ),
         );
       } else {
@@ -1099,7 +1105,7 @@ class AccountTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title.toUpperCase(),
+                        title,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
@@ -1107,7 +1113,7 @@ class AccountTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        subtitle.toUpperCase(),
+                        subtitle,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w300,

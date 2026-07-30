@@ -24,10 +24,7 @@ class SliderAcquisition extends StatelessWidget {
     final screenWidth = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
-    final safeProperties = properties ?? [];
-    if (safeProperties.isEmpty) {
-      return const SizedBox.shrink();
-    }
+
     return CarouselSlider(
       options: CarouselOptions(
         height: isTablet ? 340.h : 320.h,
@@ -38,7 +35,7 @@ class SliderAcquisition extends StatelessWidget {
         autoPlay: true,
         enlargeStrategy: CenterPageEnlargeStrategy.scale,
       ),
-      items: safeProperties!.map((property) {
+      items: properties!.map((property) {
         return InkWell(
           onTap: () {
             print('Property propertyCountrie: ${property.propertyCountrie}');

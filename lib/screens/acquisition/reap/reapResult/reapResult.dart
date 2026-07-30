@@ -1,7 +1,10 @@
 import 'package:GapHub/models/propertyDetailModel.dart';
 import 'package:GapHub/provider/acquisiProvider.dart';
+import 'package:GapHub/screens/acquisition/reap/reaplist.dart';
+import 'package:GapHub/screens/acquisition/reap/widget/acquisition_list.dart';
 import 'package:GapHub/screens/acquisition/reap/widget/video_player_widget.dart';
 import 'package:GapHub/utils/colors.dart';
+import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/widgets/avatarImage.dart';
 import 'package:GapHub/widgets/navigateWithSlideTransition.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -114,6 +117,18 @@ class _ReapResultState extends State<ReapResult> {
                   ],
                 ),
               );
+              // return Center(
+              //   child: Column(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       const Text('Failed to load property'),
+              //       ElevatedButton(
+              //         onPressed: _loadPropertyDetails,
+              //         child: const Text('Retry'),
+              //       ),
+              //     ],
+              //   ),
+              // );
             }
             return Column(
               children: [

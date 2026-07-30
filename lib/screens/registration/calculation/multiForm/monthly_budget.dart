@@ -14,7 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
- 
+  
 class MonthlyBudget extends StatefulWidget {
   final VoidCallback nextPage;
   final Map<String, dynamic>? selectedCurrency;
@@ -478,7 +478,7 @@ void _initializeCurrency() {
                       'This includes Groceries, Clothes, Insurances, e.t.c',
                 );
               },
-            );
+            ); 
           },
         ),
         SizedBox(height: MediaQuery.of(context).size.height * 0.02),
@@ -887,6 +887,7 @@ Calculatormodel _buildCalculatorModel(
         }
       }
     } catch (e) {
+      print("Error:$e");
       if (mounted) {
         DialogBox().information(
           context,

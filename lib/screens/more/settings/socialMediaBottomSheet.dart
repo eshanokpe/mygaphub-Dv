@@ -108,7 +108,7 @@ class SocialMediaBottomSheet {
                 label: 'Follow us on Youtube',
                 onTap: () =>
                     _launchUrl('https://www.youtube.com/@prismcheckuk'),
-              ),
+              ), 
               Divider(
                 color: const Color(0xffefefef),
                 thickness: 1.h,

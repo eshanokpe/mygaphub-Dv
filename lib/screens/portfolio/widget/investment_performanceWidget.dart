@@ -5,10 +5,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+
 import 'portfolio_row_widget.dart';
 
 class InvestmentPerformanceWidget extends StatefulWidget {
   final List<BarChartGroupData> showingBarGroups;
+
   const InvestmentPerformanceWidget(this.showingBarGroups, {super.key});
 
   @override
@@ -18,8 +20,15 @@ class InvestmentPerformanceWidget extends StatefulWidget {
 
 class _InvestmentPerformanceWidgetState
     extends State<InvestmentPerformanceWidget> {
+  Map data = {};
+  List assetValue = [];
+  num bussAssetValue = 0;
+  num appreciatingValue = 0;
+  num riskValue = 0;
+
+  // State for touched bar
   String? _selectedLabel;
-  num?    _selectedValue;
+  num? _selectedValue;
 
   void _handleBarTouch(String? label, num? value) {
     setState(() {
@@ -30,25 +39,51 @@ class _InvestmentPerformanceWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final String currency      = context.watch<Providers>().snapshotmodel.currency;
-    final Map    portfolioData = context.watch<Providers>().portfolio;
+    String currency = context.watch<Providers>().snapshotmodel.currency;
 
-    final orientation = MediaQuery.of(context).orientation;
+    // Use context.watch to listen for changes in portfolio data
+    // and ensure the widget rebuilds when data is available.
+    final portfolioData = context.watch<Providers>().portfolio;
+    bool dataIsValid = false;
+
+    // Safely extract and assign asset values
+    if (portfolioData['data']?["existing_report"]?["values"] != null &&
+        portfolioData['data']["existing_report"]["values"] is List) {
+      List<dynamic> tempAssetValues =
+          portfolioData['data']["existing_report"]["values"];
+      if (tempAssetValues.length >= 3) {
+        // Assuming the order from your original direct assignment:
+        // assetValue[0] for Business, assetValue[2] for Appreciating, assetValue[1] for Risk.
+        bussAssetValue = (tempAssetValues[0] is num ? tempAssetValues[0] : 0)
+            .round();
+        appreciatingValue = (tempAssetValues[2] is num ? tempAssetValues[2] : 0)
+            .round();
+        riskValue = (tempAssetValues[1] is num ? tempAssetValues[1] : 0)
+            .round();
+        dataIsValid = true;
+        print(
+          "InvestmentPerformanceWidget - Parsed assetValues: B:$bussAssetValue, A:$appreciatingValue, R:$riskValue",
+        );
+      }
+    }
+
+    if (!dataIsValid) {
+      // If data is not valid or complete, ensure totals default to 0.
+      print(
+        "InvestmentPerformanceWidget - Portfolio data not valid/complete. Totals will be 0 or stale.",
+      );
+      bussAssetValue =
+          bussAssetValue; // Retain previous value or initial 0 if never set
+      appreciatingValue = appreciatingValue;
+      riskValue = riskValue;
+    }
+    Orientation orientation = MediaQuery.of(context).orientation;
     final height = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.height
         : MediaQuery.of(context).size.width;
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
-
-    // Safely extract values — default to 0 if not ready
-    final values = portfolioData['data']?['existing_report']?['values'];
-    final bool hasValues = values is List && values.length >= 3;
-
-    final num bussAssetValue    = hasValues ? (values[0] is num ? values[0] : 0) : 0;
-    final num riskValue         = hasValues ? (values[1] is num ? values[1] : 0) : 0;
-    final num appreciatingValue = hasValues ? (values[2] is num ? values[2] : 0) : 0;
-
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Column(
@@ -59,8 +94,9 @@ class _InvestmentPerformanceWidgetState
               borderRadius: BorderRadius.circular(12.0),
               side: const BorderSide(color: Color(0xffeeeeee), width: 0.3),
             ),
+            // color: AppColors.cardColor,
             child: Container(
-              width: width,
+              width: width * 05,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(width * .02),
@@ -77,6 +113,7 @@ class _InvestmentPerformanceWidgetState
                   ),
                   SizedBox(height: height * 0.01),
                   Container(
+                    margin: EdgeInsets.zero,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     color: AppColors.cardColor,
                     child: Column(
@@ -97,13 +134,15 @@ class _InvestmentPerformanceWidgetState
                               'assets/images/portfolio_value.png',
                               height: 22.h,
                               width: 18.w,
+                              // fit: B5xFit.contain,
                             ),
                           ],
                         ),
                         SizedBox(height: height * 0.02),
                         PortfolioRowWidget(
                           label: 'Business Asset',
-                          value: (_selectedLabel == 'B' && _selectedValue != null)
+                          value:
+                              (_selectedLabel == 'B' && _selectedValue != null)
                               ? _selectedValue!
                               : bussAssetValue,
                           currency: currency,
@@ -112,7 +151,8 @@ class _InvestmentPerformanceWidgetState
                         SizedBox(height: height * 0.015),
                         PortfolioRowWidget(
                           label: 'Appreciating Asset',
-                          value: (_selectedLabel == 'A' && _selectedValue != null)
+                          value:
+                              (_selectedLabel == 'A' && _selectedValue != null)
                               ? _selectedValue!
                               : appreciatingValue,
                           currency: currency,
@@ -121,7 +161,8 @@ class _InvestmentPerformanceWidgetState
                         SizedBox(height: height * 0.015),
                         PortfolioRowWidget(
                           label: 'Risk Asset',
-                          value: (_selectedLabel == 'R' && _selectedValue != null)
+                          value:
+                              (_selectedLabel == 'R' && _selectedValue != null)
                               ? _selectedValue!
                               : riskValue,
                           currency: currency,

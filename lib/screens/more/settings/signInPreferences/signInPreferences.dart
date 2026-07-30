@@ -1,8 +1,6 @@
-import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/provider/signin_preferences_provider.dart';
 import 'package:GapHub/screens/authentication/passcode/setpasscode.dart';
 import 'package:GapHub/utils/colors.dart';
-import 'package:GapHub/utils/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,13 +9,12 @@ import 'package:getwidget/getwidget.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../passcode/enterPasscode.dart';
-import 'custom_toggle.dart';
 import 'faceID/enableFaceId.dart';
 import 'touchID/enabletouchID.dart';
 
 class SignInPreferences extends StatefulWidget {
-  final SignInPreferencesProvider provider; // ✅ final added
-  const SignInPreferences({super.key, required this.provider});
+  SignInPreferencesProvider provider;
+  SignInPreferences({super.key, required this.provider});
 
   @override
   _SignInPreferencesState createState() => _SignInPreferencesState();
@@ -29,22 +26,43 @@ class _SignInPreferencesState extends State<SignInPreferences> {
   @override
   void initState() {
     super.initState();
+    _checkIfDataIsReady();
+    _loadData();
+  }
+
+  void _checkIfDataIsReady() {
+    // If data is already loaded, skip loading
+    if (!widget.provider.isLoading) {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    // Otherwise, load the data
     _loadData();
   }
 
   void _loadData() {
-    // ✅ No loading state — refresh silently in background
+    // Force refresh all data when entering the screen
     widget.provider
         .forceRefreshAllData()
         .then((_) {
-          if (mounted) setState(() {});
+          if (mounted) {
+            setState(() {
+              isLoading = false;
+            });
+          }
         })
         .catchError((error) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to load preferences')),
-            );
+            setState(() {
+              isLoading = false;
+            });
           }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to load preferences')),
+          );
         });
   }
 
@@ -81,33 +99,38 @@ class _SignInPreferencesState extends State<SignInPreferences> {
   }
 
   void _handlePasscodeAction(SignInPreferencesProvider provider) {
-    print('🔥 _handlePasscodeAction called');
-    print('🔥 hasPasscode: ${provider.hasPasscode}');
-
     if (provider.hasPasscode) {
-      print('🔥 navigating to EnterPasscodeScreen');
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const EnterPasscodeScreen()),
       ).then((result) {
-        if (result == true) _showSuccessModal();
+        if (result == true) {
+          // Show success modal here
+          _showSuccessModal();
+        }
       });
     } else {
-      print('🔥 navigating to SetPasscodeScreen');
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const SetPasscodeScreen(settings: false),
         ),
       ).then((result) {
-        if (result == true) _showSuccessModal();
+        if (result == true) {
+          // Show success modal here
+          _showSuccessModal();
+        }
         provider.forceRefreshAllData().then((_) {
-          if (mounted) setState(() {});
+          if (mounted) {
+            setState(() {}); // Force UI rebuild
+          }
         });
       });
     }
   }
 
+  // Add this method to SignInPreferences
+  // Add this method to SignInPreferences
   void _showSuccessModal() {
     showDialog(
       context: context,
@@ -160,8 +183,11 @@ class _SignInPreferencesState extends State<SignInPreferences> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
+                      // Refresh the data to reflect changes
                       widget.provider.forceRefreshAllData().then((_) {
-                        if (mounted) setState(() {});
+                        if (mounted) {
+                          setState(() {});
+                        }
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -205,6 +231,18 @@ class _SignInPreferencesState extends State<SignInPreferences> {
     final bool isEnabled = displayState.isEnabled;
     final bool isInteractive = displayState.isInteractive;
 
+    // Debug information
+    if (kDebugMode) {
+      print("=== DEBUG: $title ===");
+      print("signinPreference: ${provider.signinPreference}");
+      print("isFaceIdEnabled: ${provider.isFaceIdEnabled}");
+      print("isTouchIdEnabled: ${provider.isTouchIdEnabled}");
+      print("displayState.isEnabled: $isEnabled");
+      print("biometricType: $biometricType");
+      print("hasPasscode: ${provider.hasPasscode}");
+      print("=====================");
+    }
+
     String statusMessage = '';
     Color statusColor = Colors.grey;
 
@@ -235,7 +273,7 @@ class _SignInPreferencesState extends State<SignInPreferences> {
                       Text(
                         title,
                         style: GoogleFonts.nunitoSans(
-                          fontSize: 16.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -247,8 +285,10 @@ class _SignInPreferencesState extends State<SignInPreferences> {
                           color: AppColors.grayColor,
                         ),
                       ),
-                      if (statusMessage.isNotEmpty) ...[
-                        SizedBox(height: 4.h),
+
+                      // Status message
+                      if (statusMessage.isNotEmpty) SizedBox(height: 4.h),
+                      if (statusMessage.isNotEmpty)
                         Text(
                           statusMessage,
                           style: GoogleFonts.nunitoSans(
@@ -257,34 +297,35 @@ class _SignInPreferencesState extends State<SignInPreferences> {
                             fontStyle: FontStyle.italic,
                           ),
                         ),
-                      ],
                     ],
                   ),
                 ),
                 SizedBox(width: 10.w),
-                InkWell(
-                  onTap: () {
+                GFToggle(
+                  onChanged: (val) {
                     if (!isInteractive) return;
-                    _handleBiometricToggleTap(
-                      biometricType,
-                      isEnabled,
-                      provider,
-                    );
+
+                    if (kDebugMode) {
+                      print("$title toggle changed to: $val");
+                    }
+                    // For Face ID, navigate to EnableFaceIdScreen instead of directly toggling
+                    if (biometricType == 'face' && val == true) {
+                      _navigateToEnableFaceIdScreen(provider);
+                    } else if (biometricType == 'touch' && val == true) {
+                      _navigateToEnableTouchIdScreen(provider);
+                    } else {
+                      // For Touch ID or disabling, use the normal toggle logic
+                      provider.handleBiometricToggle(biometricType, val!);
+                    }
                   },
-                  child: AbsorbPointer(
-                    child: CustomToggle(
-                        key: ValueKey('$biometricType-$isEnabled'),
-                        onChanged: (_) {},
-                        value: isEnabled,
-                        type: CustomToggleType.ios,
-                        trackWidth: 44,
-                        enabledTrackColor: AppColors.primaryColor,
-                        disabledTrackColor: Colors.grey[300],
-                        enabledThumbColor: Colors.white,
-                        disabledThumbColor: Colors.white,
-                      
-                    ),
-                  ),
+                  value: isEnabled,
+                  type: GFToggleType.ios,
+                  enabledTrackColor: isInteractive
+                      ? AppColors.primaryColor
+                      : AppColors.primaryColor,
+                  disabledTrackColor: Colors.grey[300],
+                  enabledThumbColor: Colors.white,
+                  disabledThumbColor: Colors.white,
                 ),
               ],
             ),
@@ -293,25 +334,6 @@ class _SignInPreferencesState extends State<SignInPreferences> {
         ),
       ),
     );
-  }
-
-  void _handleBiometricToggleTap(
-    String biometricType,
-    bool isEnabled,
-    SignInPreferencesProvider provider,
-  ) {
-    final newValue = !isEnabled;
-    if (kDebugMode) {
-      print('$biometricType toggle tapped: $newValue');
-    }
-
-    if (biometricType == 'face' && newValue) {
-      _navigateToEnableFaceIdScreen(provider);
-    } else if (biometricType == 'touch' && newValue) {
-      _navigateToEnableTouchIdScreen(provider);
-    } else {
-      provider.handleBiometricToggle(biometricType, newValue);
-    }
   }
 
   @override
@@ -349,49 +371,48 @@ class _SignInPreferencesState extends State<SignInPreferences> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Passcode',
-                            style: GoogleFonts.nunitoSans(
-                              color: passcodeInfo['color'],
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            'Use this to log in each time',
-                            style: GoogleFonts.nunitoSans(
-                              color: AppColors.grayColor,
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                      InkWell(
-                        onTap: passcodeInfo['isClickable']
-                            ? () => _handlePasscodeAction(provider)
-                            : null,
-                        child: Text(
-                          passcodeInfo['text'],
-                          style: GoogleFonts.nunitoSans(
-                            color: AppColors.primaryColor,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
+                if (isLoading)
+                  SizedBox(
+                    height: 20.h,
+                    width: double.infinity,
+                    child: const Center(
+                      child: SpinKitCircle(color: Colors.black, size: 60.0),
+                    ),
+                  )
+                else
+                  GestureDetector(
+                    onTap: passcodeInfo['isClickable']
+                        ? () => _handlePasscodeAction(provider)
+                        : null,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      subtitle: Text(
+                        'Use this to log in each time',
+                        style: GoogleFonts.nunitoSans(
+                          color: AppColors.grayColor,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
-                    ],
+                      title: Text(
+                        'Passcode',
+                        style: GoogleFonts.nunitoSans(
+                          color: passcodeInfo['color'],
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      trailing: Text(
+                        passcodeInfo['text'],
+                        style: GoogleFonts.nunitoSans(
+                          color: AppColors.primaryColor,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      minLeadingWidth: 0,
+                    ),
                   ),
-                ),
 
                 SizedBox(height: 40.h),
 
@@ -416,34 +437,69 @@ class _SignInPreferencesState extends State<SignInPreferences> {
     );
   }
 
+  // Add this method to handle navigation to EnableFaceIdScreen// In your SignInPreferences screen, update the _navigateToEnableFaceIdScreen method:
   void _navigateToEnableFaceIdScreen(SignInPreferencesProvider provider) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const EnableFaceIdScreen()),
     );
 
-    await provider.forceRefreshAllData();
-    if (mounted) setState(() {});
+    // If Face ID was successfully enabled, refresh the data
+    if (result == true) {
+      // Force a complete refresh to ensure mutual exclusion works
+      await provider.forceRefreshAllData();
+
+      if (mounted) {
+        setState(() {}); // Force UI refresh
+      }
+
+      if (kDebugMode) {
+        print("After Face ID enabled:");
+        print("  - signinPreference: ${provider.signinPreference}");
+        print("  - Face ID enabled: ${provider.isFaceIdEnabled}");
+        print("  - Touch ID enabled: ${provider.isTouchIdEnabled}");
+      }
+    }
   }
 
+  void _checkMutualExclusionState(SignInPreferencesProvider provider) {
+    if (kDebugMode) {
+      print("=== MUTUAL EXCLUSION STATE CHECK ===");
+      print("  - signinPreference: ${provider.signinPreference}");
+      print("  - Face ID enabled: ${provider.isFaceIdEnabled}");
+      print("  - Touch ID enabled: ${provider.isTouchIdEnabled}");
+      print(
+        "  - Both enabled: ${provider.isFaceIdEnabled && provider.isTouchIdEnabled}",
+      );
+      print("  - Expected: Both should NEVER be true simultaneously");
+      print("=== END STATE CHECK ===");
+    }
+  }
+
+  // Add this method to handle navigation to EnableTouchIdScreen
   void _navigateToEnableTouchIdScreen(
     SignInPreferencesProvider provider,
   ) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const EnableTouchIdScreen()),
+      MaterialPageRoute(builder: (context) => EnableTouchIdScreen()),
     );
 
-    await provider.forceRefreshAllData();
-    if (mounted) setState(() {});
+    // If Touch ID was successfully enabled, refresh the data
+    if (result == true) {
+      // Force a complete refresh to ensure mutual exclusion works
+      await provider.forceRefreshAllData();
 
-    if (result == true && kDebugMode) {
-      print("After Touch ID enabled:");
-      print("  - signinPreference: ${provider.signinPreference}");
-      print("  - Face ID enabled: ${provider.isFaceIdEnabled}");
-      print("  - Touch ID enabled: ${provider.isTouchIdEnabled}");
+      if (mounted) {
+        setState(() {}); // Force UI refresh
+      }
+
+      if (kDebugMode) {
+        print("After Touch ID enabled:");
+        print("  - signinPreference: ${provider.signinPreference}");
+        print("  - Face ID enabled: ${provider.isFaceIdEnabled}");
+        print("  - Touch ID enabled: ${provider.isTouchIdEnabled}");
+      }
     }
   }
-
-  void _checkMutualExclusionState(SignInPreferencesProvider provider) {}
 }

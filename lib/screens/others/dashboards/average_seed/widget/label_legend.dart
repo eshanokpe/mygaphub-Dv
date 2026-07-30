@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 class LabelLegend extends StatelessWidget {
   final Color circleColor;
   final String text;
-  const LabelLegend({Key? key, required this.circleColor, required this.text});
+  const LabelLegend({
+    super.key,
+    required this.circleColor,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {

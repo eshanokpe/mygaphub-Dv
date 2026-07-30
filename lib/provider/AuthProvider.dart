@@ -26,11 +26,23 @@ class AuthProvider with ChangeNotifier {
   String _errorMessage = '';
   bool _isAuthenticated = false;
   String? _authToken;
+  Map<String, dynamic> _seedData = {};
 
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
   String? get authToken => _authToken;
+  Map<String, dynamic> get seedData => _seedData;
+
+  /// Refreshes the SEED data used by the investment flow.
+  Future<void> fetchSeedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = _authToken ?? prefs.getString('tokenDB');
+
+    if (token == null || token.isEmpty || token == 'logout') return;
+
+    await _fetchSeed(token);
+  }
 
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -62,8 +74,10 @@ class AuthProvider with ChangeNotifier {
       final analytics = await _fetchAnalytics(token);
 
       if (analytics != null && context.mounted) {
-        Provider.of<Providers>(context, listen: false)
-            .setAnalyticsInfo(analytics);
+        Provider.of<Providers>(
+          context,
+          listen: false,
+        ).setAnalyticsInfo(analytics);
       }
     } catch (e) {
       // Silent fail — dashboard already has cached data from login,
@@ -86,7 +100,6 @@ class AuthProvider with ChangeNotifier {
       // providers.clearAllData();
       await _clearStoredToken();
       Provider.of<Providers>(context, listen: false).clearAllData();
-
 
       final token = await _authenticateUser(email, password);
       print('Authenticated token: $token');
@@ -482,6 +495,7 @@ class AuthProvider with ChangeNotifier {
         _fetchAnalytics(
           finalToken,
         ).catchError((e) => _handleApiError('Analytics', e)),
+        _fetchSeed(finalToken).catchError((e) => _handleApiError('Seed', e)),
       ], eagerError: true);
 
       final loginusermodel =
@@ -822,9 +836,8 @@ class AuthProvider with ChangeNotifier {
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
-      print("Snapshotmodel:$jsonData");
 
-      final dataField = jsonData['data'];
+      final dataField = jsonData;
       if (dataField == null) {
         throw Exception('No data field in response');
       }
@@ -875,12 +888,11 @@ class AuthProvider with ChangeNotifier {
   Future<dynamic> _fetchCalculator(String token) async {
     try {
       final response = await http
-          .get( 
+          .get(
             Uri.parse("$baseUrl/app/calculator"),
             headers: {"Authorization": 'Bearer $token'},
           )
           .timeout(const Duration(seconds: 15));
-      print("_fetchCalculator:${response}");
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         return jsonData['data'] ?? {};
@@ -1007,6 +1019,31 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       print('Error fetching recent tiles: $e');
       return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> _fetchSeed(String token) async {
+    try {
+      final response = await _dio
+          .get(
+            "$baseUrl/app/seed",
+            options: Options(headers: {"Authorization": 'Bearer $token'}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      final body = response.data?["data"];
+      _seedData = body is Map<String, dynamic>
+          ? body
+          : body is Map
+          ? Map<String, dynamic>.from(body)
+          : {};
+      notifyListeners();
+
+      print("seedData:$_seedData");
+      return _seedData;
+    } catch (e) {
+      print('Error fetching seed data: $e'); // Fixed log message too
+      return {};
     }
   }
 

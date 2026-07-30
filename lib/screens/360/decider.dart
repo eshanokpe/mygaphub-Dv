@@ -4,7 +4,7 @@ import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:flutter/material.dart';
 import 'package:GapHub/screens/360/accounts/cash/cash.dart';
 import 'package:GapHub/screens/360/accounts/assetsAcc/assets.dart';
-import 'package:GapHub/screens/360/accounts/protection/protection.dart';
+import 'package:GapHub/screens/360/accounts/protection/addProtection/add_protection.dart';
 import 'accounts/liabilities/liabilities.dart';
 import 'package:GapHub/screens/360/accounts/retirement/retirement.dart';
 import 'dart:convert';
@@ -38,9 +38,9 @@ class _DeciderState extends State<Decider> {
     Widget body() {
       switch (widget.account) {
         case "Cash":
-          return Cash();
+          return const Cash();
         case "Liabilities":
-          return Liabilities();
+          return const Liabilities();
         case "Mortgage":
           if (!mortgageloading) {
             return Mortgage(
@@ -53,11 +53,11 @@ class _DeciderState extends State<Decider> {
             ); // Loading indicator
           }
         case "Protection":
-          return Protection();
+          return const AddProtectionScreen();
         case "Assets":
-          return Assets();
+          return const Assets();
         case "Retirement(Pension)":
-          return Retirement();
+          return const Retirement();
         case "Income":
           return const Income();
         default:

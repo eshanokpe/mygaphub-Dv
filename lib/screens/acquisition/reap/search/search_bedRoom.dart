@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:GapHub/provider/acquisitionProvider.dart';
 
 class SearchBedRooms extends StatefulWidget {
-  const SearchBedRooms({key});
+  const SearchBedRooms({super.key});
 
   @override
   State<SearchBedRooms> createState() => _SearchBedRoomsState();
@@ -28,13 +28,19 @@ class _SearchBedRoomsState extends State<SearchBedRooms> {
                 );
               },
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: acquisitionProvider.isSelectedBedRoom[index]
                       ? Colors.black
                       : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Color(0xffe5e5e5), width: 0.5),
+                  border: Border.all(
+                    color: const Color(0xffe5e5e5),
+                    width: 0.5,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -50,9 +56,9 @@ class _SearchBedRoomsState extends State<SearchBedRooms> {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     if (acquisitionProvider.isSelectedBedRoom[index])
-                      Icon(Icons.check, color: Colors.white, size: 15),
+                      const Icon(Icons.check, color: Colors.white, size: 15),
                   ],
                 ),
               ),

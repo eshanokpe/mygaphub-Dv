@@ -19,26 +19,55 @@ class Default extends StatefulWidget {
 }
 
 class _DefaultState extends State<Default> {
-  //var details = Loginusermodel();
   DialogBox dialogBox = DialogBox();
   final LocalAuthentication _localAuthentication = LocalAuthentication();
 
   Future<bool> _isBiometricAvailable() async {
     bool isAvailable = false;
-
     try {
       isAvailable = await _localAuthentication.canCheckBiometrics;
     } on PlatformException catch (e) {
       dialogBox.information(context, 'Error', e.toString());
     }
-
     if (!mounted) return isAvailable;
     return isAvailable;
   }
 
-  @override
-  void initState() {
-    super.initState();
+  /// Reusable Logout Confirmation Dialog
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text("Confirmation"),
+          content: const Text("Are you sure you want to log out?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove(
+                  'tokenDB',
+                ); // Directly remove — no need to set to 'logout' first
+                await prefs.remove('signin');
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Login()),
+                  (route) => false,
+                );
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -51,56 +80,24 @@ class _DefaultState extends State<Default> {
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
     String email = context.watch<Providers>().details[2];
-
-    //  details = context.watch<Providers>().loginDetails;
     String imgurl = context.watch<Providers>().details[7];
     print("image__: $imgurl");
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  backgroundColor: Colors.white,
-                  title: const Text("Confirmation"),
-                  content: const Text("Are you sure you want to log out?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Cancel"),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setString('tokenDB', 'logout');
-                        await prefs.remove(
-                          'tokenDB',
-                        ); // Actually remove the token
-                        await prefs.remove('signin');
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => Login()),
-                          (route) => false,
-                        );
-                      },
-                      child: const Text("Confirm"),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+          onPressed: _showLogoutDialog, // Use the shared function
         ),
         elevation: 0,
         backgroundColor: Colors.white,
       ),
       body: WillPopScope(
-        onWillPop: () async => false,
+        // Handle device/keyboard back button
+        onWillPop: () async {
+          _showLogoutDialog();
+          return false; // Prevent default back navigation
+        },
         child: SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.symmetric(

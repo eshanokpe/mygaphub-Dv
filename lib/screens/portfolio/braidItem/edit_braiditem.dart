@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+
+import 'package:path/path.dart' as path;
 import 'package:GapHub/screens/portfolio/braiditem.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/widgets/custom_input_field.dart';
@@ -8,6 +10,7 @@ import 'package:GapHub/widgets/custom_input_field_multistep.dart';
 import 'package:GapHub/widgets/plus_button.dart';
 import 'package:expandable/expandable.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';

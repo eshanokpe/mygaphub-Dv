@@ -6,7 +6,7 @@ String sevengeemodelToJson(Sevengeemodel data) => json.encode(data.toJson());
 
 class Sevengeemodel {
   List<dynamic> steps;
-  List<dynamic> backgrounds;
+  List<dynamic> backgrounds; 
   List<dynamic> bespokes;
   int total_bespoke;
   Questions questions;
