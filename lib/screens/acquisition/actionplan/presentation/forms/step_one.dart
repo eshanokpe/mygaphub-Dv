@@ -137,7 +137,7 @@ class _StepOneState extends ConsumerState<StepOne> {
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      formController.goToNextStep(context);
+                      formController.moveToNextStepOnly();
                     }
                   },
                   child: Row(

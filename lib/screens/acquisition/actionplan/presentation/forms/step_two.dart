@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../controller/investment_form_controller.dart';
 import '../widgets/continue_strategising_popup.dart';
+import '../widgets/investment_categories.dart';
 
 class StepTwo extends ConsumerStatefulWidget {
   const StepTwo({super.key});
@@ -17,99 +18,25 @@ class _StepTwoState extends ConsumerState<StepTwo> {
   // --------------------------
   // Data
   // --------------------------
-  final List<Map<String, dynamic>> _options = const [
-    {
-      "id": "retirement",
-      "title": "Retirement",
-      "imageAssets": 'assets/wheel_segments/retirement_icon.png',
-    },
-    {
-      "id": "investment",
-      "title": "Investment",
-      "imageAssets": 'assets/wheel_segments/investment_icon.png',
-    },
-    {
-      "id": "cash",
-      "title": "Cash",
-      "imageAssets": 'assets/wheel_segments/income_icon.png',
-    },
-    {
-      "id": "equity",
-      "title": "Equity",
-      "imageAssets": 'assets/wheel_segments/house.png',
-    },
-  ];
+  List<Map<String, dynamic>> get _options => investmentCategoryOptions
+      .map((o) => {"id": o.id, "title": o.title, "imageAssets": o.imageAsset})
+      .toList();
 
-  Map<String, List<Map<String, String>>> get _categoryChecklists => {
-    "retirement": [
-      {
-        "sub_category": "private_pension",
-        "label": "Private Pension",
-        "hint": "E.g. Research private pension provider, etc.",
-      },
-      {
-        "sub_category": "state_pension",
-        "label": "Company Pension",
-        "hint": "E.g. Speak to HR on how to maximise pension",
-      },
-      {
-        "sub_category": "employer_pension",
-        "label": "State Pension",
-        "hint": "E.g. Review NI contribution with tax authorities...",
-      },
-      {
-        "sub_category": "others_pension",
-        "label": "Other Pensions",
-        "hint": "Any other details",
-      },
-    ],
-    "investment": [
-      {
-        "sub_category": "business_asset",
-        "label": "Business Asset",
-        "hint": "E.g. Explore business opportunities or equity...",
-      },
-      {
-        "sub_category": "appreciating_asset",
-        "label": "Appreciating Asset",
-        "hint": "E.g. Research property or collectible investments",
-      },
-      {
-        "sub_category": "risk_asset",
-        "label": "Risk Asset",
-        "hint": "E.g. Assess comfort with higher-risk investments...",
-      },
-    ],
-    "cash": [
-      {
-        "sub_category": "isa",
-        "label": "Individual Savings Account (ISA)",
-        "hint": "E.g. Review ISA contribution limits and set up...",
-      },
-      {
-        "sub_category": "fixed_income",
-        "label": "Fixed Income Account",
-        "hint": "E.g. Compare interest rates or fixed deposit terms",
-      },
-      {
-        "sub_category": "easy_asset",
-        "label": "Easy Asset Account",
-        "hint": "E.g. Review account flexibility and emergency...",
-      },
-    ],
-    "equity": [
-      {
-        "sub_category": "wholly_owned_home",
-        "label": "Wholly-Owned Home",
-        "hint": "E.g. Actions to increase home value or leverage...",
-      },
-      {
-        "sub_category": "jointly_owned_home",
-        "label": "Jointly-Owned Home",
-        "hint": "E.g. Review co-ownership structure or shared...",
-      },
-    ],
-  };
+  Map<String, List<Map<String, String>>> get _categoryChecklists =>
+      investmentCategoryChecklists.map(
+        (categoryId, fields) => MapEntry(
+          categoryId,
+          fields
+              .map(
+                (f) => {
+                  "sub_category": f.subCategory,
+                  "label": f.label,
+                  "hint": f.hint,
+                },
+              )
+              .toList(),
+        ),
+      );
 
   final _formKey = GlobalKey<FormState>();
   List<TextEditingController> _controllers = [];

@@ -1,16 +1,15 @@
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/provider/AuthProvider.dart';
 import 'package:GapHub/utils/colors.dart';
+import 'package:GapHub/utils/investment_categories.dart'; // ✅ NEW: shared category/checklist source
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../controller/investment_form_controller.dart';
 import '../../provider/investment_form_state.dart';
 import '../widgets/continue_strategising_popup.dart';
-import '../widgets/investment_categories.dart';
 
 class StepFive extends ConsumerStatefulWidget {
   const StepFive({super.key});
@@ -145,7 +144,6 @@ class _StepFiveState extends ConsumerState<StepFive>
         livePersonalFund,
         liveEmergencyFund,
         liveAlphaBalance,
-        currency,
       );
     }
 
@@ -605,7 +603,6 @@ class _StepFiveState extends ConsumerState<StepFive>
     String livePersonalFund,
     String liveEmergencyFund,
     String liveAlphaBalance,
-    String currency,
   ) {
     return SingleChildScrollView(
       padding: EdgeInsets.only(
@@ -652,17 +649,31 @@ class _StepFiveState extends ConsumerState<StepFive>
               children: [
                 _buildSummaryLabel('Investment Name'),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(state.investmentName),
+                _buildSummaryValue(state.investmentName),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel('Reason for Investing'),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(state.investmentReason),
+                _buildSummaryValue(state.investmentReason),
               ],
             ),
           ),
           SizedBox(height: 24.h),
 
           // ---------------- Summary of Step Two ----------------
+          // ✅ FIXED: previously hardcoded to the retirement checklist
+          // (Private Pension / Company Pension / State Pension), so any
+          // other category (Investment, Cash, Equity) showed the wrong
+          // labels with empty values. This now reads the checklist for
+          // whichever category state.selectedCategory actually is, using
+          // the same shared source StepTwo builds its form from
+          // (investment_categories.dart), and renders one label/value
+          // row per field in that category — in the same order StepTwo
+          // asks them in.
+          //
+          // Also switched from `state.category` (a field that's never
+          // actually set anywhere outside its 'retirement' default) to
+          // `state.selectedCategory`, which is the field StepTwo really
+          // writes to.
           _buildSectionHeader(
             'WHERE?',
             onEdit: () => controller.setStep2ShowSummaryEditTarget('where'),
@@ -680,7 +691,7 @@ class _StepFiveState extends ConsumerState<StepFive>
               children: [
                 _buildSummaryLabel('Category'),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(
+                _buildSummaryValue(
                   investmentCategoryTitle(state.selectedCategory),
                 ),
                 ..._buildStep2FieldRows(state),
@@ -712,26 +723,21 @@ class _StepFiveState extends ConsumerState<StepFive>
                 _buildSummaryLabel('Asset Growth Funds'),
                 SizedBox(height: 4.h),
                 // Asset Growth Funds usually comes from seed data, keeping liveAssetGrowthFunds here is fine
-                _buildSummaryValue(liveAssetGrowthFunds, currency),
+                _buildSummaryValue(liveAssetGrowthFunds),
 
                 SizedBox(height: 16.h),
 
                 // ✅ UPDATED: Alpha Balance now comes from Step 3's saved data (Index 1)
                 _buildSummaryLabel('Alpha Balance'),
                 SizedBox(height: 4.h),
-                _buildSummaryValue(_noteAt(state.step3Items, 1), currency),
+                _buildSummaryValue(_noteAt(state.step3Items, 1)),
 
                 SizedBox(height: 16.h),
 
+                // ✅ UPDATED: New Monthly Savings Goal now comes from Step 3's saved data (Index 0)
                 _buildSummaryLabel('New Monthly Savings Goal'),
                 SizedBox(height: 4.h),
-                _buildSummaryValue(_newGoalAmount(state.step3Items), currency),
-
-                _buildSummaryLabel(
-                  'How do you intend to obtain this additional amount to add to your monthly savings?',
-                ),
-                SizedBox(height: 4.h),
-                _buildSummaryTextValue(_newGoalAmount(state.step4Items)),
+                _buildSummaryValue(_newGoalAmount(state.step3Items)),
 
                 SizedBox(height: 4.h),
               ],
@@ -756,25 +762,25 @@ class _StepFiveState extends ConsumerState<StepFive>
               children: [
                 _buildSummaryLabel('How old is this opportunity?'),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(_noteAt(state.step4Items, 0)),
+                _buildSummaryValue(_noteAt(state.step4Items, 0)),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel(
                   'How many people have successfully invested in the last 5 years?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(_noteAt(state.step4Items, 1)),
+                _buildSummaryValue(_noteAt(state.step4Items, 1)),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel(
                   'How experienced are the team behind the opportunity?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(_noteAt(state.step4Items, 2)),
+                _buildSummaryValue(_noteAt(state.step4Items, 2)),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel(
                   'What customer value do they create and who are their customers?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(_noteAt(state.step4Items, 3)),
+                _buildSummaryValue(_noteAt(state.step4Items, 3)),
                 SizedBox(height: 4.h),
               ],
             ),
@@ -782,6 +788,13 @@ class _StepFiveState extends ConsumerState<StepFive>
           SizedBox(height: 24.h),
 
           // ---------------- Summary of Step Five First Screen----------------
+          // ✅ FIXED: reads the actual allocation percentage/chip
+          // selections (state.allocationPercentage,
+          // state.monthlyAllocationPercent, state.lumpsumAllocationPercent)
+          // instead of the Step 3 fund placeholders. The Monthly Asset
+          // Growth Savings / Alpha Balance rows stay as the same
+          // hardcoded reminder balances shown on the Percentage and
+          // Allocation screens themselves.
           _buildSectionHeader(
             'HOW?',
             onEdit: () => controller.setStep5ShowSummaryEditTarget('how'),
@@ -801,44 +814,40 @@ class _StepFiveState extends ConsumerState<StepFive>
                   'What percentage of your total asset should be invested into this asset category/class or opportunity?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryPercent(
+                _buildSummaryValue(
                   state.allocationPercentage.trim().isEmpty
                       ? ''
-                      : state.allocationPercentage,
+                      : '${state.allocationPercentage}%',
                 ),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel('Monthly Asset Growth Savings'),
                 SizedBox(height: 4.h),
-                _buildSummaryValue(_monthlyAssetGrowthSavings, currency),
+                _buildSummaryValue(_monthlyAssetGrowthSavings),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel('Alpha Balance'),
                 SizedBox(height: 4.h),
-                _buildSummaryValue(_alphaBalance, currency),
+                _buildSummaryValue(_alphaBalance),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel(
                   'How much would you allocate to this opportunity monthly?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryValueTwo(
+                _buildSummaryValue(
                   _allocationSummary(
                     _monthlyAssetGrowthSavings,
                     state.monthlyAllocationPercent,
                   ),
-                  _allocationSummaryPercent(state.monthlyAllocationPercent),
-                  currency,
                 ),
                 SizedBox(height: 16.h),
                 _buildSummaryLabel(
                   'How much would you allocate to this opportunity as a lumpsum?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryValueTwo(
+                _buildSummaryValue(
                   _allocationSummary(
                     _alphaBalance,
                     state.lumpsumAllocationPercent,
                   ),
-                  _allocationSummaryPercent(state.lumpsumAllocationPercent),
-                  currency,
                 ),
                 SizedBox(height: 16.h),
               ],
@@ -927,7 +936,7 @@ class _StepFiveState extends ConsumerState<StepFive>
       rows.add(SizedBox(height: 16.h));
       rows.add(_buildSummaryLabel(field.label));
       rows.add(SizedBox(height: 4.h));
-      rows.add(_buildSummaryTextValue(_step2NoteFor(state, field.subCategory)));
+      rows.add(_buildSummaryValue(_step2NoteFor(state, field.subCategory)));
     }
     return rows;
   }
@@ -1005,35 +1014,7 @@ class _StepFiveState extends ConsumerState<StepFive>
     );
   }
 
-  Widget _buildSummaryPercent(String text) {
-    return Row(
-      children: [
-        Text(
-          text,
-          style: GoogleFonts.nunitoSans(
-            fontSize: 24.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.blackColor,
-            height: 1.35,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 2.0),
-          child: Text(
-            '%',
-            style: GoogleFonts.nunitoSans(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xff888888),
-              height: 1.35,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryTextValue(String text) {
+  Widget _buildSummaryValue(String text) {
     final displayText = text.isEmpty
         ? text
         : '${text[0].toUpperCase()}${text.substring(1)}';
@@ -1046,94 +1027,6 @@ class _StepFiveState extends ConsumerState<StepFive>
         color: AppColors.blackColor,
         height: 1.35,
       ),
-    );
-  }
-
-  Widget _buildSummaryValue(String text, String currency) {
-    final amount = num.tryParse(text.replaceAll(',', '')) ?? 0;
-
-    // Split into whole and decimal parts
-    final wholeNumber = amount.truncate(); // e.g. 4000
-    final decimalPart = (amount - wholeNumber)
-        .toStringAsFixed(2)
-        .split('.')
-        .last;
-
-    return Row(
-      children: [
-        Text(
-          '$currency${NumberFormat("#,##0").format(wholeNumber)}',
-          style: GoogleFonts.nunitoSans(
-            fontSize: 24.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.blackColor,
-            height: 1.35,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 2.0),
-          child: Text(
-            '.$decimalPart',
-            style: GoogleFonts.nunitoSans(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xff888888),
-              height: 1.35,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryValueTwo(String text, String percent, String currency) {
-    final amount = num.tryParse(text.replaceAll(',', '')) ?? 0;
-
-    // Split into whole and decimal parts
-    final wholeNumber = amount.truncate(); // e.g. 4000
-    final decimalPart = (amount - wholeNumber)
-        .toStringAsFixed(2)
-        .split('.')
-        .last;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Text(
-              '$currency${NumberFormat("#,##0").format(wholeNumber)}',
-              style: GoogleFonts.nunitoSans(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blackColor,
-                height: 1.35,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text(
-                '.$decimalPart',
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xff888888),
-                  height: 1.35,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Text(
-          percent,
-          style: GoogleFonts.nunitoSans(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xffBBBBBB),
-            height: 1.35,
-          ),
-        ),
-      ],
     );
   }
 
@@ -1235,15 +1128,9 @@ class _StepFiveState extends ConsumerState<StepFive>
   // "£220.00 (10%)" string for the Summary screen; returns a friendly
   // placeholder if nothing was selected.
   String _allocationSummary(String baseBalance, int? percent) {
-    if (percent == null) return '0';
-    final amount = _parseAmount(baseBalance) * percent / 100;
-    return _formatAmount(amount);
-  }
-
-  String _allocationSummaryPercent(int? percent) {
     if (percent == null) return 'Not selected';
-    final amount = percent / 100;
-    return '$percent%';
+    final amount = _parseAmount(baseBalance) * percent / 100;
+    return '£${_formatAmount(amount)} ($percent%)';
   }
 
   // ✅ NEW: parses a "1,100.00"-style balance string into a double.

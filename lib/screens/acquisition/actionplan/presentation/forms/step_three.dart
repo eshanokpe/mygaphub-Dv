@@ -28,18 +28,38 @@ class _StepThreeState extends ConsumerState<StepThree> {
   bool _showIncreaseForm = false;
 
   @override
-  void dispose() {
-    _newAmountController.dispose();
-    _explanationController.dispose();
-    super.dispose();
-  }
-
-  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthProvider>().fetchSeedData();
+      // ✅ FIXED: analyticsinfo (which holds `alpha`) is normally only
+      // populated at login or refreshed every 30s by the Dashboard's
+      // Timer.periodic call to fetchAnalyticsInfo(). If a user reaches
+      // StepThree before that has happened, analyticsinfo.alpha stays
+      // the default empty map forever, and alpha["current"] stays null
+      // — which the earlier alpha-null guard now shows as an endless
+      // spinner instead of quietly saving "null". Fetching it here too
+      // means StepThree no longer depends on the Dashboard having run.
+      if (mounted) {
+        context.read<AuthProvider>().fetchAnalyticsInfo(context);
+      }
     });
+    // Add listeners to rebuild when text changes
+    _newAmountController.addListener(_onTextChanged);
+    _explanationController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    setState(() {}); // Trigger rebuild when either controller's text changes
+  }
+
+  @override
+  void dispose() {
+    _newAmountController.removeListener(_onTextChanged);
+    _explanationController.removeListener(_onTextChanged);
+    _newAmountController.dispose();
+    _explanationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,7 +69,7 @@ class _StepThreeState extends ConsumerState<StepThree> {
     final analyticsData = providers.analyticsinfo;
 
     final seedData = context.watch<AuthProvider>().seedData;
-    // Guard: bail out to a loading UI until everything needed is actually available
+
     if (seedData == null ||
         seedData["current_seed"] == null ||
         dashboardData == null ||
@@ -57,12 +77,13 @@ class _StepThreeState extends ConsumerState<StepThree> {
         analyticsData.alpha == null) {
       return const Center(child: CircularProgressIndicator());
     }
+
     final currentSeed = seedData["current_seed"];
     final investmentFund = currentSeed["investment_fund"];
     final personalFund = currentSeed["personal_fund"];
     final emergencyFund = currentSeed["emergency_fund"];
     final totalMonthlySaving = dashboardData["income"]["saving"];
-    final analyticsAlpha = analyticsData.alpha["current"];
+    final analyticsAlpha = analyticsData.alpha["current"] ?? 0;
 
     final currency = providers.snapshotmodel.currency.trim().isNotEmpty
         ? providers.snapshotmodel.currency
@@ -343,14 +364,25 @@ class _StepThreeState extends ConsumerState<StepThree> {
                               ),
                             ),
                             // ✅ UPDATED: Saves both Savings Decision (Index 0) and Alpha Balance (Index 1)
+                            // ✅ FIXED: guards against alphaCurrent being null at tap-time
+                            // (belt-and-suspenders on top of the build()-level guard above),
+                            // and no longer calls .toString() on a value that might be null.
                             onPressed: state.isNavigating
                                 ? null
                                 : () async {
+                                    // ✅ FIXED: alpha["current"] can be
+                                    // legitimately null from the API for
+                                    // some accounts — default to 0 instead
+                                    // of blocking the user or saving the
+                                    // literal string "null".
+                                    final currentAlpha =
+                                        analyticsData.alpha != null
+                                        ? (analyticsData.alpha["current"] ?? 0)
+                                        : 0;
+
                                     setState(() => _showIncreaseForm = false);
 
-                                    final alphaValue = analyticsData
-                                        .alpha["current"]
-                                        .toString();
+                                    final alphaValue = currentAlpha.toString();
 
                                     // Save Savings Decision at Index 0
                                     controller.updateStep3Item(
@@ -410,12 +442,19 @@ class _StepThreeState extends ConsumerState<StepThree> {
                       ),
                     ),
                     // ✅ UPDATED: Saves both New Goal (Index 0) and Alpha Balance (Index 1)
+                    // ✅ FIXED: same null-guard on the alpha value as the "Keep Amount" button.
                     onPressed: state.isNavigating
                         ? null
                         : () async {
                             if (_formKey.currentState?.validate() ?? false) {
-                              final alphaValue = analyticsData.alpha["current"]
-                                  .toString();
+                              // ✅ FIXED: default null current to 0 rather
+                              // than blocking — it's valid API data, not a
+                              // loading state.
+                              final currentAlpha = analyticsData.alpha != null
+                                  ? (analyticsData.alpha["current"] ?? 0)
+                                  : 0;
+
+                              final alphaValue = currentAlpha.toString();
                               final newGoalText = _newAmountController.text
                                   .trim();
                               final sourceText = _explanationController.text

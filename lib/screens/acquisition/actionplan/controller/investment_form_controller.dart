@@ -110,10 +110,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
   }
 
   // ============ STEP 3 UPDATES & PROGRESS ============
-  // ✅ NEW: keeps the Asset Growth / Personal / Emergency fund balances in
-  // sync with the live seed data StepThree reads on every rebuild, so the
-  // Summary screen (and anywhere else) can display the same figures
-  // without re-fetching them.
   void updateSavingsFunds({
     required String assetGrowthFunds,
     required String personalFund,
@@ -146,9 +142,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
   }
 
   // ============ STEP 4 UPDATES & PROGRESS ============
-  // ✅ FIXED: always keeps a fixed-length list (step4TotalQuestions long),
-  // so filling field index 3 before index 0/1 can never shift positions
-  // or leave gaps. Missing slots are padded with empty notes.
   void updateStep4Item(int index, String subCat, String note) {
     final items = List<Map<String, String>>.from(state.step4Items);
 
@@ -177,7 +170,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     state = state.copyWith(step4Progress: progress.clamp(0.1, 1.0));
   }
 
-  // ✅ Toggle between Step 4's intro screen and its Investigate form.
   void setStep4InvestigateForm(bool value) {
     state = state.copyWith(
       step4ShowInvestigateForm: value,
@@ -199,17 +191,11 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     _updateStep5Progress();
   }
 
-  // ✅ NEW: StepFive is now a percentage-allocation question rather than
-  // a note field, so progress is driven by allocationPercentage instead
-  // of step5Items.
   void updateAllocationPercentage(String value) {
     state = state.copyWith(allocationPercentage: value);
     _updateStep5Progress();
   }
 
-  // ✅ CHANGED: step5Progress now spans both Step 5 screens —
-  // 0.1 nothing entered, 0.5 once the percentage screen is answered,
-  // 1.0 once both allocation chips are picked on the Allocation screen.
   void _updateStep5Progress() {
     final percentageFilled = state.allocationPercentage.trim().isNotEmpty;
     final bothAllocationsPicked =
@@ -228,27 +214,17 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     state = state.copyWith(step5Progress: progress);
   }
 
-  // ✅ NEW: Toggle between Step 5's percentage screen and its Allocation
-  // (second) screen.
   void setStep5ShowSecondScreen(bool value) {
     state = state.copyWith(step5ShowSecondScreen: value);
-    // Leaving the second screen forward always means leaving the summary
-    // screen behind too, so it doesn't linger stale if the user goes back
-    // and forward again.
     if (!value) {
       state = state.copyWith(step5ShowSummaryScreen: false);
     }
   }
 
-  // ✅ NEW: Toggle between Step 5's Allocation (second) screen and the
-  // final Summary (third) screen.
   void setStep5ShowSummaryScreen(bool value) {
     state = state.copyWith(step5ShowSummaryScreen: value);
   }
 
-  // ✅ NEW: Lets the Summary screen's "Edit" links jump straight back to
-  // an earlier step (e.g. Step 1 for "WHY?", Step 2 for "WHERE?") without
-  // losing anything already entered.
   void goToStep(int step) {
     state = state.copyWith(
       currentStep: step,
@@ -257,8 +233,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     );
   }
 
-  // ✅ NEW: Single-select chip for monthly allocation. Tapping the
-  // currently-selected percent again deselects it.
   void updateMonthlyAllocationPercent(int percent) {
     if (state.monthlyAllocationPercent == percent) {
       state = state.copyWith(clearMonthlyAllocationPercent: true);
@@ -268,8 +242,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     _updateStep5Progress();
   }
 
-  // ✅ NEW: Single-select chip for lumpsum allocation. Tapping the
-  // currently-selected percent again deselects it.
   void updateLumpsumAllocationPercent(int percent) {
     if (state.lumpsumAllocationPercent == percent) {
       state = state.copyWith(clearLumpsumAllocationPercent: true);
@@ -324,6 +296,26 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
   }
 
   // ============ NAVIGATION ============
+
+  /// Advances to the next step locally without saving to the backend.
+  void moveToNextStepOnly() {
+    if (state.currentStep < totalSteps - 1) {
+      final nextStep = state.currentStep + 1;
+      state = state.copyWith(
+        currentStep: nextStep,
+        isNavigating: false,
+        // Reset sub-screen flags if moving forward naturally
+        step4ShowInvestigateForm: nextStep == 3
+            ? state.step4ShowInvestigateForm
+            : false,
+        step5ShowSecondScreen: nextStep == 4
+            ? state.step5ShowSecondScreen
+            : false,
+        step5ShowSummaryScreen: false,
+      );
+    }
+  }
+
   Future<void> goToNextStep(BuildContext context) async {
     if (!canProceed(context)) return;
 
@@ -357,6 +349,42 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     }
   }
 
+  // ============ HELPERS FOR API PAYLOADS ============
+
+  // Helper to filter Step 2 items based on the selected category
+  List<Map<String, String>> _getValidStep2Items() {
+    final category = state.selectedCategory;
+    if (category == null) return [];
+
+    // Define valid sub-categories for each category based on your API docs
+    final Map<String, List<String>> validSubCats = {
+      'retirement': [
+        'private_pension',
+        'company_pension',
+        'state_pension',
+        'other_pensions',
+      ],
+      'cash': ['isa', 'fixed_income', 'easy_asset'],
+      'investment': ['business_asset', 'appreciating_asset', 'risk_asset'],
+      'equity': ['wholly_owned_home', 'jointly_owned_home'],
+    };
+
+    final allowed = validSubCats[category] ?? [];
+
+    return state.step2Items.where((item) {
+      return allowed.contains(item['sub_category']);
+    }).toList();
+  }
+
+  // Helper to get note by sub_category from step4Items
+  String _getStep4NoteBySubCat(String subCat) {
+    final item = state.step4Items.firstWhere(
+      (item) => item['sub_category'] == subCat,
+      orElse: () => {'note': ''},
+    );
+    return item['note'] ?? '';
+  }
+
   // ============ SAVE & CONTINUE ============
   Future<bool> saveAndContinueLater(BuildContext context) async {
     clearMessages();
@@ -377,7 +405,7 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
           state = state.copyWith(successMessage: "Progress saved!");
           return true;
 
-        case 1:
+        case 1: // Step 2 in UI
           print("🟡 STEP 1: Creating Strategy + Saving Step 2 Items");
           String? strategyId = state.strategyId;
 
@@ -387,7 +415,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
               "reason": state.investmentReason,
               "category": state.selectedCategory,
             });
-            debugPrint("📤 CREATE STRATEGY PAYLOAD: $createPayload");
 
             final createRes = await http.post(
               Uri.parse('$baseUrl/app/action-strategies'),
@@ -398,24 +425,29 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
               body: createPayload,
             );
 
-            print("Create Status: ${createRes.statusCode}");
-            print("📥 CREATE RESPONSE BODY: ${createRes.body}");
-
             if (createRes.statusCode == 200 || createRes.statusCode == 201) {
               final data = jsonDecode(createRes.body);
-              strategyId = data["id"].toString();
-              state = state.copyWith(strategyId: strategyId);
-              print(
-                "✅ Strategy created with ID: $strategyId, category: ${state.selectedCategory}",
-              );
+              if (data['data'] != null && data['data']['strategy'] != null) {
+                strategyId = data['data']['strategy']['id'].toString();
+              } else if (data['id'] != null) {
+                strategyId = data['id'].toString();
+              }
+
+              if (strategyId != null) {
+                state = state.copyWith(strategyId: strategyId);
+              } else {
+                _handleError(createRes);
+                return false;
+              }
             } else {
               _handleError(createRes);
               return false;
             }
           }
 
-          final itemsPayload = jsonEncode({"items": state.step2Items});
-          debugPrint("📤 STEP 2 ITEMS PAYLOAD: $itemsPayload");
+          // ✅ Only send valid items for the selected category
+          final validItems = _getValidStep2Items();
+          final itemsPayload = jsonEncode({"items": validItems});
 
           final res = await http.post(
             Uri.parse('$baseUrl/app/action-strategies/$strategyId/items'),
@@ -425,9 +457,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
             },
             body: itemsPayload,
           );
-
-          print("Items Status: ${res.statusCode}");
-          print("📥 ITEMS RESPONSE BODY: ${res.body}");
 
           if (res.statusCode == 200 || res.statusCode == 201) {
             state = state.copyWith(
@@ -439,90 +468,119 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
             return false;
           }
 
-        case 2:
+        case 2: // Step 3 in UI
           print("🟡 STEP 2: Saving Step 3 Items");
           if (state.strategyId == null || state.strategyId!.isEmpty) {
             state = state.copyWith(errorMessage: "Strategy ID missing");
             return false;
           }
 
-          final res3 = await http.post(
-            Uri.parse(
-              '$baseUrl/app/action-strategies/${state.strategyId}/items',
-            ),
-            headers: {
-              'Content-Type': 'application/json',
-              "Authorization": 'Bearer $token',
-            },
-            body: jsonEncode({"items": state.step3Items}),
-          );
+          // Filter out non-checklist items if they are not valid for /items
+          final validStep3Items = state.step3Items
+              .where(
+                (item) =>
+                    item['sub_category'] != 'keep_savings' &&
+                    item['sub_category'] != 'increase_savings' &&
+                    item['sub_category'] != 'alpha_balance',
+              )
+              .toList();
 
-          if (res3.statusCode == 200 || res3.statusCode == 201) {
-            state = state.copyWith(successMessage: "Step saved successfully!");
-            return true;
-          } else {
-            _handleError(res3);
-            return false;
+          if (validStep3Items.isNotEmpty) {
+            final step3Payload = jsonEncode({"items": validStep3Items});
+            final res3 = await http.post(
+              Uri.parse(
+                '$baseUrl/app/action-strategies/${state.strategyId}/items',
+              ),
+              headers: {
+                'Content-Type': 'application/json',
+                "Authorization": 'Bearer $token',
+              },
+              body: step3Payload,
+            );
+
+            if (res3.statusCode != 200 && res3.statusCode != 201) {
+              _handleError(res3);
+              return false;
+            }
           }
 
-        case 3:
-          print("🟡 STEP 3: Saving Step 4 Items");
+          state = state.copyWith(successMessage: "Step saved successfully!");
+          return true;
+
+        case 3: // Step 4 in UI
+          print("🟡 STEP 3: Saving Step 4 Investigation Data");
           if (state.strategyId == null || state.strategyId!.isEmpty) {
             state = state.copyWith(errorMessage: "Strategy ID missing");
             return false;
           }
 
-          // 📤 Log the outgoing payload too — if the server rejects it,
-          // we need to see exactly what was sent, not just the response.
-          final step4Payload = jsonEncode({"items": state.step4Items});
-          print("📤 STEP4 SAVE PAYLOAD: $step4Payload");
+          final investigationPayload = {
+            "opportunity_age": _getStep4NoteBySubCat("opportunity_age"),
+            "investors_last_5yr": _getStep4NoteBySubCat("successful_investors"),
+            "team_experience": _getStep4NoteBySubCat("team_experience"),
+            "customer_value": _getStep4NoteBySubCat("customer_value"),
+            "other_details": _getStep4NoteBySubCat("other_details"),
+          };
 
+          final invJson = jsonEncode(investigationPayload);
           final res4 = await http.post(
             Uri.parse(
-              '$baseUrl/app/action-strategies/${state.strategyId}/items',
+              '$baseUrl/app/action-strategies/${state.strategyId}/investigation',
             ),
             headers: {
               'Content-Type': 'application/json',
               "Authorization": 'Bearer $token',
             },
-            body: step4Payload,
+            body: invJson,
           );
 
-          print("📥 STEP4 SAVE STATUS: ${res4.statusCode}, BODY: ${res4.body}");
-
           if (res4.statusCode == 200 || res4.statusCode == 201) {
-            state = state.copyWith(successMessage: "Step saved successfully!");
+            state = state.copyWith(
+              successMessage: "Investigation saved successfully!",
+            );
             return true;
           } else {
             _handleError(res4);
             return false;
           }
 
-        case 4:
-          print("🟡 STEP 4: Saving Step 5 Items");
+        case 4: // Step 5 in UI
+          print("🟡 STEP 4: Saving Step 5 Allocation Data");
           if (state.strategyId == null || state.strategyId!.isEmpty) {
             state = state.copyWith(errorMessage: "Strategy ID missing");
             return false;
           }
 
-          final res5 = await http.post(
-            Uri.parse(
-              '$baseUrl/app/action-strategies/${state.strategyId}/items',
-            ),
-            headers: {
-              'Content-Type': 'application/json',
-              "Authorization": 'Bearer $token',
-            },
-            body: jsonEncode({"items": state.step5Items}),
-          );
+          if (state.monthlyAllocationPercent != null &&
+              state.lumpsumAllocationPercent != null) {
+            final allocationPayload = {
+              "monthly_percent": state.monthlyAllocationPercent,
+              "lumpsum_percent": state.lumpsumAllocationPercent,
+            };
 
-          if (res5.statusCode == 200 || res5.statusCode == 201) {
-            state = state.copyWith(successMessage: "All progress saved!");
-            return true;
-          } else {
-            _handleError(res5);
-            return false;
+            final allocJson = jsonEncode(allocationPayload);
+            final res5 = await http.post(
+              Uri.parse(
+                '$baseUrl/app/action-strategies/${state.strategyId}/allocation',
+              ),
+              headers: {
+                'Content-Type': 'application/json',
+                "Authorization": 'Bearer $token',
+              },
+              body: allocJson,
+            );
+
+            if (res5.statusCode == 200 || res5.statusCode == 201) {
+              state = state.copyWith(
+                successMessage: "Allocation saved successfully!",
+              );
+              return true;
+            } else {
+              _handleError(res5);
+              return false;
+            }
           }
+          return true;
 
         default:
           return false;
@@ -537,14 +595,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
   }
 
   // ============ SUBMIT (StepFive only) ============
-  // ✅ NEW: nothing is saved to the API while navigating through Steps
-  // 1-4 anymore — goToNextStep() just advances currentStep locally.
-  // This is the single point where everything actually gets persisted:
-  // it creates the strategy (if not already created) and sends the
-  // combined items from Steps 2-5 in one request.
-  //
-  // isFinal distinguishes the two StepFive buttons only for messaging —
-  // both paths save the same combined data.
   Future<bool> submitAllItems(
     BuildContext context, {
     required bool isFinal,
@@ -559,13 +609,13 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     try {
       String? strategyId = state.strategyId;
 
+      // 1. Ensure Strategy Exists
       if (strategyId == null || strategyId.isEmpty) {
         final createPayload = jsonEncode({
           "name": state.investmentName,
           "reason": state.investmentReason,
           "category": state.selectedCategory,
         });
-        print("📤 SUBMIT: CREATE STRATEGY PAYLOAD: $createPayload");
 
         final createRes = await http.post(
           Uri.parse('$baseUrl/app/action-strategies'),
@@ -576,66 +626,118 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
           body: createPayload,
         );
 
-        print(
-          "📥 SUBMIT: CREATE STATUS: ${createRes.statusCode}, BODY: ${createRes.body}",
-        );
-
         if (createRes.statusCode == 200 || createRes.statusCode == 201) {
           final data = jsonDecode(createRes.body);
-          strategyId = data["id"].toString();
-          state = state.copyWith(strategyId: strategyId);
+          if (data['data'] != null && data['data']['strategy'] != null) {
+            strategyId = data['data']['strategy']['id'].toString();
+          } else if (data['id'] != null) {
+            strategyId = data['id'].toString();
+          }
+
+          if (strategyId != null) {
+            state = state.copyWith(strategyId: strategyId);
+          } else {
+            _handleError(createRes);
+            return false;
+          }
         } else {
           _handleError(createRes);
           return false;
         }
       }
 
-      final combinedItems = [
-        ...state.step2Items,
-        ...state.step3Items,
-        ...state.step4Items,
-        ...state.step5Items,
-        if (state.allocationPercentage.trim().isNotEmpty)
-          {
-            "sub_category": "allocation_percentage",
-            "note": state.allocationPercentage,
-          },
-        if (state.monthlyAllocationPercent != null) // ✅ NEW
-          {
-            "sub_category": "monthly_allocation_percentage",
-            "note": state.monthlyAllocationPercent.toString(),
-          },
-        if (state.lumpsumAllocationPercent != null) // ✅ NEW
-          {
-            "sub_category": "lumpsum_allocation_percentage",
-            "note": state.lumpsumAllocationPercent.toString(),
-          },
-      ];
-      final itemsPayload = jsonEncode({"items": combinedItems});
-      print("📤 SUBMIT: ITEMS PAYLOAD: $itemsPayload");
+      // 2. Save Standard Items (Steps 2 & 3 Checklist Items ONLY)
+      final validStep2Items = _getValidStep2Items();
 
-      final res = await http.post(
-        Uri.parse('$baseUrl/app/action-strategies/$strategyId/items'),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": 'Bearer $token',
-        },
-        body: itemsPayload,
-      );
+      // Filter Step 3 items to exclude non-checklist data
+      final validStep3Items = state.step3Items
+          .where(
+            (item) =>
+                item['sub_category'] != 'keep_savings' &&
+                item['sub_category'] != 'increase_savings' &&
+                item['sub_category'] != 'alpha_balance',
+          )
+          .toList();
 
-      print("📥 SUBMIT: ITEMS STATUS: ${res.statusCode}, BODY: ${res.body}");
+      final combinedItems = [...validStep2Items, ...validStep3Items];
 
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        state = state.copyWith(
-          successMessage: isFinal
-              ? "Strategy submitted successfully!"
-              : "Progress saved!",
+      if (combinedItems.isNotEmpty) {
+        final itemsPayload = jsonEncode({"items": combinedItems});
+        print("📤 SUBMIT: ITEMS PAYLOAD: $itemsPayload");
+
+        final res = await http.post(
+          Uri.parse('$baseUrl/app/action-strategies/$strategyId/items'),
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": 'Bearer $token',
+          },
+          body: itemsPayload,
         );
-        return true;
-      } else {
-        _handleError(res);
-        return false;
+
+        print("📥 SUBMIT: ITEMS STATUS: ${res.statusCode}, BODY: ${res.body}");
+
+        if (res.statusCode != 200 && res.statusCode != 201) {
+          _handleError(res);
+          return false;
+        }
       }
+
+      // 3. Save Step 4 Investigation Data specifically
+      if (state.step4Items.isNotEmpty) {
+        final investigationPayload = {
+          "opportunity_age": _getStep4NoteBySubCat("opportunity_age"),
+          "investors_last_5yr": _getStep4NoteBySubCat("successful_investors"),
+          "team_experience": _getStep4NoteBySubCat("team_experience"),
+          "customer_value": _getStep4NoteBySubCat("customer_value"),
+          "other_details": _getStep4NoteBySubCat("other_details"),
+        };
+
+        final invJson = jsonEncode(investigationPayload);
+        final invRes = await http.post(
+          Uri.parse('$baseUrl/app/action-strategies/$strategyId/investigation'),
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": 'Bearer $token',
+          },
+          body: invJson,
+        );
+
+        if (invRes.statusCode != 200 && invRes.statusCode != 201) {
+          _handleError(invRes);
+          return false;
+        }
+      }
+
+      // 4. Save Step 5 Allocation Data specifically
+      if (state.monthlyAllocationPercent != null &&
+          state.lumpsumAllocationPercent != null) {
+        final allocationPayload = {
+          "monthly_percent": state.monthlyAllocationPercent,
+          "lumpsum_percent": state.lumpsumAllocationPercent,
+        };
+
+        final allocJson = jsonEncode(allocationPayload);
+        final allocRes = await http.post(
+          Uri.parse('$baseUrl/app/action-strategies/$strategyId/allocation'),
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": 'Bearer $token',
+          },
+          body: allocJson,
+        );
+
+        if (allocRes.statusCode != 200 && allocRes.statusCode != 201) {
+          _handleError(allocRes);
+          return false;
+        }
+      }
+
+      state = state.copyWith(
+        successMessage: isFinal
+            ? "Strategy submitted successfully!"
+            : "Progress saved!",
+      );
+      return true;
     } catch (e) {
       print("❌ Submit Exception: $e");
       state = state.copyWith(errorMessage: "Network error: $e");
