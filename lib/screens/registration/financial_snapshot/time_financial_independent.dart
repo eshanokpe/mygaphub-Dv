@@ -16,7 +16,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
- 
+
 class TimeFinancialIndependent extends StatefulWidget {
   final dynamic shortfalls;
   final dynamic suggestedInvestment;
@@ -28,7 +28,7 @@ class TimeFinancialIndependent extends StatefulWidget {
 
   final TextEditingController roceController;
   final TextEditingController investController;
- 
+
   const TimeFinancialIndependent({
     super.key,
     required this.seedCost,
@@ -198,7 +198,7 @@ class _TimeFinancialIndependentState extends State<TimeFinancialIndependent> {
       ],
     );
   }
- 
+
   Widget _buildChart(String symbol, BuildContext context) {
     final now = DateTime.now();
     double timeValue = double.tryParse(timeFiniancial) ?? 0.0;
@@ -210,185 +210,203 @@ class _TimeFinancialIndependentState extends State<TimeFinancialIndependent> {
     final double maxY = maxYAxisValue;
     final double xInterval = maxX <= 4 ? 1 : (maxX / 3).ceilToDouble();
 
-  return Container(
-    height: 250.h,
-    width: double.infinity,
-    padding: const EdgeInsets.only(right: 16, top: 16, bottom: 0),
-    child: Stack(
-      children: [
-        // ── Axes only (no line, no fill) ──────────────────────────
-        LineChart(
-          LineChartData(
-            lineTouchData: const LineTouchData(enabled: false),
-            clipData: const FlClipData.all(),
-            borderData: FlBorderData(show: false),
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: true,
-              drawHorizontalLine: true,
-              horizontalInterval: _calculateOptimalInterval(maxY),
-              getDrawingVerticalLine: (value) {
-                if (value == 0 || value == maxX) {
+    return Container(
+      height: 250.h,
+      width: double.infinity,
+      padding: const EdgeInsets.only(right: 16, top: 16, bottom: 0),
+      child: Stack(
+        children: [
+          // ── Axes only (no line, no fill) ──────────────────────────
+          LineChart(
+            LineChartData(
+              lineTouchData: const LineTouchData(enabled: false),
+              clipData: const FlClipData.all(),
+              borderData: FlBorderData(show: false),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: true,
+                drawHorizontalLine: true,
+                horizontalInterval: _calculateOptimalInterval(maxY),
+                getDrawingVerticalLine: (value) {
+                  if (value == 0 || value == maxX) {
+                    return const FlLine(
+                      color: Color(0xff37434d),
+                      strokeWidth: 0.5,
+                    );
+                  }
                   return const FlLine(
-                      color: Color(0xff37434d), strokeWidth: 0.5);
-                }
-                return const FlLine(
-                    color: Colors.transparent, strokeWidth: 1);
-              },
-              getDrawingHorizontalLine: (value) {
-                return const FlLine(
-                    color: Color(0xff37434d), strokeWidth: 0.05);
-              },
-            ),
-            extraLinesData: ExtraLinesData(
-              horizontalLines: [
-                HorizontalLine(
-                  y: maxY,
-                  color: const Color(0xff37434d),
-                  strokeWidth: 0.08,
+                    color: Colors.transparent,
+                    strokeWidth: 1,
+                  );
+                },
+                getDrawingHorizontalLine: (value) {
+                  return const FlLine(
+                    color: Color(0xff37434d),
+                    strokeWidth: 0.05,
+                  );
+                },
+              ),
+              extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: maxY,
+                    color: const Color(0xff37434d),
+                    strokeWidth: 0.08,
+                  ),
+                ],
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 45,
+                    interval: _calculateOptimalInterval(maxY),
+                    getTitlesWidget: (value, meta) {
+                      if (value == 0) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 25.w),
+                          child: Text(
+                            '0',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }
+                      String displayText;
+                      if (value >= 1000000) {
+                        displayText = '${(value / 1000000).round()}M';
+                      } else if (value >= 10000) {
+                        displayText = '${(value / 1000).round()}k';
+                      } else {
+                        displayText = value.round().toString();
+                      }
+                      return Text(
+                        '$symbol$displayText',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 32.h,
+                    interval: xInterval,
+                    getTitlesWidget: (value, meta) {
+                      if (value == 0) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: 8.h, left: 30.w),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '${now.year}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      if ((value - maxX).abs() < 0.01) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: 8.h, right: 50.w),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '${now.year + timeAsInt}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              // Empty line — just to satisfy fl_chart needing lineBarsData
+              lineBarsData: [
+                LineChartBarData(
+                  spots: const [FlSpot(0, 0)],
+                  color: Colors.transparent,
+                  dotData: const FlDotData(show: false),
                 ),
               ],
+              minY: 0,
+              maxY: maxY,
+              minX: 0,
+              maxX: maxX,
             ),
-            titlesData: FlTitlesData(
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 45,
-                  interval: _calculateOptimalInterval(maxY),
-                  getTitlesWidget: (value, meta) {
-                    if (value == 0) {
-                      return Padding(
-                        padding: EdgeInsets.only(right: 25.w),
-                        child: Text(
-                          '0',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }
-                    String displayText;
-                   if (value >= 1000000) {
-                        displayText = '${(value / 1000000).round()}M';
-                    } else if (value >= 10000) {
-                        displayText = '${(value / 1000).round()}k';
-                    } else {
-                        displayText = value.round().toString();
-                    }
-                    return Text(
-                      '$symbol$displayText',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 22,
-                  interval: xInterval,
-                  getTitlesWidget: (value, meta) {
-                    if (value == 0) {
-                      return Padding(
-                        padding: EdgeInsets.only(left: 40.w, top:10.h),
-                        child: Text(
-                          '${now.year}',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }
-                    if ((value - maxX).abs() < 0.01) {
-                      return Padding(
-                         padding: EdgeInsets.only(right: 40.w, top:10.h),
-                        child: Text(
-                          '${now.year + timeAsInt}',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }
-                    return const Text('');
-                  },
-                ),
-              ),
-              rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-            ),
-            // Empty line — just to satisfy fl_chart needing lineBarsData
-            lineBarsData: [
-              LineChartBarData(
-                spots: const [FlSpot(0, 0)],
-                color: Colors.transparent,
-                dotData: const FlDotData(show: false),
-              ),
-            ],
-            minY: 0,
-            maxY: maxY,
-            minX: 0,
-            maxX: maxX,
           ),
-        ),
 
-        // ── Chart image overlay (sits inside the axis area) ───────
-        Positioned(
-          left: _showSecondChart ? 30 : 30,   // matches reservedSize of left axis
-          right: _showSecondChart ? 0: 0,
-          top: 0,
-          bottom: 20, // matches reservedSize of bottom axis
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _showSecondChart = !_showSecondChart; // toggles back and forth
-              });
-              Future.delayed(const Duration(seconds: 3), () {
-                if (mounted) {
-                  setState(() {
-                    _showSecondChart = false;
-                  });
-                }
-              });
-            },
-            child: Image.asset(
-             _showSecondChart
-              ? 'assets/images/community/chart_data2.png'
-              : 'assets/images/community/chart_data.png',
-              fit: BoxFit.fill,
+          // ── Chart image overlay (sits inside the axis area) ───────
+          Positioned(
+            left: _showSecondChart
+                ? 30
+                : 30, // matches reservedSize of left axis
+            right: _showSecondChart ? 0 : 0,
+            top: 0,
+            bottom: 20, // matches reservedSize of bottom axis
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _showSecondChart =
+                      !_showSecondChart; // toggles back and forth
+                });
+                Future.delayed(const Duration(seconds: 3), () {
+                  if (mounted) {
+                    setState(() {
+                      _showSecondChart = false;
+                    });
+                  }
+                });
+              },
+              child: Image.asset(
+                _showSecondChart
+                    ? 'assets/images/community/chart_data2.png'
+                    : 'assets/images/community/chart_data.png',
+                fit: BoxFit.fill,
+              ),
             ),
           ),
-        ),
-        _showSecondChart ?
-        Positioned(
-          left: timeAsInt == 1 || timeAsInt == 0 ? 230: 220,   // matches reservedSize of left axis
-          right: 0,
-          top: 170,
-          bottom: 0, // matches reservedSize of bottom axis
-          child:  Text(
-          '$timeAsInt ${timeAsInt == 1 || timeAsInt == 0 ? 'Year' : 'Years'}',
-           style: GoogleFonts.nunito(
-            fontWeight: FontWeight.w700,
-            fontSize: 14.sp,
-            color: const Color(0xff477282)
-           ),
-          ),
-        ):Container(),
-      ],
-    ),
-  );
-}
+          _showSecondChart
+              ? Positioned(
+                  left: timeAsInt == 1 || timeAsInt == 0
+                      ? 230
+                      : 220, // matches reservedSize of left axis
+                  right: 0,
+                  top: 170,
+                  bottom: 0, // matches reservedSize of bottom axis
+                  child: Text(
+                    '$timeAsInt ${timeAsInt == 1 || timeAsInt == 0 ? 'Year' : 'Years'}',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14.sp,
+                      color: const Color(0xff477282),
+                    ),
+                  ),
+                )
+              : Container(),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSummary(String symbol) {
     return Column(
@@ -512,7 +530,7 @@ class _TimeFinancialIndependentState extends State<TimeFinancialIndependent> {
       "expenses": calculatorModel.expenses,
       "utility": calculatorModel.utility,
       "dept_repay": calculatorModel.debtRepay,
-      "charity": calculatorModel.charity, 
+      "charity": calculatorModel.charity,
       "other_income": calculatorModel.otherWages,
       "extra_save": calculatorModel.rainyDays,
       "roce": _roceController.text,

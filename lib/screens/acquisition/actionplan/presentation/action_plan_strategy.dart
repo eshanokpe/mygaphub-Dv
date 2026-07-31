@@ -27,7 +27,7 @@ int computeCompletedSteps(dynamic strategy) {
   if (hasItems) completed++;
 
   return completed;
-}
+} 
 
 class ActionPlanStrategy extends ConsumerStatefulWidget {
   const ActionPlanStrategy({super.key});

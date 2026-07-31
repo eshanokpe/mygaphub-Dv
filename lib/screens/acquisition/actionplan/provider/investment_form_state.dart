@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 @immutable
 class InvestmentFormState {
   // Step 1 fields
-  final String investmentName;
+  final String investmentName; 
   final String investmentReason;
   final String category;
   final String? nameError;

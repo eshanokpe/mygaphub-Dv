@@ -84,7 +84,7 @@ class _StepThreeState extends ConsumerState<StepThree> {
     final emergencyFund = currentSeed["emergency_fund"];
     final totalMonthlySaving = dashboardData["income"]["saving"];
     final analyticsAlpha = analyticsData.alpha["current"] ?? 0;
-
+ 
     final currency = providers.snapshotmodel.currency.trim().isNotEmpty
         ? providers.snapshotmodel.currency
         : providers.currencySymbol.trim().isNotEmpty
