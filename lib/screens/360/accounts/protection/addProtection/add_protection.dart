@@ -31,6 +31,7 @@ class AddProtectionScreen extends ConsumerWidget {
     ],
     'Home Insurance': [
       "Building and Content",
+      "Building Only",
       "Content Only",
       "Emergency Cover",
       "Others",
@@ -54,12 +55,12 @@ class AddProtectionScreen extends ConsumerWidget {
     'Income Protection': ['Long Term', 'Short Term', 'Others'],
     // 'Gadget/Device Protection': ["Gadget/Device Protection", "Others"],
     'Others': [
-      "Comprehensive Health Insurance",
-      "Temporary / Short-Term Health Insurance",
-      "Health Savings & Protection Plans",
-      "Long-Term Care / Critical Illness Cover",
-      "Hospital Cash / Specialised Covers",
-      "Medical Indemnity (for liability)",
+      "Whole of Life",
+      "Term Assurance",
+      "Endowment Policy",
+      "Annuity Plan",
+      "Comprehensive Cover",
+      "Third Party Cover",
       "Others",
     ],
   };
