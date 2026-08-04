@@ -6,10 +6,8 @@ import 'package:flutter/material.dart';
 import 'slider_acquisition.dart';
 
 class Acquisitioncard extends StatefulWidget {
-  final String? identifier;
   final List<PropertyModel>? properties;
-  const Acquisitioncard({super.key, this.properties, this.identifier});
-
+  const Acquisitioncard({super.key, this.properties});
   @override
   _AcquisitioncardState createState() => _AcquisitioncardState();
 }
@@ -27,8 +25,7 @@ class _AcquisitioncardState extends State<Acquisitioncard> {
     return Column(
       children: [
         RowViewDetails(
-          mainText:
-              ' ${widget.identifier == "360" ? '' : 'Latest '}acquisition opportunities',
+          mainText: ' Latest acquisition opportunities',
           detailText: 'View',
           onTap: () {
             return navigateWithSlideTransition(
@@ -40,7 +37,7 @@ class _AcquisitioncardState extends State<Acquisitioncard> {
           arrowTap: true,
         ),
         SizedBox(height: height * .02),
-        if (widget.properties!.isEmpty)
+        if (widget.properties == null || widget.properties!.isEmpty)
           const Center(child: CircularProgressIndicator())
         else
           SliderAcquisition(properties: widget.properties),

@@ -27,7 +27,7 @@ class NotificationService {
     tz.initializeTimeZones();
 
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // v21 — DarwinInitializationSettings has no permission params
     const DarwinInitializationSettings iosSettings =

@@ -14,7 +14,7 @@ class Incomecard extends StatefulWidget {
 
 class _IncomecardState extends State<Incomecard> {
   DialogBox dialogBox = DialogBox();
- 
+
   @override
   Widget build(BuildContext context) {
     String currency = context.watch<Providers>().snapshotmodel.currency;

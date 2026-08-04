@@ -9,6 +9,7 @@ class CustomAppBarHelp extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       elevation: 0,
       backgroundColor: Colors.white,

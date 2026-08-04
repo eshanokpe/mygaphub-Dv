@@ -1,10 +1,7 @@
 import 'package:GapHub/models/propertyDetailModel.dart';
 import 'package:GapHub/provider/acquisiProvider.dart';
-import 'package:GapHub/screens/acquisition/reap/reaplist.dart';
-import 'package:GapHub/screens/acquisition/reap/widget/acquisition_list.dart';
 import 'package:GapHub/screens/acquisition/reap/widget/video_player_widget.dart';
 import 'package:GapHub/utils/colors.dart';
-import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/widgets/avatarImage.dart';
 import 'package:GapHub/widgets/navigateWithSlideTransition.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -13,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-// import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widget/floorPlanWidget.dart';
 import '../widget/virtual_tour_widget.dart';
@@ -46,6 +42,7 @@ class _ReapResultState extends State<ReapResult> {
       CarouselSliderController();
 
   int _current = 0;
+
   @override
   void initState() {
     super.initState();
@@ -61,8 +58,6 @@ class _ReapResultState extends State<ReapResult> {
 
   @override
   Widget build(BuildContext context) {
-    // Fetch the property details
-
     Orientation orientation = MediaQuery.of(context).orientation;
     final height = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.height
@@ -117,22 +112,9 @@ class _ReapResultState extends State<ReapResult> {
                   ],
                 ),
               );
-              // return Center(
-              //   child: Column(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       const Text('Failed to load property'),
-              //       ElevatedButton(
-              //         onPressed: _loadPropertyDetails,
-              //         child: const Text('Retry'),
-              //       ),
-              //     ],
-              //   ),
-              // );
             }
             return Column(
               children: [
-                // Text('${propertyDetail.propertyId}'),
                 Stack(
                   children: [
                     CarouselSlider.builder(
@@ -143,7 +125,6 @@ class _ReapResultState extends State<ReapResult> {
                           : 1,
                       itemBuilder:
                           (BuildContext context, int index, int pageViewIndex) {
-                            // ✅ Added third parameter
                             if (propertyDetail.propertyGalleryImages.isEmpty) {
                               return SizedBox(
                                 width: width,
@@ -168,7 +149,12 @@ class _ReapResultState extends State<ReapResult> {
                               );
                             }
 
-                            // Otherwise, display the gallery images
+                            // Ensure index is within bounds
+                            if (index >=
+                                propertyDetail.propertyGalleryImages.length) {
+                              return const SizedBox.shrink();
+                            }
+
                             return SizedBox(
                               width: width,
                               child: CachedNetworkImage(
@@ -203,8 +189,6 @@ class _ReapResultState extends State<ReapResult> {
                         },
                       ),
                     ),
-
-                    // Carousel indicators
                     Positioned(
                       top: height * .22,
                       left: 0,
@@ -279,7 +263,6 @@ class _ReapResultState extends State<ReapResult> {
                                   ),
                                   SizedBox(width: width * .02),
                                   Text(
-                                    // Display number of gallery images or fallback to '1'
                                     (propertyDetail
                                                 .propertyGalleryImages
                                                 .length >
@@ -321,7 +304,6 @@ class _ReapResultState extends State<ReapResult> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: height * .02),
-                          //1
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -374,14 +356,12 @@ class _ReapResultState extends State<ReapResult> {
                             ],
                           ),
                           SizedBox(height: height * .02),
-                          //2
                           BuildHeaderSection(
                             propertyDetail: propertyDetail,
                             width: width,
                             height: height,
                             currency: '£',
                           ),
-                          // Price Section
                           BuildDescriptionSection(
                             propertyDetail: propertyDetail,
                             width: width,
@@ -406,25 +386,24 @@ class _ReapResultState extends State<ReapResult> {
                             height: height,
                             currency: '£',
                           ),
-                          BuildNeighbourhoodSection(
-                            propertyDetail: propertyDetail,
-                            width: width,
-                            height: height,
-                            currency: '£',
-                          ),
-                          BuildVirtualTourSection(
-                            propertyDetail: propertyDetail,
-                            width: width,
-                            height: height,
-                            currency: '£',
-                          ),
+                          // BuildNeighbourhoodSection(
+                          //   propertyDetail: propertyDetail,
+                          //   width: width,
+                          //   height: height,
+                          //   currency: '£',
+                          // ),
+                          // BuildVirtualTourSection(
+                          //   propertyDetail: propertyDetail,
+                          //   width: width,
+                          //   height: height,
+                          //   currency: '£',
+                          // ),
                           BuildInvestmentInterestSection(
                             propertyDetail: propertyDetail,
                             width: width,
                             height: height,
                             currency: '£',
                           ),
-                          // AcquisitionList(category: widget.category),
                         ],
                       );
                     },
@@ -444,11 +423,13 @@ class _ReapResultState extends State<ReapResult> {
     BuildContext context,
     PropertyDetailModel propertyDetail,
   ) async {
-    if (propertyDetail.brochure == false) {
+    // Safe null check for brochure
+    final brochureUrl = propertyDetail.brochure;
+    if (brochureUrl == null || brochureUrl.isEmpty) {
       Fluttertoast.showToast(
         backgroundColor: AppColors.primaryColor,
         textColor: Colors.white,
-        msg: 'No brochure document uploaded. ',
+        msg: 'No brochure document uploaded.',
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
       );
@@ -466,24 +447,33 @@ class _ReapResultState extends State<ReapResult> {
       },
     );
 
-    final Uri url = Uri.parse(propertyDetail.brochure);
-
     try {
-      // Try to launch the brochure URL
+      final Uri url = Uri.parse(brochureUrl);
+
+      // Use launchUrl with mode for better iOS compatibility
       if (await canLaunchUrl(url)) {
-        await launchUrl(url);
-      } else {
-        Fluttertoast.showToast(
-          backgroundColor: AppColors.primaryColor,
-          textColor: Colors.white,
-          msg: 'No brochure document uploaded. ',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
+        await launchUrl(
+          url,
+          mode: LaunchMode
+              .externalApplication, // Forces opening in Safari/External app on iOS
         );
+      } else {
+        throw Exception('Could not launch $brochureUrl');
       }
+    } catch (e) {
+      Fluttertoast.showToast(
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        msg: 'Failed to open brochure.',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+      print('Error launching URL: $e');
     } finally {
-      // Dismiss the loading spinner
-      Navigator.of(context).pop();
+      // Dismiss the loading spinner safely
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
     }
   }
 }

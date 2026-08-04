@@ -1,135 +1,85 @@
-import 'package:GapHub/screens/others/dashboards/dashboard.dart';
+import 'package:GapHub/screens/others/dashboards/providers/dashboard_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:GapHub/utils/extensions.dart';
-
 import 'customAnimatedBottomNav.dart';
 
-class BottomNav extends StatefulWidget {
+class BottomNav extends ConsumerWidget {
   final int index;
-
   const BottomNav(this.index, {super.key});
 
   @override
-  _BottomNavState createState() => _BottomNavState();
-} 
+  Widget build(BuildContext context, WidgetRef ref) {
+    // On Dashboard, use the live provider value.
+    // On other screens, use the index passed in — so the correct tab appears active.
+    final bool onDashboard = index == -1; // use -1 as a sentinel for Dashboard
+    final activeIndex = onDashboard
+        ? ref.watch(tabIndexProvider)
+        : index;
 
-class _BottomNavState extends State<BottomNav> {
-  late int index;
- 
-  @override
-  void initState() {
-    super.initState();
-    index = widget.index;
-  }
+    void goTo(int value) {
+      ref.read(tabIndexProvider.notifier).state = value;
 
-  @override
-  void didUpdateWidget(BottomNav oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.index != widget.index) {
-      setState(() => index = widget.index);
+      // If we're not on Dashboard, pop back to it
+      if (!onDashboard) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    Orientation orientation = MediaQuery.of(context).orientation;
-    final height = orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.height
-        : MediaQuery.of(context).size.width;
- 
     final bottomItems = <BottomNavigationBarItem>[
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
-          isActive: index == 0,
-          onTap: () => _navigateToIndex(0),
-          child: Image.asset(
-            'assets/images/snapshotFFF.png',
-            height: height * .03,
-          ),
+          isActive: activeIndex == 0,
+          child: Image.asset('assets/images/snapshotFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
-          isActive: index == 0,
-          onTap: () => _navigateToIndex(0),
-          child: Image.asset(
-            'assets/images/snapshot000.png',
-            height: height * .04,
-          ),
+          isActive: activeIndex == 0,
+          child: Image.asset('assets/images/snapshot000.png', height: 22.h),
         ),
         label: '',
       ),
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
-          isActive: index == 1,
-          onTap: () => _navigateToIndex(1),
-          child: Image.asset(
-            'assets/images/analyticsFFF.png',
-            height: height * .03,
-          ),
+          isActive: activeIndex == 1,
+          child: Image.asset('assets/images/analyticsFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
-          isActive: index == 1,
-          onTap: () => _navigateToIndex(1),
-          child: Image.asset(
-            'assets/images/analytics000.png',
-            height: height * .04,
-          ),
+          isActive: activeIndex == 1,
+          child: Image.asset('assets/images/analytics000.png', height: 22.h),
         ),
         label: '',
       ),
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
-          isActive: index == 2,
-          onTap: () => _navigateToIndex(2),
-          child: Image.asset(
-            'assets/images/acquisitionFFF.png',
-            height: height * .03,
-          ),
+          isActive: activeIndex == 2,
+          child: Image.asset('assets/images/acquisitionFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
-          isActive: index == 2,
-          onTap: () => _navigateToIndex(2),
-          child: Image.asset(
-            'assets/images/acquisition000.png',
-            height: height * .04,
-          ),
+          isActive: activeIndex == 2,
+          child: Image.asset('assets/images/acquisition000.png', height: 22.h),
         ),
         label: '',
       ),
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
-          isActive: index == 3,
-          onTap: () => _navigateToIndex(3),
-          child: Image.asset(
-            'assets/images/portfolioFFF.png',
-            height: height * .03,
-          ),
+          isActive: activeIndex == 3,
+          child: Image.asset('assets/images/portfolioFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
-          isActive: index == 3,
-          onTap: () => _navigateToIndex(3),
-          child: Image.asset(
-            'assets/images/portfolio000.png',
-            height: height * .04,
-          ),
+          isActive: activeIndex == 3,
+          child: Image.asset('assets/images/portfolio000.png', height: 22.h),
         ),
         label: '',
       ),
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
-          isActive: index == 4,
-          onTap: () => _navigateToIndex(4),
-          child: Image.asset(
-            'assets/images/more000.png',
-            height: height * .03,
-          ),
+          isActive: activeIndex == 4,
+          child: Image.asset('assets/images/more000.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
-          isActive: index == 4,
-          onTap: () => _navigateToIndex(4),
-          child: Image.asset(
-            'assets/images/more000.png',
-            height: height * .04,
-          ),
+          isActive: activeIndex == 4,
+          child: Image.asset('assets/images/more000.png', height: 22.h),
         ),
         label: '',
       ),
@@ -140,36 +90,13 @@ class _BottomNavState extends State<BottomNav> {
       unselectedFontSize: context.width() * .03,
       items: bottomItems,
       backgroundColor: Colors.white,
-      elevation: 0, // Removes the shadow
-      currentIndex: index,
+      elevation: 0,
+      currentIndex: activeIndex,
       type: BottomNavigationBarType.fixed,
-      // Remove the onTap callback since it's now handled by CustomAnimatedBottomNav
-      // onTap: (value) { 
-      //   if (index != value) {
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //         builder: (context) => Dashboard(index: value),
-      //       ),
-      //     );
-      //   }
-      // },
-      // Add these properties to disable the default ripple effect
       enableFeedback: false,
       selectedItemColor: Colors.transparent,
       unselectedItemColor: Colors.transparent,
+      onTap: goTo,
     );
   }
-
-  void _navigateToIndex(int value) {
-    if (index != value) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Dashboard(index: value),
-        ),
-      );
-    }
-  }
 }
-

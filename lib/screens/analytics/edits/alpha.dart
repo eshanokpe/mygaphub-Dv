@@ -16,7 +16,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:GapHub/screens/registration/costoflivingcalc.dart';
-
 import '../navigation_manager.dart';
 
 class Alpha extends StatefulWidget {
@@ -132,23 +131,6 @@ class _AlphaState extends State<Alpha> {
                   onPressed: () {
                     print('fuck');
                     fuck();
-                    // switch (widget.newUser!) {
-                    // case true:
-                    //   _current.text == current
-                    //       ? fuck()
-                    //       : dialogBox.options(
-                    //           context,
-                    //           "Status",
-                    //           "The value you provided is different from the value provided earlier ($currency$current). Are you sure you want to proceed with this new value ($currency${_current.text})?",
-                    //           () {
-                    //             fuck();
-                    //           },
-                    //         );
-                    //   break;
-                    //   case false:
-                    //     widget.newUser! ? fuck() : cash();
-                    //     break;
-                    //   default:
                     // }
                   },
                   child: Text(
@@ -387,13 +369,13 @@ class _AlphaState extends State<Alpha> {
                             decoration: InputDecoration(
                               hintText: 'Outline your strategy clearly...',
                               contentPadding: const EdgeInsets.all(8),
-                              enabledBorder: OutlineInputBorder( 
+                              enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12.0),
                                 borderSide: BorderSide(
                                   color: _isClicked
                                       ? Colors.black
                                       : Colors.transparent,
-                                  width: _isClicked ? 2.5 : 0.0, 
+                                  width: _isClicked ? 2.5 : 0.0,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -500,9 +482,9 @@ class _AlphaState extends State<Alpha> {
                 visible: !widget.newUser!,
                 child: SizedBox(height: height * .03),
               ),
-              widget.newUser! 
-                  ?  ElevatedButton(
-                     style: ElevatedButton.styleFrom(
+              widget.newUser!
+                  ? ElevatedButton(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
                         padding: EdgeInsets.symmetric(
                           vertical: 12.h,
@@ -530,7 +512,7 @@ class _AlphaState extends State<Alpha> {
                           ),
                           SizedBox(width: width * .02),
                           Text(
-                             "View More",
+                            "View More",
                             style: TextStyle(
                               color: const Color(0xfff3f3f4),
                               fontWeight: FontWeight.w400,
@@ -539,7 +521,8 @@ class _AlphaState extends State<Alpha> {
                           ),
                         ],
                       ),
-                    ):Container(),
+                    )
+                  : Container(),
             ],
           ),
         ),

@@ -17,7 +17,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import 'financial_independent_timelline.dart';
 
 class FinancialIndependentSnapshot extends StatefulWidget {
@@ -84,7 +83,7 @@ class _FinancialIndependentSnapshotState
     } else {
       time = 0;
       current = 0;
-    } 
+    }
 
     // Calculate percentages safely
     timePer = total != 0 ? time / 360 : 0;
@@ -280,7 +279,7 @@ class _FinancialIndependentSnapshotState
                               borderColor: Colors.white,
                               onPressed: () {
                                 context.read<Providers>().setTotMonthly(total);
- 
+
                                 navigateWithSlideTransition(
                                   context: context,
                                   destinationScreen:

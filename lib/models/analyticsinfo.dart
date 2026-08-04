@@ -5,39 +5,43 @@ Analyticsinfo modelFromJson(String str) =>
 String modelToJson(Analyticsinfo data) => json.encode(data.toJson());
 
 class Analyticsinfo {
-  Analyticsinfo(
-      {required this.alpha,
-      required this.beta,
-      required this.credit,
-      required this.dept,
-      required this.education, 
-      required this.freedom,
-      required this.grand});
-  Map<String, dynamic> alpha;
-  Map<String, dynamic> beta;
-  Map<String, dynamic> credit;
-  Map<String, dynamic> dept;
-  Map<String, dynamic> education;
-  Map<String, dynamic> freedom;
-  Map<String, dynamic> grand;
+  Analyticsinfo({
+    this.alpha,
+    this.beta,
+    this.credit,
+    this.dept,
+    this.education,
+    this.freedom,
+    this.grand,
+  });
 
-  factory Analyticsinfo.fromJson(Map<String, dynamic> json) => Analyticsinfo(
-        alpha: json['alpha'],
-        beta: json["beta"],
-        credit: json["credit"],
-        dept: json['dept'],
-        education: json['education'],
-        freedom: json['freedom'],
-        grand: json['grand'],
-      );
+  Map<String, dynamic>? alpha;
+  Map<String, dynamic>? beta;
+  Map<String, dynamic>? credit;
+  Map<String, dynamic>? dept;
+  Map<String, dynamic>? education;
+  Map<String, dynamic>? freedom;
+  Map<String, dynamic>? grand;
+
+  factory Analyticsinfo.fromJson(Map<String, dynamic> json) {
+    return Analyticsinfo(
+      alpha: json['alpha'] as Map<String, dynamic>?,
+      beta: json['beta'] as Map<String, dynamic>?,
+      credit: json['credit'] as Map<String, dynamic>?,
+      dept: json['dept'] as Map<String, dynamic>?,
+      education: json['education'] as Map<String, dynamic>?,
+      freedom: json['freedom'] as Map<String, dynamic>?,
+      grand: json['grand'] as Map<String, dynamic>?,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
-        'alpha': alpha,
-        "beta": beta,
-        "credit": credit,
-        'dept': dept,
-        'education': education,
-        'freedom': freedom,
-        'grand': grand,
-      };
+    'alpha': alpha,
+    'beta': beta,
+    'credit': credit,
+    'dept': dept,
+    'education': education,
+    'freedom': freedom,
+    'grand': grand,
+  };
 }

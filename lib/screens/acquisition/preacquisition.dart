@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:GapHub/screens/acquisition/actionplan/actionplan.dart';
 import 'package:GapHub/screens/homepage/assistance/personal_assistant.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';
@@ -13,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/screens/acquisition/opportunities.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/bottomnav.dart';
-import 'actionplan/presentation/action_plan_strategy.dart';
 import 'widget/gradientimagecard.dart';
 
 class Preacquisition extends StatefulWidget {
@@ -262,7 +262,7 @@ class _PreacquisitionState extends State<Preacquisition> {
         timer.cancel();
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ActionPlanStrategy()),
+          MaterialPageRoute(builder: (context) => Actionplan()),
         );
       } else {
         timer.cancel();

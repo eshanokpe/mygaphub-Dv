@@ -8,7 +8,7 @@ import 'package:GapHub/utils/httpErrorDisplay.dart';
 import 'package:GapHub/widgets/spaces.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './seeds.dart';
+import 'seeds.dart';
 import 'package:GapHub/screens/SEED/charts/seedonut.dart';
 import 'package:intl/intl.dart';
 import 'package:GapHub/provider/providers.dart';

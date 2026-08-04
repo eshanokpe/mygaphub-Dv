@@ -51,6 +51,7 @@ class AssetClasses extends StatelessWidget {
     return Scaffold(
       bottomNavigationBar: const BottomNav(3),
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),

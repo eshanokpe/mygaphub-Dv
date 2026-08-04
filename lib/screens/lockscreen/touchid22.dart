@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:GapHub/screens/authentication/landing.dart';
 import 'package:GapHub/screens/authentication/login/forgotPin/forgot_pin.dart';
+import 'package:GapHub/screens/lockscreen/landing22.dart';
 import 'package:GapHub/widgets/customAminatedNumPad.dart';
 import 'package:GapHub/widgets/navigateWithSlideTransition.dart';
 import 'package:GapHub/widgets/shakeAnimation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:http/http.dart' as http;
+import 'package:GapHub/models/loginusermodel.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
@@ -31,6 +35,7 @@ class _Touchid22State extends State<Touchid22> {
   final LocalAuthentication _localAuthentication = LocalAuthentication();
   List<String> enteredDigits = [];
   bool _isProcessing = false;
+  bool _isLoadingDashboard = false; // Added loading state
   final dio = Dio();
   final TextEditingController _passcodeController = TextEditingController();
   static final GlobalKey<NavigatorState> _navigatorKey = GlobalKey();
@@ -40,7 +45,9 @@ class _Touchid22State extends State<Touchid22> {
   @override
   void initState() {
     super.initState();
-    _authenticateUser();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _authenticateWithBiometrics();
+    });
   }
 
   @override
@@ -65,7 +72,12 @@ class _Touchid22State extends State<Touchid22> {
           await _setPasscodeAndPreference(passcode);
 
           if (mounted) {
-            // Navigate back after a brief delay for better UX
+            // Show loading spinner before navigating
+            setState(() {
+              _isLoadingDashboard = true;
+            });
+
+            // Brief delay to show the loading indicator
             await Future.delayed(const Duration(milliseconds: 800));
 
             if (mounted) {
@@ -234,7 +246,7 @@ class _Touchid22State extends State<Touchid22> {
       duration: const Duration(milliseconds: 100),
       curve: Curves.easeOut,
       child: Material(
-        color: Colors.transparent,
+        color: Colors.black38,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(45.r),
@@ -302,6 +314,30 @@ class _Touchid22State extends State<Touchid22> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen when navigating to dashboard
+    if (_isLoadingDashboard) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SpinKitCircle(color: AppColors.primaryColor, size: 60.sp),
+              SizedBox(height: 24.h),
+              Text(
+                'Loading your dashboard...',
+                style: GoogleFonts.nunitoSans(
+                  fontSize: 16.sp,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     //  details = context.watch<Providers>().loginDetails;
     String imgurl = context.watch<Providers>().details[7];
     String email = context.watch<Providers>().details[6];
@@ -312,6 +348,8 @@ class _Touchid22State extends State<Touchid22> {
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
+    final String firstName = context.watch<Providers>().details[0];
+    final String surName = context.watch<Providers>().details[1];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -377,15 +415,14 @@ class _Touchid22State extends State<Touchid22> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // Header(
-                          //   width: constraints.maxWidth * 0.9,
-                          //   height: constraints.maxHeight * 0.4,
-                          //   imgurl: imgurl,
-                          //   details: Loginusermodel(),
-                          //   firstName: '',
-                          //   surName: '',
-                          //   email: email,
-                          // ),
+                          Header(
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            height: MediaQuery.of(context).size.height * 0.25,
+                            imgurl: imgurl,
+                            firstName: firstName,
+                            email: email,
+                            surName: surName,
+                          ),
                           Center(
                             child: Text(
                               'Please enter your passcode',
@@ -477,7 +514,9 @@ class _Touchid22State extends State<Touchid22> {
                             );
                           }),
                           _buildKeyFaceId(
-                            'assets/settings/touchID.png',
+                            Platform.isIOS
+                                ? 'assets/settings/touchID.png'
+                                : 'assets/settings/touchID2.png',
                             onTap: () {
                               _showForgotTouchid22Dialog();
                             },
@@ -526,13 +565,13 @@ class _Touchid22State extends State<Touchid22> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              GestureDetector(
-                onTap: () => _authenticateUser(),
-                child: Image.asset(
-                  'assets/settings/touchID.png',
-                  width: 60,
-                  height: 60,
-                ),
+              Image.asset(
+                Platform.isIOS
+                    ? 'assets/settings/touchID.png'
+                    : 'assets/settings/touchID2.png',
+                width: 60,
+                height: 60,
+                color: const Color(0xff1A73E8),
               ),
               SizedBox(height: 16.h),
               Text(
@@ -576,7 +615,7 @@ class _Touchid22State extends State<Touchid22> {
     dialogBox.information(context, 'Status', 'Service timed out');
   }
 
-  Future<void> _authenticateUser() async {
+  Future<void> _authenticateWithBiometrics() async {
     bool isAuthenticated = false;
 
     if (!await _isBiometricAvailable()) {
@@ -614,6 +653,11 @@ class _Touchid22State extends State<Touchid22> {
     FocusScope.of(context).requestFocus(FocusNode());
 
     if (isAuthenticated) {
+      // Show loading spinner before navigating
+      setState(() {
+        _isLoadingDashboard = true;
+      });
+
       await _handleSuccessfulBiometricAuth();
     }
   }
@@ -644,12 +688,18 @@ class _Touchid22State extends State<Touchid22> {
       );
       context.read<Providers>().setPref(preference);
 
+      // Brief delay to show loading spinner
+      await Future.delayed(const Duration(milliseconds: 500));
+
       // ✅ Simple navigation back - no signIn() call
       if (mounted) {
         Navigator.of(context).pop(true);
       }
     } catch (error) {
       if (mounted) {
+        setState(() {
+          _isLoadingDashboard = false;
+        });
         dialogBox.information(
           context,
           'Error',

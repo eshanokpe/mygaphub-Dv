@@ -55,10 +55,16 @@ class NotificationProvider with ChangeNotifier {
   Future<void> fetchNotifications({
     bool refresh = false,
     bool silent = false,
+    bool append = false,
   }) async {
     if (_isLoading && !refresh) return;
 
     try {
+      if (refresh) {
+        _currentPage = 1;
+        _hasMore = true;
+      }
+
       _isLoading = true;
       if (!silent) notifyListeners();
 
@@ -81,6 +87,7 @@ class NotificationProvider with ChangeNotifier {
 
         if (responseData['success']) {
           final data = responseData['data'];
+          // print("dataNotification:${data['data']}");
           final List<dynamic> notificationData = data['data'];
 
           final List<NotificationModel> fetchedNotifications = notificationData
@@ -93,8 +100,16 @@ class NotificationProvider with ChangeNotifier {
           _from = data['from'] ?? 0;
           _to = data['to'] ?? 0;
 
-          // Replace the list with new page data
-          _notifications = fetchedNotifications;
+          if (append && _currentPage > 1) {
+            final existingIds = _notifications.map((item) => item.id).toSet();
+            _notifications.addAll(
+              fetchedNotifications.where(
+                (notification) => !existingIds.contains(notification.id),
+              ),
+            );
+          } else {
+            _notifications = fetchedNotifications;
+          }
 
           _hasMore = data['next_page_url'] != null;
           _unreadCount = responseData['unread_count'] ?? 0;
@@ -115,21 +130,21 @@ class NotificationProvider with ChangeNotifier {
   Future<void> goToNextPage() async {
     if (_hasMore && !_isLoading) {
       _currentPage++; // Increment page first
-      await fetchNotifications(refresh: true); // Fetch the new page
+      await fetchNotifications(append: true); // Fetch the new page
     }
   }
 
   Future<void> goToPreviousPage() async {
     if (_currentPage > 1 && !_isLoading) {
       _currentPage--; // Decrement page first
-      await fetchNotifications(refresh: true); // Fetch the new page
+      await fetchNotifications(); // Fetch the new page
     }
   }
 
   Future<void> goToPage(int page) async {
     if (page != _currentPage && !_isLoading && page > 0 && page <= _lastPage) {
       _currentPage = page; // Set the new page
-      await fetchNotifications(refresh: true); // Fetch that page
+      await fetchNotifications(); // Fetch that page
     }
   }
 

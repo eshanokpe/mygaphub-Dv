@@ -7,7 +7,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/svg.dart';
 
-import 'wheel/360WheelScreen.dart';
+import 'components/360WheelScreen.dart';
 import 'components/RecentlyUpdatedScreen.dart';
 
 class Threesixty extends StatefulWidget {

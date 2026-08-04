@@ -35,9 +35,7 @@ class NotificationCardItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primaryColor.withOpacity(0.1)
-              : notification.seen 
-                  ? const Color(0xffF6F6F6) 
-                  : const Color(0xffF0F7FF),
+              : const Color(0xffF6F6F6),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
@@ -136,11 +134,13 @@ class NotificationCardItem extends StatelessWidget {
               ),
             ),
 
-            Padding(
-              padding: EdgeInsets.only(top: 50.h),
-              child: Icon(
-                Icons.chevron_right, 
-                color: isSelected ? AppColors.primaryColor : Colors.grey,
+            SizedBox(
+              height: 100.h, // match roughly the card's content height
+              child: Center(
+                child: Icon(
+                  Icons.chevron_right,
+                  color: isSelected ? AppColors.primaryColor : Colors.grey,
+                ),
               ),
             ),
           ],

@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:GapHub/provider/providers.dart';
+import 'package:GapHub/widgets/indicators.dart';
 
 class Piechart extends StatefulWidget {
+  @override
+  Key? key;
   final List values;
   final List labels;
-  final List? colors;
+  final List colors;
   final List percent;
-  final List<List<Color>>? gradients;
   final bool doiwant;
 
-  const Piechart({
+  Piechart({
     super.key,
     required this.values,
     required this.labels,
-    this.colors,
+    required this.colors,
     required this.percent,
-    this.gradients,
     this.doiwant = false,
   });
 
@@ -29,191 +33,82 @@ class _PiechartState extends State<Piechart> {
 
   @override
   Widget build(BuildContext context) {
-    // Safety: return empty if no data
-    if (widget.labels.isEmpty ||
-        widget.values.isEmpty ||
-        widget.percent.isEmpty) {
-      return const SizedBox(
-        height: 240,
-        child: Center(child: Text('No data available')),
+    Orientation orientation = MediaQuery.of(context).orientation;
+    final height = orientation == Orientation.portrait
+        ? MediaQuery.of(context).size.height
+        : MediaQuery.of(context).size.width;
+    var currency = context.watch<Providers>().snapshotmodel.currency;
+
+    // Generate indicators dynamically
+    List<Indicator> indicators = [];
+    for (var i = 0; i < widget.values.length; i++) {
+      indicators.add(
+        Indicator(
+          doiwant: widget.doiwant,
+          isSquare: false,
+          color: Color(int.parse(widget.colors[i % widget.colors.length])),
+          text: ' ${widget.labels[i]}  ${widget.percent[i]}%',
+          textColor: Color(int.parse(widget.colors[i % widget.colors.length])),
+          size: 10,
+        ),
       );
     }
 
-    // Step 1: Deduplicate by label
-    final seen = <String>{};
-    final uniqueIndices = <int>[];
-    for (var i = 0; i < widget.labels.length; i++) {
-      final label = widget.labels[i].toString();
-      if (seen.add(label)) uniqueIndices.add(i);
-    }
-
-    // ✅ Step 2: Sort unique indices by PERCENTAGE from HIGHEST to LOWEST
-    uniqueIndices.sort((a, b) {
-      final pctA = double.tryParse(widget.percent[a].toString()) ?? 0;
-      final pctB = double.tryParse(widget.percent[b].toString()) ?? 0;
-      return pctB.compareTo(pctA); // descending order
-    });
-
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        side: const BorderSide(
-          color: Color.fromARGB(255, 241, 241, 241),
-          width: 1.5,
-        ),
-      ),
-      color: Colors.white,
-      child: Padding(
-        padding: EdgeInsets.only(top: 20.h),
-        child: Column(
-          children: [
-            // Donut chart
-            SizedBox(
-              height: 240.h,
-              child: PieChart(
-                PieChartData(
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 60.r,
-                  startDegreeOffset: -150,
-                  sections: _buildSections(uniqueIndices),
+    return Container(
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 1.2,
+            child: PieChart(
+              PieChartData(
+                pieTouchData: PieTouchData(
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    setState(() {
+                      if (event is FlLongPressEnd || event is FlPanEndEvent) {
+                        touchedIndex = -1;
+                      } else {
+                        touchedIndex = pieTouchResponse
+                            ?.touchedSection
+                            ?.touchedSectionIndex;
+                      }
+                    });
+                  },
                 ),
+                borderData: FlBorderData(show: false),
+                sectionsSpace: 0,
+                centerSpaceRadius: 40,
+                sections: showingSections(height, currency),
               ),
             ),
-
-            SizedBox(height: 24.h),
-
-            // Legend list
-            Container(
-              decoration: const BoxDecoration(color: Color(0xFFF7F7F7)),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: uniqueIndices.length,
-                itemBuilder: (context, i) {
-                  final idx = uniqueIndices[i];
-
-                  // ✅ Safe color/gradient handling
-                  final gradient =
-                      widget.gradients != null && idx < widget.gradients!.length
-                      ? widget.gradients![idx]
-                      : null;
-
-                  final solidColor = _getSolidColor(idx);
-
-                  final pct =
-                      double.tryParse(
-                        widget.percent[idx].toString(),
-                      )?.round() ??
-                      0;
-
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 8.h,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 12.r,
-                          height: 12.r,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: gradient != null
-                                ? LinearGradient(
-                                    colors: gradient,
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  )
-                                : null,
-                            color: gradient == null ? solidColor : null,
-                          ),
-                        ),
-                        SizedBox(width: 10.w),
-                        Expanded(
-                          child: Text(
-                            () {
-                              final text = widget.labels[idx].toString();
-                              if (text.isEmpty) return text;
-                              return '${text[0].toUpperCase()}${text.substring(1)}';
-                            }(),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF1A1A1A),
-                              fontFamily: 'Nunito',
-                            ),
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '$pct',
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF1A1A1A),
-                                  fontFamily: 'Nunito',
-                                ),
-                              ),
-                              TextSpan(
-                                text: '%',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: const Color(0xFF888888),
-                                  fontFamily: 'Nunito',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+          Wrap(direction: Axis.horizontal, children: indicators),
+        ],
       ),
     );
   }
 
-  // Helper to safely get solid color or fallback
-  Color _getSolidColor(int index) {
-    const fallback = Colors.grey;
-    if (widget.colors == null || widget.colors!.isEmpty) return fallback;
-    try {
-      final colorValue = widget.colors![index % widget.colors!.length]
-          .toString();
-      return Color(int.parse(colorValue));
-    } catch (_) {
-      return fallback;
-    }
-  }
+  List<PieChartSectionData> showingSections(double height, String currency) {
+    return List.generate(widget.values.length, (i) {
+      final isTouched = i == touchedIndex;
+      final double fontSize = isTouched ? 16.sp : 12.sp;
+      final double radius = isTouched ? height * .10 : height * .08;
 
-  List<PieChartSectionData> _buildSections(List<int> sortedIndices) {
-    return sortedIndices.map((i) {
-      final fallbackColor = _getSolidColor(i);
-      final gradientColors =
-          (widget.gradients != null && i < widget.gradients!.length)
-          ? widget.gradients![i]
-          : [fallbackColor, fallbackColor];
-
+      final double parsedValue =
+          double.tryParse(widget.values[i].toString()) ?? 0.0;
+      final value = parsedValue
+          .round(); // Ensures value is a whole number, e.g., 99.0 or 100.0
       return PieChartSectionData(
-        gradient: LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: Color(int.parse(widget.colors[i % widget.colors.length])),
+        value: value.toDouble(),
+        title: widget.percent[i] <= 0 ? "" : '${widget.percent[i].round()}%',
+        radius: radius,
+        titleStyle: TextStyle(
+          fontFamily: 'Nunito',
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xffffffff),
         ),
-        value: double.tryParse(widget.values[i].toString()) ?? 0.0,
-        title: '',
-        radius: 50.r,
       );
-    }).toList();
+    });
   }
 }

@@ -233,7 +233,7 @@ class _LiabilitydetailsState extends State<Liabilitydetails> {
           SizedBox(height: height * .05),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: width * .2),
-            child: const Addaccountbtn(index: "Liabilities"),
+            child: Addaccountbtn(width: width, index: "Liabilities"),
           ),
           SizedBox(height: height * .05),
         ],

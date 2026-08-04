@@ -2,7 +2,7 @@ import 'package:GapHub/screens/360/iLAB/settarget.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:GapHub/widgets/semi_circle.dart';
 import 'package:flutter/material.dart';
-import './gapanalysis.dart';
+import 'gapanalysis.dart';
 import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
 
@@ -75,7 +75,7 @@ class _IlabState extends State<Ilab> {
     String currency = context.watch<Providers>().snapshotmodel.currency;
 
     var investment0 = invTick0
-        ? (int.tryParse(data["asset"]["current"].toString()) ?? 0)
+        ? (int.tryParse(data["current_ilab"]["investment"].toString()) ?? 0)
         : 0;
 
     var equity0 = equTick0
@@ -214,7 +214,7 @@ class _IlabState extends State<Ilab> {
                                         SizedBox(height: width * .03),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   invTick0 = !invTick0;
@@ -239,7 +239,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   equTick0 = !equTick0;
@@ -264,7 +264,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   savTick0 = !savTick0;
@@ -348,7 +348,7 @@ class _IlabState extends State<Ilab> {
                                         SizedBox(height: width * .03),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   creTick0 = !creTick0;
@@ -373,7 +373,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   mortTick0 = !mortTick0;
@@ -461,7 +461,7 @@ class _IlabState extends State<Ilab> {
                                         SizedBox(height: width * .02),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   npTick0 = !npTick0;
@@ -486,7 +486,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   portTick0 = !portTick0;
@@ -568,7 +568,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   perTick0 = !perTick0;
@@ -593,7 +593,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   eduTick0 = !eduTick0;
@@ -618,7 +618,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   expenTick0 = !expenTick0;
@@ -643,7 +643,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   discTick0 = !discTick0;
@@ -809,7 +809,7 @@ class _IlabState extends State<Ilab> {
                                         SizedBox(height: width * .03),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   invTick1 = !invTick1;
@@ -834,7 +834,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   equTick1 = !equTick1;
@@ -859,7 +859,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   savTick1 = !savTick1;
@@ -943,7 +943,7 @@ class _IlabState extends State<Ilab> {
                                         SizedBox(height: width * .03),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   creTick1 = !creTick1;
@@ -968,7 +968,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   mortTick1 = !mortTick1;
@@ -1056,7 +1056,7 @@ class _IlabState extends State<Ilab> {
                                         SizedBox(height: width * .02),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   npTick1 = !npTick1;
@@ -1081,7 +1081,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   portTick1 = !portTick1;
@@ -1163,7 +1163,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   perTick1 = !perTick1;
@@ -1188,7 +1188,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   eduTick1 = !eduTick1;
@@ -1213,7 +1213,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   expenTick1 = !expenTick1;
@@ -1238,7 +1238,7 @@ class _IlabState extends State<Ilab> {
                                         ),
                                         Row(
                                           children: [
-                                            InkWell(
+                                            GestureDetector(
                                               onTap: () {
                                                 setState(() {
                                                   discTick1 = !discTick1;

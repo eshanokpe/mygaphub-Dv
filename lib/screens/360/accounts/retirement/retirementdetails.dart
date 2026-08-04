@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
-import 'presentation/retiredash.dart';
+import 'retiredash.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';
 import 'package:dio/dio.dart';
@@ -567,13 +567,13 @@ class _RetirementdetailsState extends State<Retirementdetails> {
                     var url3 = "$baseUrl/app/360/retirement";
                     final prefs = await SharedPreferences.getInstance();
                     var token = prefs.getString('tokenDB');
-                    Map<String, dynamic> data = { 
+                    Map<String, dynamic> data = {
                       "current": balanceC.text,
                       "assured_income": amnC.text,
                       "monthly": monthly.text,
                       "retirement": retire.text,
                       "provider": provider.text,
-                    }; 
+                    };
                     var response = await http.post(
                       url,
                       body: data,
@@ -596,15 +596,6 @@ class _RetirementdetailsState extends State<Retirementdetails> {
                       );
                       if (response2.statusCode == 200 &&
                           response3.statusCode == 200) {
-                            // ✅ Extract nested data objects
-                        final roiData = response2.data['data'] as Map? ?? {};
-                        final retirementData = response3.data['data'] as Map? ?? {};
-
-                        if (context.mounted) {
-                          context.read<Providers>()
-                            ..setretiredata(roiData)
-                            ..setpensions(retirementData);
-                        } 
                         Navigator.of(context).pop();
                         // Navigator.of(context).pop();
                         Fluttertoast.showToast(
@@ -614,7 +605,7 @@ class _RetirementdetailsState extends State<Retirementdetails> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const Retiredash(),
+                                Retiredash(response2.data, response3.data),
                           ),
                         );
                       } else {
@@ -711,18 +702,10 @@ class _RetirementdetailsState extends State<Retirementdetails> {
       options: Options(headers: {"Authorization": 'Bearer $token'}),
     );
     if (response.statusCode == 200 && response2.statusCode == 200) {
-      final roiData = response.data['data'] as Map? ?? {};
-      final retirementData = response2.data['data'] as Map? ?? {};
-
-      context.read<Providers>()
-          ..setretiredata(roiData)
-          ..setpensions(retirementData);
-      
       Navigator.pop(context);
       Navigator.pop(context);
       Navigator.pop(context);
       Navigator.pop(context);
-      
       if (widget.archived) {
         Navigator.pop(context);
       }
@@ -730,7 +713,7 @@ class _RetirementdetailsState extends State<Retirementdetails> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const Retiredash(),
+          builder: (context) => Retiredash(response.data, response2.data),
         ),
       );
     }

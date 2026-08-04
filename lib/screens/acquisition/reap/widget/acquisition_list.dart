@@ -1,13 +1,10 @@
 import 'package:GapHub/provider/acquisiProvider.dart';
-import 'package:GapHub/provider/acquisitionProvider.dart';
-import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/widgets/navigateWithSlideTransition.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../reapResult/reapResult.dart';
 
 class AcquisitionList extends StatefulWidget {

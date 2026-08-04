@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nimble_charts/flutter.dart' as charts;
 import 'tab/progress_list.dart';
- 
+
 class Analytics extends StatefulWidget {
   const Analytics({
     super.key,
@@ -367,7 +367,7 @@ class _AnalyticsState extends State<Analytics> {
                             Icons.remove_red_eye,
                             size: 16.w,
                             color: Colors.white,
-                          ) 
+                          )
                         : Image.asset(
                             'assets/icons/pencil-alt.png',
                             width: 16.w,

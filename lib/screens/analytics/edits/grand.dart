@@ -22,24 +22,24 @@ import '../navigation_manager.dart';
 // Color constants
 // ---------------------------------------------------------------------------
 
-const _kColorSaveGreen    = Color(0xff009933);
-const _kColorSlate        = Color(0xff4F5B6D);
-const _kColorSlateLight   = Color(0xff6C7685);
-const _kColorDivider      = Color(0xffE6E6E6);
-const _kColorCardBorder   = Color(0xffD8D8D8);
-const _kColorCard         = Color(0xfff4f4f4);
-const _kColorSubtext      = Color(0xff888888);
-const _kColorCancelLabel  = Color(0xff344054);
+const _kColorSaveGreen = Color(0xff009933);
+const _kColorSlate = Color(0xff4F5B6D);
+const _kColorSlateLight = Color(0xff6C7685);
+const _kColorDivider = Color(0xffE6E6E6);
+const _kColorCardBorder = Color(0xffD8D8D8);
+const _kColorCard = Color(0xfff4f4f4);
+const _kColorSubtext = Color(0xff888888);
+const _kColorCancelLabel = Color(0xff344054);
 const _kColorCancelBorder = Color(0xffD0D5DD);
-const _kColorIconTint     = Color(0xfff3f3f4);
-const _kColorRed          = Color(0xffFF0001);
-const _kColorRedDark      = Color(0xffCE0001);
-const _kColorAmber        = Color(0xffF6AE39);
-const _kColorOrange       = Color(0xffFF7A00);
-const _kColorGreenDark    = Color(0xff005E32);
-const _kColorGreenLight   = Color(0xff17B26A);
-const _kColorBlueDark     = Color(0xff005E77);
-const _kColorNavy         = Color(0xff002E77);
+const _kColorIconTint = Color(0xfff3f3f4);
+const _kColorRed = Color(0xffFF0001);
+const _kColorRedDark = Color(0xffCE0001);
+const _kColorAmber = Color(0xffF6AE39);
+const _kColorOrange = Color(0xffFF7A00);
+const _kColorGreenDark = Color(0xff005E32);
+const _kColorGreenLight = Color(0xff17B26A);
+const _kColorBlueDark = Color(0xff005E77);
+const _kColorNavy = Color(0xff002E77);
 
 class Grand extends StatefulWidget {
   final Analyticsinfo grandInfo;
@@ -60,13 +60,13 @@ class Grand extends StatefulWidget {
 }
 
 class _GrandState extends State<Grand> {
-  final _formKey   = GlobalKey<FormState>();
-  Dio _dio         = Dio();
-  final TextEditingController _current  = TextEditingController();
-  final TextEditingController _target   = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  Dio _dio = Dio();
+  final TextEditingController _current = TextEditingController();
+  final TextEditingController _target = TextEditingController();
   final TextEditingController _strategy = TextEditingController();
   DialogBox _dialogBox = DialogBox();
-  bool _isClicked              = false;
+  bool _isClicked = false;
   bool _isLoadingDialogVisible = false;
 
   @override
@@ -97,7 +97,7 @@ class _GrandState extends State<Grand> {
 
   @override
   Widget build(BuildContext context) {
-    var value    = context.watch<Providers>().sevengeemodel.steps[0].toString();
+    var value = context.watch<Providers>().sevengeemodel.steps[0].toString();
     String currency = context.watch<Providers>().snapshotmodel.currency;
 
     var intVal = int.parse(value);
@@ -117,9 +117,9 @@ class _GrandState extends State<Grand> {
     }
 
     var colors = context.watch<Providers>().sevengeemodel.backgrounds;
-    List<String> sevenGeesColor  = [];
+    List<String> sevenGeesColor = [];
     List<String> sevenGeesColors = [];
-    List<int>    realColors      = [];
+    List<int> realColors = [];
     for (var a in colors) {
       sevenGeesColor.add(a.toString().substring(1));
     }
@@ -193,7 +193,9 @@ class _GrandState extends State<Grand> {
                         }
                         break;
                       case false:
-                        widget.contains ? _openPhilanthropy(currency) : _handleSave();
+                        widget.contains
+                            ? _openPhilanthropy(currency)
+                            : _handleSave();
                         break;
                       default:
                     }
@@ -378,8 +380,7 @@ class _GrandState extends State<Grand> {
                     SizedBox(height: height * .02),
                     Fiforms(
                       name: 'Target',
-                      subtitle:
-                          'Intended amount to give to others and charity',
+                      subtitle: 'Intended amount to give to others and charity',
                       controller: _target,
                       height: height,
                       width: width,
@@ -476,7 +477,10 @@ class _GrandState extends State<Grand> {
                               },
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(vertical: 14.h),
-                                side: const BorderSide(color: _kColorCancelBorder, width: 1.2),
+                                side: const BorderSide(
+                                  color: _kColorCancelBorder,
+                                  width: 1.2,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -495,8 +499,11 @@ class _GrandState extends State<Grand> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () {
-                                FocusScope.of(context).requestFocus(FocusNode());
-                                if (_current.text.isEmpty || _target.text.isEmpty) {
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(FocusNode());
+                                if (_current.text.isEmpty ||
+                                    _target.text.isEmpty) {
                                   _dialogBox.information(
                                     context,
                                     'Status',
@@ -713,16 +720,16 @@ class _GrandState extends State<Grand> {
       final token = prefs.getString('tokenDB');
       final headers = {"Authorization": 'Bearer $token'};
 
-      final url           = Uri.parse("$baseUrl/app/seveng");
-      final urlAnalytics  = Uri.parse('$baseUrl/app/seveng/edit');
-      final urlDashboard  = Uri.parse('$baseUrl/app/dashboard');
+      final url = Uri.parse("$baseUrl/app/seveng");
+      final urlAnalytics = Uri.parse('$baseUrl/app/seveng/edit');
+      final urlDashboard = Uri.parse('$baseUrl/app/dashboard');
 
       Map<String, dynamic> body = {
-        "seveng"  : "ggs5dbwexsxgxbxjzgjabajzxhsgzah",
-        "current" : _current.text.replaceAll(',', ''),
-        "target"  : _target.text.replaceAll(',', ''),
+        "seveng": "ggs5dbwexsxgxbxjzgjabajzxhsgzah",
+        "current": _current.text.replaceAll(',', ''),
+        "target": _target.text.replaceAll(',', ''),
         "strategy": _strategy.text,
-        "main"    : "1",
+        "main": "1",
       };
 
       // 1. POST first — must complete before fetching fresh data
@@ -742,16 +749,16 @@ class _GrandState extends State<Grand> {
 
       // 2. Fire all GET requests in parallel
       final results = await Future.wait([
-        http.get(url,          headers: headers), // seveng    → index 0
+        http.get(url, headers: headers), // seveng    → index 0
         http.get(urlAnalytics, headers: headers), // analytics → index 1
         http.get(urlDashboard, headers: headers), // dashboard → index 2
       ]);
 
-      final response2         = results[0];
+      final response2 = results[0];
       final responseAnalytics = results[1];
       final responseDashboard = results[2];
 
-      if (response2.statusCode         != 200 ||
+      if (response2.statusCode != 200 ||
           responseAnalytics.statusCode != 200 ||
           responseDashboard.statusCode != 200) {
         throw Exception('One or more fetch requests failed');
@@ -782,18 +789,28 @@ class _GrandState extends State<Grand> {
 
         if (nextPageType.isNotEmpty) {
           NavigationManager.navigateToPage(
-            context      : context,
-            pageType     : nextPageType,
+            context: context,
+            pageType: nextPageType,
             analyticsinfo: analyticsinfo,
-            replace      : true,
-            fromSave     : true,
+            replace: true,
+            fromSave: true,
           );
         } else {
-          _dialogBox.information(context, 'Success', 'Information saved successfully!').then((_) {
-            if (mounted) {
-              Navigator.pushNamedAndRemoveUntil(context, 'Dashboard', (route) => false);
-            }
-          }); 
+          _dialogBox
+              .information(
+                context,
+                'Success',
+                'Information saved successfully!',
+              )
+              .then((_) {
+                if (mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    'Dashboard',
+                    (route) => false,
+                  );
+                }
+              });
         }
       } else if (mounted) {
         // Pop whatever dialog is on top (the loading one), then show success
@@ -805,7 +822,6 @@ class _GrandState extends State<Grand> {
           arguments: {'targetTab': 1}, // 1 = analytics tab
         );
       }
-
     } catch (e) {
       timer.cancel();
       if (mounted) {
@@ -824,13 +840,13 @@ class _GrandState extends State<Grand> {
 
     String setupText = assistance.toLowerCase();
 
-    if (setupText.contains('credit'))    return 'credit';
-    if (setupText.contains('grand'))     return 'grand';
-    if (setupText.contains('freedom'))   return 'freedom';
+    if (setupText.contains('credit')) return 'credit';
+    if (setupText.contains('grand')) return 'grand';
+    if (setupText.contains('freedom')) return 'freedom';
     if (setupText.contains('education')) return 'education';
-    if (setupText.contains('debt'))      return 'debt';
-    if (setupText.contains('beta'))      return 'beta';
-    if (setupText.contains('alpha'))     return 'alpha';
+    if (setupText.contains('debt')) return 'debt';
+    if (setupText.contains('beta')) return 'beta';
+    if (setupText.contains('alpha')) return 'alpha';
 
     return '';
   }
@@ -856,16 +872,16 @@ class _GrandState extends State<Grand> {
 
     if (intValuePercentage <= 25) {
       startColor = _kColorRed;
-      endColor   = _kColorRedDark;
+      endColor = _kColorRedDark;
     } else if (intValuePercentage <= 50) {
       startColor = _kColorAmber;
-      endColor   = _kColorOrange;
+      endColor = _kColorOrange;
     } else if (intValuePercentage <= 75) {
       startColor = _kColorGreenDark;
-      endColor   = _kColorGreenLight;
+      endColor = _kColorGreenLight;
     } else {
       startColor = _kColorBlueDark;
-      endColor   = _kColorNavy;
+      endColor = _kColorNavy;
     }
 
     return ShaderMask(

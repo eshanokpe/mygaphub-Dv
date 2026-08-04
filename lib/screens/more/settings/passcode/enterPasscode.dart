@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:GapHub/widgets/shakeAnimation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -54,31 +55,45 @@ class _EnterPasscodeScreenState extends State<EnterPasscodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        actions: const [HelpWidget()],
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black, size: 20.sp),
-          onPressed: () => Navigator.of(context).pop(),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            actions: const [HelpWidget()],
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.black,
+                size: 20.sp,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          body: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 20.h),
+                _buildTitle(),
+                SizedBox(height: 10.h),
+                _buildSubtitle(),
+                SizedBox(height: 70.h),
+                _buildPinCodeField(),
+                // Loading overlay
+                if (_isLoading)
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.0.h),
+                    child: const SpinKitCircle(color: Colors.black, size: 40.0),
+                  ),
+                Expanded(child: _buildNumPad()),
+              ],
+            ),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20.h),
-            _buildTitle(),
-            SizedBox(height: 10.h),
-            _buildSubtitle(),
-            SizedBox(height: 70.h),
-            _buildPinCodeField(),
-            Expanded(child: _buildNumPad()),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -138,8 +153,8 @@ class _EnterPasscodeScreenState extends State<EnterPasscodeScreen> {
           children: [
             _buildPinDots(),
             // Position the text field outside the visible area
-            Positioned(
-              top: -100, // Position it far outside the visible area
+            Offstage(
+              offstage: true, // ✅ hidden but still active for keyboard input
               child: _buildHiddenTextField(),
             ),
           ],
@@ -420,15 +435,19 @@ class _EnterPasscodeScreenState extends State<EnterPasscodeScreen> {
   }
 
   void _navigateToChangePasscodeScreen() {
+    FocusScope.of(context).unfocus();
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const ChangePasscodeScreen(source: 'forgotPin'),
       ),
     ).then((result) {
+      print('🔥 ChangePasscodeScreen returned result: $result');
       if (result == true) {
-        // This will trigger when we come back from successful passcode change
-        // We'll handle the success in SignInPreferences instead
+        print('🔥 Popping EnterPasscodeScreen with true');
+        Navigator.of(context).pop(true);
+      } else {
+        print('🔥 Result was not true — modal will NOT show');
       }
     });
   }

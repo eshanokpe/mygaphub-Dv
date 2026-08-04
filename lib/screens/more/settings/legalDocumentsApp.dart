@@ -12,8 +12,6 @@ class LegalDocumentsScreen extends StatelessWidget {
     'Privacy Policy',
   ];
 
-   LegalDocumentsScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,13 +37,13 @@ class LegalDocumentsScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
         children: [
           _buildListItem(context, 'Terms & Conditions', const Tnc(tnc: true)),
-          SizedBox(height: 24.h),
+          SizedBox(height: 28.h),
           _buildListItem(
             context,
             'Data Sharing Policy',
             const DataSharingScreen(),
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: 28.h),
           _buildListItem(context, 'Privacy Policy', const Tnc(tnc: false)),
         ],
       ),

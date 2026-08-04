@@ -4,25 +4,25 @@ import 'package:GapHub/widgets/customAminatedNumPad.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../passcode/enterPasscode.dart';
 import 'retryPasscode.dart';
 
 class ChangePasscodeScreen extends StatefulWidget {
-  final String source; 
+  final String source;
   const ChangePasscodeScreen({super.key, required this.source});
 
-  @override 
+  @override
   // ignore: library_private_types_in_public_api
   _ChangePasscodeScreenState createState() => _ChangePasscodeScreenState();
-} 
+}
 
 class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
   String _currentPin = "";
   static const int _pinLength = 6;
-  
+  bool _isNavigating = false; // Add this flag to prevent multiple navigations
+
   // Shake animation controller
   final ShakeAnimationController _shakeController = ShakeAnimationController();
 
@@ -30,17 +30,21 @@ class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
   void dispose() {
     _controller.dispose();
     _pinFocusNode.dispose();
-    _shakeController.dispose(); // Dispose the shake controller
+    _shakeController.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+
     // Auto-focus the pin field when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_pinFocusNode);
+      if (mounted) {
+        FocusScope.of(context).requestFocus(_pinFocusNode);
+      }
     });
+    print('🔥 ChangePasscodeScreen called');
   }
 
   @override
@@ -48,6 +52,7 @@ class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
+        elevation: 0,
         actions: const [HelpWidget()],
         leading: IconButton(
           icon: Icon(
@@ -60,75 +65,131 @@ class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
           },
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20.h),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Change your ',
-                    style: GoogleFonts.nunitoSans(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22.sp,
+      body: GestureDetector(
+        // Add this to handle taps outside the text field
+        onTap: () {
+          _pinFocusNode.unfocus();
+        },
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Container(
+            height:
+                MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                kToolbarHeight -
+                MediaQuery.of(context).padding.bottom,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Header Text Section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Change your ',
+                            style: GoogleFonts.nunitoSans(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 22.sp,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'GAPhub',
+                            style: GoogleFonts.nunitoSans(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 22.sp,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' passcode',
+                            style: GoogleFonts.nunitoSans(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 22.sp,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  TextSpan(
-                    text: 'GAPhub',
-                    style: GoogleFonts.nunitoSans(
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22.sp,
+                    SizedBox(height: 10.h),
+                    Text(
+                      'Ensure your code is not easy to guess for extra account protection',
+                      textAlign: TextAlign.left,
+                      style: GoogleFonts.nunitoSans(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.grayColor,
+                      ),
                     ),
+                  ],
+                ),
+
+                // Pin Dots
+                ShakeAnimation(
+                  controller: _shakeController,
+                  child: _buildPinDots(),
+                ),
+
+                // Hidden TextField
+                _buildHiddenTextField(),
+
+                // Number Pad
+                SizedBox(
+                  width: double.infinity,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final double spacing = 20.h;
+                      final double buttonSize =
+                          (constraints.maxWidth - spacing * 4) / 3;
+                      return Column(
+                        children: [
+                          _buildNumberRow(['1', '2', '3'], buttonSize, spacing),
+                          SizedBox(height: spacing),
+                          _buildNumberRow(['4', '5', '6'], buttonSize, spacing),
+                          SizedBox(height: spacing),
+                          _buildNumberRow(['7', '8', '9'], buttonSize, spacing),
+                          SizedBox(height: spacing),
+                          _buildNumberRow(
+                            ['', '0', 'Clear'],
+                            buttonSize,
+                            spacing,
+                            isLastRow: true,
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  TextSpan(
-                    text: ' passcode',
-                    style: GoogleFonts.nunitoSans(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22.sp,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            SizedBox(height: 10.h),
-            Text(
-              'Ensure your code is not easy to guess for extra account protection',
-              textAlign: TextAlign.left,
-              style: GoogleFonts.nunitoSans(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w400,
-                color: AppColors.grayColor,
-              ),
-            ),
-            SizedBox(height: 70.h),
-            _buildPinCodeField(),
-            Expanded(child: _buildNumPad()),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPinCodeField() {
-    return ShakeAnimation(
-      controller: _shakeController,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 100.w),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            _buildPinDots(),
-            Positioned(top: -100, child: _buildHiddenTextField()),
-          ],
-        ),
-      ),
+  Widget _buildPinDots() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(_pinLength, (index) {
+        final bool isFilled = index < _currentPin.length;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          margin: EdgeInsets.symmetric(horizontal: 8.w),
+          width: isFilled ? 16.w : 12.w,
+          height: isFilled ? 16.w : 12.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isFilled ? Colors.black : const Color(0xffe4e4e4),
+          ),
+        );
+      }),
     );
   }
 
@@ -139,13 +200,15 @@ class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
       child: TextField(
         focusNode: _pinFocusNode,
         controller: _controller,
-        keyboardType: TextInputType.number,
+        keyboardType: TextInputType.none,
         maxLength: _pinLength,
+        readOnly: true,
         enableSuggestions: false,
         autocorrect: false,
         autofocus: false,
         showCursor: false,
-        style: const TextStyle(fontSize: 0, color: Colors.transparent),
+        enableInteractiveSelection: false,
+        style: const TextStyle(color: Colors.transparent),
         decoration: const InputDecoration(
           border: InputBorder.none,
           counterText: "",
@@ -157,156 +220,83 @@ class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
             _currentPin = value;
           });
 
-          // Navigate when PIN is complete
-          if (value.length == _pinLength) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.push(
-                context,
-                MaterialPageRoute( 
-                  builder: (context) => RetryPasscodeScreen(
-                    originalPin: _currentPin,
-                    source: widget.source,
-                  ),
-                ),
-              ).then((success) {
-                if (success == true) {
-                  // Pass back the success result to SignInPreferences
-                  Navigator.of(context).pop(true);
-                }
-              });
-            });
+          if (value.length == _pinLength && !_isNavigating) {
+            _navigateToRetryScreen();
           }
         },
       ),
     );
   }
 
-  Widget _buildPinDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.max,
-      children: List.generate(_pinLength, (index) {
-        final bool isFilled = index < _currentPin.length;
-        final bool isActive =
-            index == _currentPin.length && _currentPin.isNotEmpty;
+  // Extract navigation logic to a separate method
+  void _navigateToRetryScreen() async {
+    if (_isNavigating) return;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: isFilled ? 16.w : 12.w,
-          height: isFilled ? 16.w : 12.w,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isFilled
-                ? Colors.black
-                : isActive
-                ? Colors.grey.shade400
-                : const Color(0xffe4e4e4),
-          ),
-        );
-      }),
-    );
-  }
+    _isNavigating = true;
 
-  Widget _buildNumPad() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double spacing = 20.h;
-        double buttonSize = (constraints.maxWidth - spacing * 4) / 3;
+    // Unfocus to hide keyboard before navigation
+    _pinFocusNode.unfocus();
 
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumberRow([1, 2, 3], buttonSize, spacing),
-            SizedBox(height: spacing),
-            _buildNumberRow([4, 5, 6], buttonSize, spacing),
-            SizedBox(height: spacing),
-            _buildNumberRow([7, 8, 9], buttonSize, spacing),
-            SizedBox(height: spacing),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                SizedBox(width: buttonSize),
-                _buildNumberButton(0, buttonSize),
-                _buildClearButton(buttonSize),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-  }
+    // Small delay to ensure unfocus completes
+    await Future.delayed(const Duration(milliseconds: 100));
 
-  Widget _buildNumberRow(List<int> numbers, double buttonSize, double spacing) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: numbers
-          .map((number) => _buildNumberButton(number, buttonSize))
-          .toList(),
-    );
-  }
-
-  Widget _buildClearButton(double size) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: TextButton(
-        onPressed: () {
-          setState(() {
-            _controller.clear();
-            _currentPin = "";
-          });
-        },
-        child: Text(
-          'Clear',
-          style: GoogleFonts.nunitoSans(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RetryPasscodeScreen(
+          originalPin: _currentPin,
+          source: widget.source,
         ),
       ),
     );
-  }
 
-  // Method to trigger the shake animation
-  void _triggerShake() {
-    _shakeController.shake();
-  }
+    _isNavigating = false;
 
-  void _onNumberPressed(int number) {
-    if (_controller.text.length < _pinLength) {
+    if (result == true && mounted) {
+      Navigator.of(context).pop(true);
+    } else if (mounted) {
+      // Clear the pin if navigation was cancelled or failed
       setState(() {
-        _controller.text += number.toString();
-        _currentPin = _controller.text;
+        _controller.clear();
+        _currentPin = "";
       });
-
-      if (_controller.text.length == _pinLength) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RetryPasscodeScreen(
-                originalPin: _currentPin,
-                source: widget.source,
-              ),
-            ),
-          ).then((success) {
-            if (success == true) {
-              // Pass back the success result to SignInPreferences
-              Navigator.of(context).pop(true);
-            }
-          });
-        });
-      }
+      // Refocus after returning
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          FocusScope.of(context).requestFocus(_pinFocusNode);
+        }
+      });
     }
   }
- 
-  Widget _buildNumberButton(int number, double size) {
+
+  Widget _buildNumberRow(
+    List<String> values,
+    double buttonSize,
+    double spacing, {
+    bool isLastRow = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: values.map((value) {
+        if (value.isEmpty) {
+          return SizedBox(width: buttonSize, height: buttonSize);
+        }
+        if (value == 'Clear') {
+          return _buildClearButton();
+        }
+        return _buildNumberButton(value, buttonSize);
+      }).toList(),
+    );
+  }
+
+  Widget _buildNumberButton(String number, double size) {
     return SizedBox(
       width: size,
       height: size,
       child: CustomAnimatedNumPad(
-        onPressed: () => _onNumberPressed(number),
+        onPressed: () => _onNumberPressed(int.parse(number)),
         child: Text(
           number.toString(),
           style: GoogleFonts.nunitoSans(
@@ -317,5 +307,52 @@ class _ChangePasscodeScreenState extends State<ChangePasscodeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildClearButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _controller.clear();
+            _currentPin = "";
+          });
+        },
+        borderRadius: BorderRadius.circular(35.r),
+        child: Container(
+          width: 70.w,
+          height: 70.h,
+          decoration: const BoxDecoration(shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              'Clear',
+              style: GoogleFonts.nunitoSans(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _triggerShake() {
+    _shakeController.shake();
+  }
+
+  void _onNumberPressed(int number) {
+    if (_controller.text.length < _pinLength && !_isNavigating) {
+      setState(() {
+        _controller.text += number.toString();
+        _currentPin = _controller.text;
+      });
+
+      if (_controller.text.length == _pinLength) {
+        _navigateToRetryScreen();
+      }
+    }
   }
 }

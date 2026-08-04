@@ -318,7 +318,7 @@ class _EditpageState extends State<Editpage> {
                             const [], // You may need to pass your series data here
                         width: width,
                       ),
-                      BespokeKPI(key: const PageStorageKey('bespokePage')),
+                      const BespokeKPI(key: PageStorageKey('bespokePage')),
                     ];
 
                     Navigator.push(

@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/screens/registration/costoflivingcalc.dart';
-import '../../360/accounts/retirement/presentation/retiredash.dart';
+import '../../360/accounts/retirement/retiredash.dart';
 import '../navigation_manager.dart';
 
 class Freedom extends StatefulWidget {
@@ -472,8 +472,8 @@ class _FreedomState extends State<Freedom> {
       url2,
       options: Options(headers: {"Authorization": 'Bearer $token'}),
     );
-    context.read<Providers>().setretiredata(response.data['data']);
-    context.read<Providers>().setpensions(response2.data['data']);
+    context.read<Providers>().setretiredata(response.data);
+    context.read<Providers>().setpensions(response2.data);
 
     if (response.statusCode == 200 && response2.statusCode == 200) {
       _dismissLoadingDialog();
@@ -481,7 +481,7 @@ class _FreedomState extends State<Freedom> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const Retiredash(),
+          builder: (context) => Retiredash(response.data, response2.data),
         ),
       );
     }

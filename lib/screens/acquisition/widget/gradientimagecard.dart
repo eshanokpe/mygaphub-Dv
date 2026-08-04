@@ -47,7 +47,7 @@ class GradientImageCard extends StatelessWidget {
               horizontal: 16.0,
               vertical: 12.0,
             ),
-            decoration: BoxDecoration( 
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12.0),
               gradient: LinearGradient(
                 colors: [Colors.black.withOpacity(0.9), Colors.transparent],
