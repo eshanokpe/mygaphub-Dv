@@ -3,7 +3,6 @@ import 'package:GapHub/models/snapshotmodel.dart';
 import 'package:GapHub/provider/AuthProvider.dart';
 import 'package:GapHub/provider/currencyProvider.dart';
 import 'package:GapHub/utils/constants.dart';
-import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/dialog.dart';
@@ -38,7 +37,7 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
   Map calculatorData = {};
   String? symbol;
   bool _isLoading = false;
-  bool _isCurrenciesLoading = true;
+  bool _isInitialLoading = true;
 
   @override
   void initState() {
@@ -104,7 +103,7 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
             setState(() {
               _allCurrencies = processedCurrencies.cast<Map<String, dynamic>>();
               _currencies = List.from(_allCurrencies);
-              _isCurrenciesLoading = false;
+              _isInitialLoading = false;
             });
 
             // Wait for the next frame to ensure dataCurrency is updated
@@ -118,7 +117,7 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
             setState(() {
               _allCurrencies = [];
               _currencies = [];
-              _isCurrenciesLoading = false;
+              _isInitialLoading = false;
             });
           }
         }
@@ -130,7 +129,7 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
           setState(() {
             _allCurrencies = [];
             _currencies = [];
-            _isCurrenciesLoading = false;
+            _isInitialLoading = false;
           });
         }
       }
@@ -140,7 +139,7 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
         setState(() {
           _allCurrencies = [];
           _currencies = [];
-          _isCurrenciesLoading = false;
+          _isInitialLoading = false;
         });
       }
     }
@@ -299,19 +298,19 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
         await context.read<AuthProvider>().signInDetails(context);
 
         // ✅ Show success message
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return SuccessModal(
-              message: "Base currency updated successfully",
-              onClose: () {
-                Navigator.of(context).pop();
-                Navigator.of(this.context).pop();
-              },
-            );
-          },
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferences updated successfully')),
         );
+
+        // ✅ Navigate with updated base currency
+        Navigator.pop(context);
+        // Navigator.pushAndRemoveUntil(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => Settings(baseCurrency: formattedCurrency),
+        //   ),
+        //   (route) => false, // This removes all previous routes
+        // );
       } else if (responsePreferences.statusCode == 429) {
         final body = jsonDecode(responsePreferences.body);
         Fluttertoast.showToast(msg: body['message']);
@@ -338,6 +337,7 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
       appBar: AppBar(
         centerTitle: false,
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         elevation: 0,
         actions: [
           TextButton(
@@ -440,88 +440,102 @@ class _CurrencyState extends State<ChangeBaseCurrency> {
                 ],
               ),
               SizedBox(height: 24.h),
-              _isCurrenciesLoading
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32.h),
-                      child: const Center(
-                        child: SpinKitCircle(color: Colors.black, size: 30.0),
+              if (_isInitialLoading)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 60.h),
+                  child: const Center(
+                    child: SpinKitCircle(color: Colors.black, size: 40.0),
+                  ),
+                )
+              else if (_currencies.isEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 60.h),
+                  child: Center(
+                    child: Text(
+                      'No currencies found',
+                      style: GoogleFonts.nunitoSans(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14.sp,
+                        color: AppColors.grayColor,
                       ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _currencies.length,
-                      itemBuilder: (context, index) {
-                        final currency = _currencies[index];
-                        final bool isSelected = currency['isSelected'] ?? false;
-
-                        return Column(
-                          children: [
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              onTap: () {
-                                print('Tapped on: ${currency['name']}');
-                                context.read<Providers>().setSymbol(
-                                  '${currency['symbol']} ${currency['code']}',
-                                );
-                                _toggleSelection(index);
-                              },
-                              trailing: isSelected
-                                  ? Icon(
-                                      Icons.check,
-                                      color: AppColors.primaryColor,
-                                      size: 16.sp,
-                                    )
-                                  : null,
-                              leading: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF03222F),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    currency['symbol']?.toString() ?? '',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.nunitoSans(
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white,
-                                      fontSize: 16.sp,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                currency['name']?.toString() ??
-                                    'Unknown Currency',
-                                style: GoogleFonts.nunitoSans(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14.sp,
-                                  color: AppColors.blackColor,
-                                ),
-                              ),
-                              // subtitle: Text(
-                              //   '${currency['symbol']} ${currency['code']}',
-                              //   style: GoogleFonts.nunitoSans(
-                              //     fontWeight: FontWeight.w400,
-                              //     fontSize: 12.sp,
-                              //     color: AppColors.grayColor,
-                              //   ),
-                              // ),
-                            ),
-                            if (index != _currencies.length - 1)
-                              Divider(
-                                height: 1.h,
-                                thickness: 1.h,
-                                color: Colors.grey[200],
-                                indent: 16.w,
-                                endIndent: 16.w,
-                              ),
-                          ],
-                        );
-                      },
                     ),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _currencies.length,
+                  itemBuilder: (context, index) {
+                    final currency = _currencies[index];
+                    final bool isSelected = currency['isSelected'] ?? false;
+
+                    return Column(
+                      children: [
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          onTap: () {
+                            print('Tapped on: ${currency['name']}');
+                            context.read<Providers>().setSymbol(
+                              '${currency['symbol']} ${currency['code']}',
+                            );
+                            _toggleSelection(index);
+                          },
+                          trailing: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  color: AppColors.primaryColor,
+                                  size: 16.sp,
+                                )
+                              : null,
+                          leading: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF03222F),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Center(
+                              child: Text(
+                                currency['symbol']?.toString() ?? '',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.nunitoSans(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                  fontSize: 16.sp,
+                                ),
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            currency['name']?.toString() ?? 'Unknown Currency',
+                            style: GoogleFonts.nunitoSans(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14.sp,
+                              color: AppColors.blackColor,
+                            ),
+                          ),
+                          // subtitle: Text(
+                          //   '${currency['symbol']} ${currency['code']}',
+                          //   style: GoogleFonts.nunitoSans(
+                          //     fontWeight: FontWeight.w400,
+                          //     fontSize: 12.sp,
+                          //     color: AppColors.grayColor,
+                          //   ),
+                          // ),
+                        ),
+                        if (index != _currencies.length - 1)
+                          Divider(
+                            height: 1.h,
+                            thickness: 1.h,
+                            color: Colors.grey[200],
+                            indent: 16.w,
+                            endIndent: 16.w,
+                          ),
+                      ],
+                    );
+                  },
+                ),
               SizedBox(height: 50.h),
             ],
           ),

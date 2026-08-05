@@ -1,5 +1,3 @@
-// ignore_for_file: must_be_immutable
-
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:dio/dio.dart';
@@ -505,13 +503,12 @@ class _ExchangeRatesState extends State<ExchangeRates> {
                             final currency = filteredCurrencies[index];
                             return Padding(
                               padding: EdgeInsets.symmetric(
-                                vertical: 10.h,
+                                vertical: 5.h,
                                 horizontal: 10.w,
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Text('${currency['flag']}'),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -519,7 +516,7 @@ class _ExchangeRatesState extends State<ExchangeRates> {
                                       Row(
                                         children: [
                                           Image.asset(
-                                            'assets/exchange_rates/${currency['flag']}.png',
+                                            'assets/images/${currency['flag']}.png',
                                             width: 30,
                                           ),
                                           SizedBox(width: 10.w),
@@ -542,15 +539,13 @@ class _ExchangeRatesState extends State<ExchangeRates> {
                                             width: 1,
                                           ),
                                         ),
-                                        child: _trendIcon(
-                                          currency['rate']['trend'],
-                                        ),
+                                        child: _trendIcon(currency['trend']),
                                       ),
                                     ],
                                   ),
                                   SizedBox(height: 5.h),
                                   Text(
-                                    '${symbolCurrency}1.00 = ${double.parse(currency['rate']['rate'].toString()).toStringAsPrecision(4)}',
+                                    '${symbolCurrency}1.00 = ${double.parse(currency['rate'].toString()).toStringAsPrecision(4)}',
                                     style: GoogleFonts.nunitoSans(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w400,

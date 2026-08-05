@@ -49,12 +49,9 @@ class _AlphaState extends State<Alpha> {
   @override
   void initState() {
     super.initState();
-    current = context
-        .read<Providers>()
-        .snapshotmodel
-        .financial["saving"]
-        .toString();
-    _current.text = _formatToTwoDecimalPlaces(current);
+    if (widget.alphaInfo!.alpha!['current'] != null) {
+      _current.text = widget.alphaInfo!.alpha!['current'].toString();
+    }
     if (widget.alphaInfo!.alpha!['target'] != null) {
       _target.text = widget.alphaInfo!.alpha!['target'].toString();
     }

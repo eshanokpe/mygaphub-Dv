@@ -70,6 +70,7 @@ class _ReapResultState extends State<ReapResult> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -386,12 +387,12 @@ class _ReapResultState extends State<ReapResult> {
                             height: height,
                             currency: '£',
                           ),
-                          // BuildNeighbourhoodSection(
-                          //   propertyDetail: propertyDetail,
-                          //   width: width,
-                          //   height: height,
-                          //   currency: '£',
-                          // ),
+                          BuildNeighbourhoodSection(
+                            propertyDetail: propertyDetail,
+                            width: width,
+                            height: height,
+                            currency: '£',
+                          ),
                           // BuildVirtualTourSection(
                           //   propertyDetail: propertyDetail,
                           //   width: width,

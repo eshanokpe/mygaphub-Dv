@@ -96,7 +96,7 @@ class _SettingsState extends State<Settings> {
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => Login()),
+        MaterialPageRoute(builder: (context) => const Login()),
         (route) => false,
       );
     }
@@ -337,7 +337,7 @@ class _SettingsState extends State<Settings> {
   void _navigateToChangeBaseCurrency() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ChangeBaseCurrency()),
+      MaterialPageRoute(builder: (context) => const ChangeBaseCurrency()),
     );
   }
 
