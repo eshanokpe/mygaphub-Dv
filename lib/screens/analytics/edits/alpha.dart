@@ -305,7 +305,7 @@ class _AlphaState extends State<Alpha> {
                       height: height,
                       enabled: widget.newUser!,
                       name: "Current",
-                      subtitle: "Rainy days savings today",
+                      subtitle: "Instant access savings today",
                       controller: _current,
                       symbol: currency,
                     ),
