@@ -12,7 +12,6 @@ import 'package:GapHub/screens/acquisition/ganp/ganp.dart';
 import 'package:GapHub/screens/acquisition/reap/reap.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'viewdetails.dart';
 import 'dart:convert';
 import 'retarchives.dart';
 import 'dart:async';
@@ -1079,7 +1078,7 @@ class _RetiredashState extends State<Retiredash> {
   getGanp() async {
     var timer = Timer(const Duration(milliseconds: 40000), () {
       Navigator.pop(context);
-      dialogBox.information(context, 'Status', 'Service timed out');
+      _showMaintenanceMessage(context);
       return;
     });
 
@@ -1089,6 +1088,7 @@ class _RetiredashState extends State<Retiredash> {
         "$assetBaseUrl/ganp/countries?token=xnbbnxbcbvjhnbkgvnmbbnfmohbvjcfgjmcbjmhnomcfjnomnpamqasxmbcvbvnfvbcfhfbvhjjjkfjknfvbiolckojinkjondodnglhdn",
       );
       var response = await http.get(url);
+      print("ganp response: ${response.body}");
 
       if (response.statusCode == 200) {
         var url3 = "$baseUrl/app/acquisition/favourite/ganp";
@@ -1115,12 +1115,21 @@ class _RetiredashState extends State<Retiredash> {
       } else {
         timer.cancel();
         Navigator.pop(context);
-        dialogBox.information(context, 'Error', 'An error ocurred');
+        _showMaintenanceMessage(context);
       }
     } catch (e) {
       timer.cancel();
       Navigator.pop(context);
-      dialogBox.information(context, 'Error', 'An error ocurred');
+      _showMaintenanceMessage(context);
     }
+  }
+
+  void _showMaintenanceMessage(BuildContext context) {
+    dialogBox.information(
+      context,
+      'Under Maintenance',
+      'We\'re currently updating our GANP services to serve you better. '
+          'Please try again in a few minutes. We apologize for any inconvenience.',
+    );
   }
 }
