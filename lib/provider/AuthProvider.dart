@@ -26,11 +26,25 @@ class AuthProvider with ChangeNotifier {
   String _errorMessage = '';
   bool _isAuthenticated = false;
   String? _authToken;
+  Map<String, dynamic> _seedData = {};
 
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
   String? get authToken => _authToken;
+  Map<String, dynamic> get seedData => _seedData;
+
+  /// Refreshes the SEED data used by the investment flow.
+  Future<void> fetchSeedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = _authToken ?? prefs.getString('tokenDB');
+
+    if (token == null || token.isEmpty || token == 'logout') {
+      throw Exception('No valid session token — please sign in again.');
+    }
+
+    await _fetchSeed(token);
+  }
 
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -46,29 +60,25 @@ class AuthProvider with ChangeNotifier {
     _setError('');
   }
 
-  // ─── Real-time analytics refresh ─────────────────────────────────────────
-  // Called from Dashboard on mount and every 30 seconds via Timer.periodic.
-  // Hits GET /app/seveng/edit, parses the response, and pushes the result
-  // into Providers via setAnalyticsInfo — triggering only the widgets that
-  // watch analyticsinfo to rebuild, leaving everything else untouched.
   Future<void> fetchAnalyticsInfo(BuildContext context) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('tokenDB');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('tokenDB');
 
-      // Guard: no token or logged out — nothing to fetch
-      if (token == null || token == 'logout' || token.isEmpty) return;
+    if (token == null || token == 'logout' || token.isEmpty) {
+      throw Exception('No valid session token — please sign in again.');
+    }
 
-      final analytics = await _fetchAnalytics(token);
+    final analytics = await _fetchAnalytics(token);
 
-      if (analytics != null && context.mounted) {
-        Provider.of<Providers>(context, listen: false)
-            .setAnalyticsInfo(analytics);
-      }
-    } catch (e) {
-      // Silent fail — dashboard already has cached data from login,
-      // so a failed refresh should never disrupt the UI
-      print('fetchAnalyticsInfo error: $e');
+    if (analytics == null) {
+      throw Exception('Failed to load analytics data.');
+    }
+
+    if (context.mounted) {
+      Provider.of<Providers>(
+        context,
+        listen: false,
+      ).setAnalyticsInfo(analytics);
     }
   }
 
@@ -86,7 +96,6 @@ class AuthProvider with ChangeNotifier {
       // providers.clearAllData();
       await _clearStoredToken();
       Provider.of<Providers>(context, listen: false).clearAllData();
-
 
       final token = await _authenticateUser(email, password);
       print('Authenticated token: $token');
@@ -482,6 +491,7 @@ class AuthProvider with ChangeNotifier {
         _fetchAnalytics(
           finalToken,
         ).catchError((e) => _handleApiError('Analytics', e)),
+        _fetchSeed(finalToken).catchError((e) => _handleApiError('Seed', e)),
       ], eagerError: true);
 
       final loginusermodel =
@@ -822,9 +832,8 @@ class AuthProvider with ChangeNotifier {
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
-      print("Snapshotmodel:$jsonData");
 
-      final dataField = jsonData['data'];
+      final dataField = jsonData;
       if (dataField == null) {
         throw Exception('No data field in response');
       }
@@ -875,12 +884,11 @@ class AuthProvider with ChangeNotifier {
   Future<dynamic> _fetchCalculator(String token) async {
     try {
       final response = await http
-          .get( 
+          .get(
             Uri.parse("$baseUrl/app/calculator"),
             headers: {"Authorization": 'Bearer $token'},
           )
           .timeout(const Duration(seconds: 15));
-      print("_fetchCalculator:${response}");
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         return jsonData['data'] ?? {};
@@ -1010,24 +1018,45 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<Analyticsinfo?> _fetchAnalytics(String token) async {
-    try {
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl/app/seveng/edit'),
-            headers: {"Authorization": 'Bearer $token'},
-          )
-          .timeout(const Duration(seconds: 15));
+  Future<Map<String, dynamic>> _fetchSeed(String token) async {
+    final response = await _dio
+        .get(
+          "$baseUrl/app/seed",
+          options: Options(headers: {"Authorization": 'Bearer $token'}),
+        )
+        .timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return Analyticsinfo.fromJson(data['data']);
-      }
-      return null;
-    } catch (e) {
-      print('Error fetching analytics: $e');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load seed data: ${response.statusCode}');
+    }
+
+    final body = response.data?["data"];
+    _seedData = body is Map<String, dynamic>
+        ? body
+        : body is Map
+        ? Map<String, dynamic>.from(body)
+        : {};
+    notifyListeners();
+
+    print("seedData:$_seedData");
+    return _seedData;
+  }
+
+  Future<Analyticsinfo?> _fetchAnalytics(String token) async {
+    final response = await http
+        .get(
+          Uri.parse('$baseUrl/app/seveng/edit'),
+          headers: {"Authorization": 'Bearer $token'},
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      print('Error fetching analytics: status ${response.statusCode}');
       return null;
     }
+
+    final data = jsonDecode(response.body);
+    return Analyticsinfo.fromJson(data['data']);
   }
 
   void _handleError(dynamic e) {

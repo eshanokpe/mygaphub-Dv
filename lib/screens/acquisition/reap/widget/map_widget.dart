@@ -21,7 +21,7 @@ class MapWidget extends StatefulWidget {
 }
 
 class _MapWidgetState extends State<MapWidget> {
-  GoogleMapController? _mapController; // Make nullable
+  late GoogleMapController _mapController;
   bool _isMapCreated = false;
 
   @override
@@ -36,8 +36,8 @@ class _MapWidgetState extends State<MapWidget> {
 
     final CameraPosition initialCameraPosition = CameraPosition(
       target: widget.currentLocation,
-      zoom: 16,
-      tilt: 30,
+      zoom: 16, // Reduced for better performance
+      tilt: 30, // Reduced for better performance
       bearing: 0,
     );
 
@@ -50,15 +50,13 @@ class _MapWidgetState extends State<MapWidget> {
           child: ClipRRect(
             borderRadius: const BorderRadius.all(Radius.circular(10.0)),
             child: GoogleMap(
-              mapType: MapType.normal,
+              mapType: MapType
+                  .normal, // Changed from hybrid for better iOS performance
               initialCameraPosition: initialCameraPosition,
               onMapCreated: (GoogleMapController controller) {
-                // Only assign if still mounted
-                if (mounted) {
-                  _mapController = controller;
-                  _initMapStyle();
-                  setState(() => _isMapCreated = true);
-                }
+                _mapController = controller;
+                _initMapStyle();
+                setState(() => _isMapCreated = true);
               },
               myLocationEnabled: false,
               zoomControlsEnabled: false,
@@ -118,13 +116,12 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> _initMapStyle() async {
-    // Safety check: ensure controller exists and widget is still mounted
-    if (_mapController == null || !mounted) return;
-
     if (Platform.isIOS) {
+      // Small delay for iOS initialization
       await Future.delayed(const Duration(milliseconds: 300));
+
       try {
-        await _mapController!.setMapStyle('''[
+        await _mapController.setMapStyle('''[
           {
             "featureType": "all",
             "elementType": "labels",
@@ -139,8 +136,7 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   void dispose() {
-    // Only dispose if it was actually created
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 }

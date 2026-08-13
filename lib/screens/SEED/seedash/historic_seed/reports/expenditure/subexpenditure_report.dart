@@ -22,8 +22,8 @@ class SubExpenditureReport extends StatefulWidget {
   final String historicdate;
   final String date;
 
-  SubExpenditureReport({
-    Key? key,
+  const SubExpenditureReport({
+    super.key,
     required this.data,
     required this.label,
     required this.expenditure,
@@ -119,7 +119,7 @@ class SubExpenditureReportState extends State<SubExpenditureReport> {
                     left: width * .04,
                     right: width * .0,
                     child: Center(
-                      child: Container(
+                      child: SizedBox(
                         width: width * .88,
                         height: height * .10,
                         child: Padding(
@@ -221,11 +221,11 @@ class SubExpenditureReportState extends State<SubExpenditureReport> {
                                           var token = prefs.getString(
                                             'tokenDB',
                                           );
-                                          var _url = Uri.parse(
+                                          var url = Uri.parse(
                                             "$baseUrl/app/seed/history/${widget.date}/expenditure?category=${widget.expenditure}&label=${expenList[index]["label"]}",
                                           );
                                           var response = await http.get(
-                                            _url,
+                                            url,
                                             headers: {
                                               "Authorization": 'Bearer $token',
                                               "Accept": "application/json",
@@ -269,7 +269,7 @@ class SubExpenditureReportState extends State<SubExpenditureReport> {
                                             Text(
                                               '$currency${num.parse(expenList[index]["amount"].toString()).toStringAsFixed(2)}'
                                                   .replaceAllMapped(
-                                                    new RegExp(
+                                                    RegExp(
                                                       r'(\d{1,3})(?=(\d{3})+(?!\d))',
                                                     ),
                                                     (Match m) => '${m[1]},',
@@ -287,7 +287,7 @@ class SubExpenditureReportState extends State<SubExpenditureReport> {
                                               ),
                                               child: Text(
                                                 'Budget'.replaceAllMapped(
-                                                  new RegExp(
+                                                  RegExp(
                                                     r'(\d{1,3})(?=(\d{3})+(?!\d))',
                                                   ),
                                                   (Match m) => '${m[1]},',
@@ -305,7 +305,7 @@ class SubExpenditureReportState extends State<SubExpenditureReport> {
                                         leading: Container(
                                           height: width * .04,
                                           width: width * .04,
-                                          margin: EdgeInsets.only(top: 4),
+                                          margin: const EdgeInsets.only(top: 4),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             boxShadow: [

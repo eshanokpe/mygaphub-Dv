@@ -21,28 +21,19 @@ class _VirtualTourIconState extends State<VirtualTourIcon> {
   @override
   void initState() {
     super.initState();
-    // `Uri.parse` throws FormatException on a malformed string, and this
-    // ran synchronously in initState -- an uncaught throw there crashes the
-    // app outright instead of showing Flutter's red error screen.
-    // Uri.tryParse returns null instead of throwing, so a bad link just
-    // falls through to "no video" instead of taking the app down.
-    final tourLink = widget.propertyDetail?.propertyVirtualTourLink;
-    if (tourLink != null && tourLink.isNotEmpty) {
-      final uri = Uri.tryParse(tourLink);
-      if (uri != null && uri.isAbsolute) {
-        _initializeVideoPlayer(tourLink);
-      }
+    // Check if propertyVirtualTourLink is a valid URL and initialize video player if valid
+    if (widget.propertyDetail!.propertyVirtualTourLink.isNotEmpty &&
+        Uri.parse(widget.propertyDetail!.propertyVirtualTourLink).isAbsolute) {
+      _initializeVideoPlayer(widget.propertyDetail!.propertyVirtualTourLink);
     }
   }
 
   void _initializeVideoPlayer(String videoUrl) {
     _controller = VideoPlayerController.network(videoUrl)
       ..addListener(() {
-        if (mounted) {
-          setState(() {
-            _isBuffering = _controller?.value.isBuffering ?? false;
-          });
-        }
+        setState(() {
+          _isBuffering = _controller!.value.isBuffering;
+        });
       })
       ..initialize()
           .then((_) {
@@ -50,7 +41,7 @@ class _VirtualTourIconState extends State<VirtualTourIcon> {
               setState(() {
                 _isVideoReady = true; // Set flag to indicate video is ready
               });
-              _controller?.play();
+              _controller!.play();
             }
           })
           .catchError((error) {
@@ -66,13 +57,6 @@ class _VirtualTourIconState extends State<VirtualTourIcon> {
 
   @override
   Widget build(BuildContext context) {
-    // propertyDetail (and its string fields) may be null -- read them into
-    // safe local defaults once instead of force-unwrapping with `!`
-    // throughout build().
-    final tourLink = widget.propertyDetail?.propertyVirtualTourLink ?? '';
-    final tourVideo = widget.propertyDetail?.virtualTourVideo ?? '';
-    final featuredImage = widget.propertyDetail?.propertyFeaturedImage ?? '';
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: Container(
@@ -84,17 +68,15 @@ class _VirtualTourIconState extends State<VirtualTourIcon> {
         ),
         child: Stack(
           children: [
-            if (_isVideoReady &&
-                _controller != null &&
-                _controller!.value.isInitialized)
+            if (_isVideoReady && _controller!.value.isInitialized)
               AspectRatio(
                 aspectRatio: _controller!.value.aspectRatio,
                 child: VideoPlayer(_controller!),
               )
             // Fallback image when no video link is available
-            else if (tourLink.isEmpty)
+            else if (widget.propertyDetail!.propertyVirtualTourLink.isEmpty)
               CachedNetworkImage(
-                imageUrl: featuredImage,
+                imageUrl: widget.propertyDetail!.propertyFeaturedImage,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => const Center(
                   child: CircularProgressIndicator(
@@ -133,7 +115,13 @@ class _VirtualTourIconState extends State<VirtualTourIcon> {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      (tourLink.isNotEmpty || tourVideo.isNotEmpty) ? "1" : "0",
+                      widget
+                                  .propertyDetail!
+                                  .propertyVirtualTourLink
+                                  .isNotEmpty ||
+                              widget.propertyDetail!.virtualTourVideo.isNotEmpty
+                          ? "1"
+                          : "0",
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontFamily: 'Nunito',

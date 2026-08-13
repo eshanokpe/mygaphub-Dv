@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';
-import 'ilab.dart';
 
 class Settarget extends StatefulWidget {
   const Settarget({super.key});
@@ -51,95 +50,107 @@ class _SettargetState extends State<Settarget> {
   void initState() {
     super.initState();
     setState(() => data = context.read<Providers>().settarget);
-    investContC.text = "${data["current_ilab"]["investment"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    equityContC.text = "${data["current_ilab"]["equity"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    savingsContC.text = "${data["current_ilab"]["savings"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    liabContC.text = "${data["current_ilab"]["credit"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    mortContC.text = "${data["current_ilab"]["mortgage"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    npContC.text = "${data["current_ilab"]["non_portfolio"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    apContC.text = "${data["current_ilab"]["portfolio"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    savperContC.text = "${data["current_ilab"]["periodic_saving"]}"
+    investContC.text = "${data['data']["current_ilab"]["investment"]}"
         .replaceAllMapped(
           new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
         );
-    eduContC.text = "${data["current_ilab"]["education"]}".replaceAllMapped(
+    equityContC.text = "${data['data']["current_ilab"]["equity"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    savingsContC.text = "${data['data']["current_ilab"]["savings"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    liabContC.text = "${data['data']["current_ilab"]["credit"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    mortContC.text = "${data['data']["current_ilab"]["mortgage"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    npContC.text = "${data['data']["current_ilab"]["non_portfolio"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    apContC.text = "${data['data']["current_ilab"]["portfolio"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    savperContC.text = "${data['data']["current_ilab"]["periodic_saving"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    eduContC.text = "${data['data']["current_ilab"]["education"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    expContC.text = "${data['data']["current_ilab"]["expenditure"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    disContC.text = "${data['data']["current_ilab"]["discretionary"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    investContC.text = "${data['data']["current_ilab"]["investment"]}" ?? "0";
+    investContT.text = "${data['data']["ilab"]["investment"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-    expContC.text = "${data["current_ilab"]["expenditure"]}".replaceAllMapped(
+    equityContT.text = "${data['data']["ilab"]["equity"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-    disContC.text = "${data["current_ilab"]["discretionary"]}".replaceAllMapped(
+    savingsContT.text = "${data['data']["ilab"]["savings"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-    investContC.text = "${data["current_ilab"]["investment"]}" ?? "0";
-    investContT.text = "${data["ilab"]["investment"]}".replaceAllMapped(
+    liabContT.text = "${data['data']["ilab"]["credit"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-    equityContT.text = "${data["ilab"]["equity"]}".replaceAllMapped(
+    mortContT.text = "${data['data']["ilab"]["mortgage"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-    savingsContT.text = "${data["ilab"]["savings"]}".replaceAllMapped(
+    npContT.text = "${data['data']["ilab"]["non_portfolio"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-    liabContT.text = "${data["ilab"]["credit"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    mortContT.text = "${data["ilab"]["mortgage"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    npContT.text = "${data["ilab"]["non_portfolio"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    apContT.text = "${data["ilab"]["asset_portfolio"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    savperContT.text = "${data["ilab"]["periodic_savings"]}".replaceAllMapped(
-      new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-    eduContT.text = "${data["ilab"]["education"]}".replaceAllMapped(
+    apContT.text = "${data['data']["ilab"]["asset_portfolio"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    savperContT.text = "${data['data']["ilab"]["periodic_savings"]}"
+        .replaceAllMapped(
+          new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+    eduContT.text = "${data['data']["ilab"]["education"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
 
-    expContT.text = "${data["ilab"]["expenditure"]}".replaceAllMapped(
+    expContT.text = "${data['data']["ilab"]["expenditure"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
 
-    disContT.text = "${data["ilab"]["discretionary"]}".replaceAllMapped(
+    disContT.text = "${data['data']["ilab"]["discretionary"]}".replaceAllMapped(
       new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );

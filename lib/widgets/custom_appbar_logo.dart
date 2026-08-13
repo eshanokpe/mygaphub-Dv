@@ -32,8 +32,8 @@ class CustomAppBarLogo extends StatelessWidget implements PreferredSizeWidget {
     final double rightPadding = screenWidth * percentagePadding / 100;
     return AppBar(
       backgroundColor: backgroundColor,
+      surfaceTintColor: backgroundColor,
       elevation: 0,
-      surfaceTintColor: Colors.white,
       leading: onBackPressed != null
           ? IconButton(
               padding: EdgeInsets.zero,

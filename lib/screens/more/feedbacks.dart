@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:GapHub/utils/extensions.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,9 +47,6 @@ class _FeedbacksState extends State<Feedbacks> {
   @override
   Widget build(BuildContext context) {
     Orientation orientation = MediaQuery.of(context).orientation;
-    final height = orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.height
-        : MediaQuery.of(context).size.width;
     final width = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.width
         : MediaQuery.of(context).size.height;
@@ -168,8 +164,7 @@ class _FeedbacksState extends State<Feedbacks> {
               height: 300,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount:
-                    feedbackData!.length ?? 0, // Check if supportData is null
+                itemCount: feedbackData!.length, // Check if supportData is null
                 itemBuilder: (context, index) {
                   if (feedbackData == null) {
                     // Handle the case when supportData is null

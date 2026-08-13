@@ -1,12 +1,9 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
-import 'package:GapHub/widgets/show_success_modal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_holo_date_picker/date_picker.dart';
@@ -17,14 +14,18 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Removed ViewProfile import as we are popping back now
+
 class EditDateOfBirthScreen extends StatefulWidget {
   final String initialDate;
   final List<String> details;
+  final String? sourcePage;
 
   const EditDateOfBirthScreen({
     super.key,
     required this.initialDate,
     required this.details,
+    this.sourcePage,
   });
 
   @override
@@ -34,16 +35,14 @@ class EditDateOfBirthScreen extends StatefulWidget {
 class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
   late DateTime _selectedDate;
   bool _isSaving = false;
-  final bool _pickerShown = false;
 
   @override
   void initState() {
     super.initState();
     _selectedDate =
         DateTime.tryParse(widget.initialDate) ?? DateTime(1997, 9, 27);
-    // Show the material date picker immediately for Android (not iOS)
+
     if (!Platform.isIOS) {
-      // Delay to ensure context is available
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showMaterialDatePicker();
       });
@@ -57,7 +56,7 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
         decoration: const BoxDecoration(color: Color(0xffd0d3da)),
         child: Localizations.override(
           context: context,
-          locale: const Locale('en', 'GB'), // UK English uses day-month-year
+          locale: const Locale('en', 'GB'),
           child: CupertinoDatePicker(
             initialDateTime: _selectedDate,
             mode: CupertinoDatePickerMode.date,
@@ -70,8 +69,6 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
         ),
       );
     } else {
-      // For Android, you can use a custom date picker or show buttons to open the dialog
-      // Since flutter_holo_date_picker only works as a dialog, we'll use a different approach
       return const SizedBox.shrink();
     }
   }
@@ -80,17 +77,13 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
     return DateFormat('d MMMM yyyy').format(date);
   }
 
-  // String _formatDateDDMMMMYYYY(DateTime date) {
-  //   return DateFormat(
-  //     'dd-MMMM-yyyy',
-  //   ).format(date); // This will output "27-September-1997"
-  // }
-
   Future<void> _saveDateOfBirth() async {
     setState(() => _isSaving = true);
 
     try {
       final provider = Provider.of<Providers>(context, listen: false);
+
+      // ✅ Update local state immediately so UI reacts when we pop back
       provider.updateDateOfBirth(_selectedDate.toIso8601String());
 
       final prefs = await SharedPreferences.getInstance();
@@ -111,37 +104,16 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
       );
 
       if (response.statusCode == 200) {
-        final dashboardResponse = await http.get(
-          Uri.parse('$baseUrl/app/dashboard'),
-          headers: {
-            "Authorization": 'Bearer $token',
-            "Accept": "application/json",
-          },
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Date of birth updated successfully')),
         );
 
-        if (dashboardResponse.statusCode == 200 && mounted) {
-          final dashboardData = jsonDecode(dashboardResponse.body);
-          context.read<Providers>().setAssistance(
-            Map<String, dynamic>.from(dashboardData['assistance'] ?? {}),
-          );
-        }
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return SuccessModal(
-              message: "Date of birth updated successfully",
-              onClose: () {
-                Navigator.of(context).pop();
-                Navigator.of(this.context).pop();
-              },
-            );
-          },
-        );
+        // ✅ FIX: Simply pop back.
+        // Since we called provider.updateDateOfBirth above,
+        // Retiredash will rebuild automatically via context.watch
+        if (mounted) Navigator.pop(context);
       } else if (response.statusCode == 429) {
         final body = jsonDecode(response.body);
-        print('Error 429: ${body['message']}');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('${body['message']}')));
@@ -162,7 +134,7 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -224,14 +196,10 @@ class _EditDateOfBirthScreenState extends State<EditDateOfBirthScreen> {
                 ),
               ),
               SizedBox(height: 10.h),
-
-              // Adjust spacing based on whether picker is shown
-              // This creates space at the bottom when picker is not shown
-              SizedBox(height: _pickerShown ? 100.h : 100.h),
+              SizedBox(height: 100.h),
 
               Container(
                 margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-
                 child: SizedBox(
                   width: double.infinity,
                   height: 60,

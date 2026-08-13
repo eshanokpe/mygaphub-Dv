@@ -18,7 +18,7 @@ import 'charts/portfolioIncomechart.dart';
 import 'braiditem.dart';
 import 'package:GapHub/screens/portfolio/portdashboard.dart';
 import 'package:http/http.dart' as http;
-import 'portarchives.dart';
+import './portarchives.dart';
 import 'package:nimble_charts/flutter.dart' as charts;
 
 import 'widget/braid_list_item.dart';
@@ -283,15 +283,10 @@ class _BraidetailsState extends State<Braidetails> {
 
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black, size: 20.sp),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         actions: [topMenu()],
       ),
       bottomNavigationBar: const BottomNav(3),

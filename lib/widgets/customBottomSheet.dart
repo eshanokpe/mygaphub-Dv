@@ -1,5 +1,4 @@
 import 'package:GapHub/utils/colors.dart';
-import 'package:GapHub/widgets/calulate_padding.dart';
 import 'package:GapHub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -33,7 +32,7 @@ class CustomBottomSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(24.w, 10.h, 24.w, 0),
+            padding: EdgeInsets.fromLTRB(18.w, 10.h, 18.w, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -78,7 +77,7 @@ class CustomBottomSheet extends StatelessWidget {
                   borderRadius: 30,
                   icon: null,
                   iconColor: AppColors.primaryColor,
-                  borderColor: Colors.black,
+                  borderColor: const Color(0xffC8CECC),
                   onPressed: () {
                     Navigator.pop(context);
                   },

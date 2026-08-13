@@ -3,7 +3,7 @@
 //     final usermodel = usermodelFromJson(jsonString);
 
 import 'dart:convert';
-
+ 
 Snapshotmodel snapshotmodelFromJson(String str) =>
     Snapshotmodel.fromJson(json.decode(str));
 String snapshotmodelToJson(Snapshotmodel data) => json.encode(data.toJson());
@@ -21,20 +21,24 @@ class Snapshotmodel {
 
   // ✅ Empty factory constructor
   factory Snapshotmodel.empty() {
-    return Snapshotmodel(currency: '', financial: {}, snapshot: {});
+    return Snapshotmodel(
+      currency: '',
+      financial: {},
+      snapshot: {},
+    );
   }
 
   factory Snapshotmodel.fromJson(Map<String, dynamic> json) {
-    // Check if this is the wrapper response or direct data
-    final data = json.containsKey('data') ? json['data'] : json;
-
+    // Safely extract the data with null checks
+    final data = json['data'] ?? {};
+    
     return Snapshotmodel(
       currency: data['currency']?.toString() ?? '',
-      financial: (data['financial'] is Map<String, dynamic>)
-          ? Map<String, dynamic>.from(data['financial'])
+      financial: (data['financial'] is Map<String, dynamic>) 
+          ? Map<String, dynamic>.from(data['financial']) 
           : {},
-      snapshot: (data['snapshot'] is Map<String, dynamic>)
-          ? Map<String, dynamic>.from(data['snapshot'])
+      snapshot: (data['snapshot'] is Map<String, dynamic>) 
+          ? Map<String, dynamic>.from(data['snapshot']) 
           : {},
     );
   }

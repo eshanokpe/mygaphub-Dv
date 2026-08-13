@@ -215,7 +215,7 @@ class _AverageSeedState extends State<AverageSeed> {
       labels: _chartLabels,
       values: _isAllSeedDataZero() ? [0, 100, 0, 0] : percentages,
     );
-  } 
+  }
 
   Widget _buildLegendRow1() {
     return Padding(

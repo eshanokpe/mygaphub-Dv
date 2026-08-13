@@ -539,13 +539,15 @@ class _ExchangeRatesState extends State<ExchangeRates> {
                                             width: 1,
                                           ),
                                         ),
-                                        child: _trendIcon(currency['trend']),
+                                        child: _trendIcon(
+                                          currency['rate']['trend'],
+                                        ),
                                       ),
                                     ],
                                   ),
                                   SizedBox(height: 5.h),
                                   Text(
-                                    '${symbolCurrency}1.00 = ${double.parse(currency['rate'].toString()).toStringAsPrecision(4)}',
+                                    '${symbolCurrency}1.00 = ${double.parse(currency['rate']['rate'].toString()).toStringAsPrecision(4)}',
                                     style: GoogleFonts.nunitoSans(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w400,

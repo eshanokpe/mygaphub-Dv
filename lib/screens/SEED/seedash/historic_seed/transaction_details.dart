@@ -12,8 +12,8 @@ class TransactionDetials extends StatefulWidget {
   final List list;
   final List transdata;
 
-  TransactionDetials({
-    Key? key,
+  const TransactionDetials({
+    super.key,
     this.date,
     required this.historicdate,
     required this.list,
@@ -303,7 +303,7 @@ class _TransactionDetialsState extends State<TransactionDetials> {
                             child: Text(
                               '$currency${num.parse(data.value['amount']).toStringAsFixed(2)}'
                                   .replaceAllMapped(
-                                    new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                                     (Match m) => '${m[1]},',
                                   ),
                             ),
@@ -315,7 +315,7 @@ class _TransactionDetialsState extends State<TransactionDetials> {
                             child: Text(
                               '$currency${num.parse(data.value['actual'].toString()).toStringAsFixed(2)}'
                                   .replaceAllMapped(
-                                    new RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                                     (Match m) => '${m[1]},',
                                   ),
                             ),
@@ -328,7 +328,7 @@ class _TransactionDetialsState extends State<TransactionDetials> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    '${currency}${(num.parse(data.value['amount'].toString()) - num.parse(data.value['actual'].toString())).toStringAsFixed(2)}'
+                                    '$currency${(num.parse(data.value['amount'].toString()) - num.parse(data.value['actual'].toString())).toStringAsFixed(2)}'
                                         .replaceAllMapped(
                                           RegExp(
                                             r'(\d{1,3})(?=(\d{3})+(?!\d))',

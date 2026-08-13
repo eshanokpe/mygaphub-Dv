@@ -1,6 +1,6 @@
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:flutter/material.dart';
-import 'retirementdetails.dart';
+import './retirementdetails.dart';
 import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
 

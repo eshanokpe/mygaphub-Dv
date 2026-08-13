@@ -6,14 +6,20 @@ class AppColors {
   static const Color secondaryColor = Color(0xff808080);
   static const Color blackColor = Colors.black;
 
-  static const Color cardColor = Color(0xfff7f7f7);
+  static const Color cardColor = Color(0xffF7F7F7);
   static const Color cardColor2 = Color(0xfff4f4f4);
+  static const Color cardBorderColor = Color(0xffeeeeee);
+  static const Color cardBorderColor2 = Color(0xffE6E6E6);
+  static const Color counterColor = Color(0xff777777);
 
   static const Color grayColor = Color(0xff808080);
   static const Color grayColor2 = Color(0xffE5E5E5);
+  static const Color grayColor3 = Color(0xff888888);
   static const Color stockColor = Color(0xffcdcdcd);
   static const Color borderColor = Color(0xffe1e1e1);
   static const Color borderColor2 = Color(0xffc8cfcc);
+
+  static const Color dividerColor = Color(0xffefefef);
 
   static const Color greenColor = Color.fromARGB(255, 78, 141, 75);
 

@@ -18,6 +18,14 @@ class GlobalViewContent extends StatelessWidget {
           height: 300.h,
           fit: BoxFit.contain,
         ),
+        // Dashmaps(
+        //   SA: "${data['data']['global']['south_america']}",
+        //   A: "${data['data']['global']['africa']}",
+        //   AP: "${data['data']['global']['asia']}",
+        //   E: "${data['data']['global']['europe']}",
+        //   Au: "${data['data']['global']['austrailia']}",
+        //   NA: "${data['data']['global']['north_america']}",
+        // ),
         SizedBox(height: 2.h),
       ],
     );

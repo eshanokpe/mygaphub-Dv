@@ -29,14 +29,6 @@ class _FloorPlanWidgetState extends State<FloorPlanWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // `!= null || isNotEmpty` short-circuits the wrong way: when
-    // floorPlanImages IS null, `!= null` is false, so `||` falls through to
-    // `.isNotEmpty` on a null value and throws. Check null first, with &&,
-    // and read it into a local so Dart can promote it to non-null below.
-    final floorPlanImages = widget.propertyDetail.floorPlanImages;
-    final hasFloorPlanImages =
-        floorPlanImages != null && floorPlanImages.isNotEmpty;
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: Container(
@@ -48,29 +40,36 @@ class _FloorPlanWidgetState extends State<FloorPlanWidget> {
         ),
         child: Stack(
           children: [
-            if (hasFloorPlanImages)
+            if (widget.propertyDetail.floorPlanImages != null ||
+                widget.propertyDetail.floorPlanImages.isNotEmpty)
               Column(
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: floorPlanImages!.first.url,
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * .06,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(
-                      child: SizedBox(
-                        width: 30.0,
-                        height: 30.0,
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryColor,
+                  if (widget
+                      .propertyDetail
+                      .floorPlanImages
+                      .isNotEmpty) // Check if there are images
+                    CachedNetworkImage(
+                      imageUrl: widget.propertyDetail.floorPlanImages[0].url,
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height * .06,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: SizedBox(
+                          width:
+                              30.0, // Adjust the size of the CircularProgressIndicator
+                          height: 30.0,
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryColor,
+                          ),
                         ),
                       ),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
                     ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                  ),
                 ],
               )
-            else
+            else if (widget.propertyDetail.floorPlanImages != null ||
+                widget.propertyDetail.floorPlanImages.isEmpty)
               CachedNetworkImage(
                 imageUrl: widget.propertyDetail.propertyFeaturedImage,
                 width: MediaQuery.of(context).size.width,
@@ -82,7 +81,9 @@ class _FloorPlanWidgetState extends State<FloorPlanWidget> {
                   ),
                 ),
                 errorWidget: (context, url, error) => const Icon(Icons.error),
-              ),
+              )
+            else
+              const Center(child: CircularProgressIndicator()),
 
             // Overlay with virtual tour icon and count
             Positioned(

@@ -10,7 +10,6 @@ import 'package:GapHub/screens/360/decider.dart';
 import 'package:GapHub/screens/360/iLAB/ilab.dart';
 import 'package:GapHub/screens/360/threesixty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:GapHub/screens/acquisition/actionplan/actionplan.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
@@ -22,9 +21,10 @@ import 'package:GapHub/utils/dialog.dart';
 import 'package:GapHub/screens/360/accounts/cash/cashdetails.dart';
 import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
-import 'package:GapHub/screens/360/accounts/retirement/retiredash.dart';
+import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
 import '../screens/360/accounts/networth/networthdetails.dart';
 import '../screens/360/accounts/networth/networth.dart';
+import '../screens/acquisition/actionplan/presentation/action_plan_strategy.dart';
 
 class ClockWidget extends StatelessWidget {
   final int index;
@@ -141,7 +141,7 @@ class ClockWidget extends StatelessWidget {
           // Navigator.of(context).pushNamed('Income');
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Decider("Income")),
+            MaterialPageRoute(builder: (context) => const Decider("Income")),
           );
         } else {
           var incomes = response.data["incomes"] ?? [];
@@ -200,7 +200,7 @@ class ClockWidget extends StatelessWidget {
           var creditCurrent = "0";
           var cc = jsonDecode(response2.body);
           Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(cc["data"]);
-          creditCurrent = analyticsinfo.credit!["current"].toString();
+          creditCurrent = analyticsinfo.credit["current"].toString();
           num total = 0;
           List real = [];
           if (seveng.isNotEmpty) {
@@ -374,7 +374,8 @@ class ClockWidget extends StatelessWidget {
         var cashListLite = response.data["cash_detail"];
         var seveng = response.data["seveng"];
         var bespokes = response.data["bespokes"];
-        var invSum = response3.data["investment_sum"];
+        var invSum = response3.data['data']["investment_sum"];
+        var braidTable = response3.data['data']['braid_table'];
         var pensions = response4.data['retirement_detail'];
         print("pensions:$pensions");
         Navigator.pop(context);
@@ -392,6 +393,7 @@ class ClockWidget extends StatelessWidget {
               pensions: pensions,
               bespokes: bespokes,
               invSum: invSum,
+              braidTable: braidTable,
             ),
           ),
         );
@@ -513,8 +515,8 @@ class ClockWidget extends StatelessWidget {
         url2,
         options: Options(headers: {"Authorization": 'Bearer $token'}),
       );
-      context.read<Providers>().setretiredata(response.data);
-      context.read<Providers>().setpensions(response2.data);
+      context.read<Providers>().setretiredata(response.data['data']);
+      context.read<Providers>().setpensions(response2.data['data']);
       if (response.statusCode == 200 && response2.statusCode == 200) {
         Navigator.pop(context);
 
@@ -522,7 +524,7 @@ class ClockWidget extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Retiredash(response.data, response2.data),
+            builder: (context) => const Retiredash(),
           ),
         );
       } else {
@@ -649,7 +651,7 @@ class ClockWidget extends StatelessWidget {
                         ); // More informative print
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Ilab()),
+                          MaterialPageRoute(builder: (context) => const Ilab()),
                         );
                       }
                     } else {
@@ -1033,8 +1035,10 @@ class ClockWidget extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            Investdash(sums: investment['investment_sum']),
+                        builder: (context) => Investdash(
+                          sums: investment['investment_sum'],
+                          braidTable: investment['data']['braid_table'],
+                        ),
                       ),
                     );
                   } else {
@@ -1278,7 +1282,7 @@ class ClockWidget extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Actionplan()),
+                    MaterialPageRoute(builder: (context) => const ActionPlanStrategy()),
                   );
                 },
                 child: Container(

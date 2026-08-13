@@ -12,6 +12,7 @@ import 'package:GapHub/models/sevengeemodel.dart';
 import 'package:GapHub/models/snapshotmodel.dart';
 import 'package:GapHub/models/IncomeChartModel.dart';
 import 'package:GapHub/screens/SEED/seedash/seedallocation/saving/saving_allocation.dart';
+import 'package:GapHub/utils/constants.dart';
 import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
@@ -185,6 +186,7 @@ class Providers extends ChangeNotifier {
   //Protection
   List protectionList = [];
   Map protectionListLite = {};
+  Map protectionDistribution = {};
 
   List accommodationdata = [];
 
@@ -776,6 +778,11 @@ class Providers extends ChangeNotifier {
     notifyListeners();
   }
 
+  setProtectionDistribution(Map data) {
+    protectionDistribution = data;
+    notifyListeners();
+  }
+
   //protection
   setExpenditureList(Map data) {
     expenditureList = data;
@@ -1034,9 +1041,17 @@ class Providers extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateDateOfBirth(String newDate) {
-    details[4] = newDate; // Assuming date is at index 4
-    notifyListeners();
+  void updateDateOfBirth(String newDob) {
+    if (details.length > 4) {
+      details[4] = newDob;
+    } else {
+      // Safety fallback if list isn't initialized properly
+      while (details.length <= 4) {
+        details.add('');
+      }
+      details[4] = newDob;
+    }
+    notifyListeners(); // ✅ CRITICAL: Triggers context.watch<Providers>() rebuild
   }
 
   // In your Providers class
