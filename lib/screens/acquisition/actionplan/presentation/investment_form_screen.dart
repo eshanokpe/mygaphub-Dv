@@ -72,7 +72,10 @@ class _InvestmentFormScreenState extends ConsumerState<InvestmentFormScreen> {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Row(
                 children: [
-                  if (state.currentStep != 1)
+                  if (state.currentStep != 1 &&
+                      state.currentStep != 2 &&
+                      state.currentStep != 3 &&
+                      !state.step5ShowSummaryScreen)
                     ShaderMask(
                       shaderCallback: (Rect bounds) {
                         return const LinearGradient(
@@ -96,14 +99,15 @@ class _InvestmentFormScreenState extends ConsumerState<InvestmentFormScreen> {
                             },
                           );
                         },
-                        child: Icon(
-                          Icons.info,
-                          size: 24.w,
-                          color: Colors.white,
+                        child: Image.asset(
+                          'assets/action_plan/infor.png',
+                          width: 24.w,
+                          height: 24.h,
                         ),
                       ),
                     ),
-                  if (state.currentStep != 1) SizedBox(width: 12.w),
+
+                  SizedBox(width: 12.w),
                   ShaderMask(
                     shaderCallback: (Rect bounds) {
                       return const LinearGradient(
@@ -145,10 +149,10 @@ class _InvestmentFormScreenState extends ConsumerState<InvestmentFormScreen> {
                           ),
                         );
                       },
-                      child: Icon(
-                        Icons.play_circle_fill,
-                        size: 24.w,
-                        color: Colors.white,
+                      child: Image.asset(
+                        'assets/action_plan/play.png',
+                        width: 24.w,
+                        height: 24.h,
                       ),
                     ),
                   ),

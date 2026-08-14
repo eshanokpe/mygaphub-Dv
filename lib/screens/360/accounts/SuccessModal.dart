@@ -33,6 +33,7 @@ class SuccessModal extends StatelessWidget {
           message: message,
           onClose: onClose,
           imagePath: imagePath,
+          onRefresh: onRefresh,
         );
       },
     );
@@ -79,9 +80,7 @@ class SuccessModal extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   onRefresh?.call();
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  onClose();
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(

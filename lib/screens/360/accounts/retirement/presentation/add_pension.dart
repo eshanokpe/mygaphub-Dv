@@ -365,6 +365,8 @@ class _AddPensionScreenState extends ConsumerState<AddPensionScreen> {
                                     widget.onRefresh?.call();
                                     if (mounted) {
                                       Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                     }
                                   },
                                 );

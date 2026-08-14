@@ -683,14 +683,19 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
 
       final validStep2Items = _getValidStep2Items();
 
-      final validStep3Items = state.step3Items
-          .where(
-            (item) =>
-                item['sub_category'] != 'keep_savings' &&
-                item['sub_category'] != 'increase_savings' &&
-                item['sub_category'] != 'alpha_balance',
-          )
-          .toList();
+      final validStep3Items = state.step3Items.where((item) {
+        final subCategory = item['sub_category'];
+        if (subCategory == null) return false;
+
+        return ![
+          'keep_savings',
+          'increase_savings',
+          'alpha_balance',
+          'savings_choice',
+          'new_monthly_savings',
+          'obtain_plan',
+        ].contains(subCategory);
+      }).toList();
 
       final combinedItems = [...validStep2Items, ...validStep3Items];
 

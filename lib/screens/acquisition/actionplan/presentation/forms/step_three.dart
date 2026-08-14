@@ -122,7 +122,62 @@ class _StepThreeState extends ConsumerState<StepThree> {
           ),
         );
       }
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(24.w),
+            // decoration: BoxDecoration(
+            //   color: Colors.white,
+            //   borderRadius: BorderRadius.circular(20.r),
+            //   border: Border.all(color: AppColors.cardBorderColor),
+            //   boxShadow: [
+            //     BoxShadow(
+            //       color: AppColors.primaryColor.withOpacity(0.05),
+            //       blurRadius: 10,
+            //       offset: const Offset(0, 6),
+            //     ),
+            //   ],
+            // ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 34.w,
+                  height: 34.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3.w,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+                // SizedBox(height: 16.h),
+                // Text(
+                //   'Loading your savings plan',
+                //   textAlign: TextAlign.center,
+                //   style: GoogleFonts.nunitoSans(
+                //     fontSize: 16.sp,
+                //     fontWeight: FontWeight.w700,
+                //     color: AppColors.blackColor,
+                //   ),
+                // ),
+                // SizedBox(height: 8.h),
+                // Text(
+                //   'Preparing your investment insights and options…',
+                //   textAlign: TextAlign.center,
+                //   style: GoogleFonts.nunitoSans(
+                //     fontSize: 13.sp,
+                //     fontWeight: FontWeight.w400,
+                //     color: AppColors.grayColor,
+                //   ),
+                // ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     final currentSeed = seedData["current_seed"];
@@ -406,6 +461,14 @@ class _StepThreeState extends ConsumerState<StepThree> {
                                 ? null
                                 : () {
                                     controller.clearMessages();
+                                    controller.updateSavingsGoal(
+                                      savingsChoice: 'increase_amount',
+                                    );
+                                    controller.updateStep3Item(
+                                      2,
+                                      "savings_choice",
+                                      "increase_amount",
+                                    );
                                     setState(() => _showIncreaseForm = true);
                                   },
                             child: Text(
@@ -535,11 +598,28 @@ class _StepThreeState extends ConsumerState<StepThree> {
                               final sourceText = _explanationController.text
                                   .trim();
 
-                              // Save New Goal at Index 0
+                              // Save the selected increase choice + values
+                              // so the controller state reflects the exact payload
+                              // expected by the backend.
                               controller.updateStep3Item(
                                 0,
                                 "increase_savings",
                                 "New Goal: £$newGoalText, Source: $sourceText",
+                              );
+                              controller.updateStep3Item(
+                                2,
+                                "savings_choice",
+                                "increase_amount",
+                              );
+                              controller.updateStep3Item(
+                                3,
+                                "new_monthly_savings",
+                                newGoalText,
+                              );
+                              controller.updateStep3Item(
+                                4,
+                                "obtain_plan",
+                                sourceText,
                               );
                               controller.updateSavingsGoal(
                                 savingsChoice: 'increase_amount',
@@ -826,6 +906,9 @@ class _StepThreeState extends ConsumerState<StepThree> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please explain how you will get this amount';
+              }
+              if (value.trim().length < 10) {
+                return 'The explanation must be at least 10 characters';
               }
               return null;
             },

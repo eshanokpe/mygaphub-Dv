@@ -49,7 +49,7 @@ class _RetiredashState extends ConsumerState<Retiredash> {
 
   final Dio _dio = Dio();
 
-  @override
+  @override 
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadRetirementData());
@@ -58,6 +58,15 @@ class _RetiredashState extends ConsumerState<Retiredash> {
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('tokenDB');
+  }
+
+  void _refreshRetirementData() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadRetirementData();
+      }
+    });
   }
 
   Future<void> _loadRetirementData() async {
@@ -205,7 +214,7 @@ class _RetiredashState extends ConsumerState<Retiredash> {
                   ),
                   builder: (_) => AddPensionPopup(
                     title: "Pick your option",
-                    onRefresh: _loadRetirementData,
+                    onRefresh: _refreshRetirementData,
                   ),
                 );
               }
