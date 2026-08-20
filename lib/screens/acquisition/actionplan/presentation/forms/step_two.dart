@@ -268,6 +268,29 @@ class _StepTwoState extends ConsumerState<StepTwo> {
                             ),
                           ),
                         ),
+                        Container(
+                          width: 20.w,
+                          height: 20.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primaryColor
+                                  : AppColors.grayColor,
+                              width: 2.w,
+                            ),
+                            color: isSelected
+                                ? AppColors.primaryColor
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 12.w,
+                                )
+                              : null,
+                        ),
                       ],
                     ),
                   ),
@@ -300,8 +323,7 @@ class _StepTwoState extends ConsumerState<StepTwo> {
             ),
             SizedBox(height: 8.h),
             Text(
-              // 'Document the actions you need to take to increase your ${state.selectedCategory} investment.',
-              "Document the actions you need to take to increase your retirement investment.",
+              'Document the actions you need to take to increase your ${state.selectedCategory} investment.',
               style: GoogleFonts.nunitoSans(
                 fontSize: 16.sp,
                 color: AppColors.blackColor,
@@ -382,7 +404,7 @@ class _StepTwoState extends ConsumerState<StepTwo> {
                             borderSide: const BorderSide(color: Colors.red),
                           ),
                           contentPadding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
+                            horizontal: 16.w,
                             vertical: 14.h,
                           ),
                         ),

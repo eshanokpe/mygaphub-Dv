@@ -41,8 +41,8 @@ class RotatingWheelPainter extends CustomPainter {
 
       final colors =
           (i < gradientColors.length && gradientColors[i].length >= 2)
-              ? gradientColors[i]
-              : [Colors.grey.shade200, Colors.grey.shade400];
+          ? gradientColors[i]
+          : [Colors.grey.shade200, Colors.grey.shade400];
 
       canvas.drawPath(
         path,
@@ -54,13 +54,21 @@ class RotatingWheelPainter extends CustomPainter {
 
     // ── White center circle ─────────────────────────────────────────────────
     final double whiteCenterRadius = radius * 0.48;
-    canvas.drawCircle(center, whiteCenterRadius,
-        Paint()..color = Colors.white..style = PaintingStyle.fill);
-    canvas.drawCircle(center, whiteCenterRadius,
-        Paint()
-          ..color = Colors.grey.shade300
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0);
+    canvas.drawCircle(
+      center,
+      whiteCenterRadius,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      center,
+      whiteCenterRadius,
+      Paint()
+        ..color = Colors.grey.shade300
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0,
+    );
 
     // ── Center icons ────────────────────────────────────────────────────────
     for (int i = 0; i < items.length; i++) {
@@ -82,13 +90,21 @@ class RotatingWheelPainter extends CustomPainter {
       final double circleSize = max(iconWidth, iconHeight) * 1.4;
 
       // Background circle
-      canvas.drawCircle(iconOffset, circleSize / 2,
-          Paint()..color = const Color(0x57FFFFFF)..style = PaintingStyle.fill);
-      canvas.drawCircle(iconOffset, circleSize / 2,
-          Paint()
-            ..color = const Color(0x24E4E4E4)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.7);
+      canvas.drawCircle(
+        iconOffset,
+        circleSize / 2,
+        Paint()
+          ..color = const Color(0x57FFFFFF)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        iconOffset,
+        circleSize / 2,
+        Paint()
+          ..color = const Color(0x24E4E4E4)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.7,
+      );
 
       canvas.save();
       canvas.translate(iconX, iconY);
@@ -98,9 +114,13 @@ class RotatingWheelPainter extends CustomPainter {
       // Then apply each item's own static tilt on top.
       // For the active item, we skip the static tilt (already upright).
       final bool isActive = i == selectedIndex;
+      final double tilt = isActive
+          ? items[i].iconRotation
+          : items[i].childIconRotation;
+      canvas.rotate(-rotation + tilt);
       if (isActive) {
         // Counter-rotate only — icon faces straight up
-        // canvas.rotate(-rotation);
+        canvas.rotate(-rotation);
       } else {
         // Counter-rotate + item's individual tilt
         canvas.rotate(-rotation + items[i].iconRotation);
@@ -118,23 +138,30 @@ class RotatingWheelPainter extends CustomPainter {
     }
 
     // ── Outer border + inner shadow ─────────────────────────────────────────
-    canvas.drawCircle(center, radius,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 6.0);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 6.0,
+    );
 
-    canvas.drawCircle(center, radius,
-        Paint()
-          ..color = Colors.black.withOpacity(0.24)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 4.229)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 7);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.black.withOpacity(0.24)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 4.229)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 7,
+    );
   }
 
   @override
   bool shouldRepaint(covariant RotatingWheelPainter oldDelegate) {
-    return oldDelegate.rotation != rotation ||
+    return oldDelegate.items != items ||
+        oldDelegate.rotation != rotation ||
         oldDelegate.selectedIndex != selectedIndex ||
         oldDelegate.centerIcons != centerIcons ||
         oldDelegate.gradientColors != gradientColors;

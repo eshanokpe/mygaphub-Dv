@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';
@@ -32,8 +31,7 @@ class ThreesSixtyWheelScreen extends ConsumerStatefulWidget {
       _ThreesSixtyWheelScreenState();
 }
 
-class _ThreesSixtyWheelScreenState
-    extends ConsumerState<ThreesSixtyWheelScreen>
+class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
     with TickerProviderStateMixin {
   late WheelController _controller;
 
@@ -59,6 +57,9 @@ class _ThreesSixtyWheelScreenState
 
   // Wheel animation on index change
   late AnimationController _wheelAnimationController;
+  Animation<double> _wheelRotationAnimation =
+      const AlwaysStoppedAnimation<double>(0.0);
+  double _displayedWheelRotation = 0.0;
 
   // Center icon images for the CustomPainter
   List<ui.Image> _centerIcons = [];
@@ -90,7 +91,9 @@ class _ThreesSixtyWheelScreenState
     )..repeat(reverse: true);
     _idleCarouselArrowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-          parent: _idleCarouselArrowController, curve: Curves.easeInOut),
+        parent: _idleCarouselArrowController,
+        curve: Curves.easeInOut,
+      ),
     );
 
     _wheelAnimationController = AnimationController(
@@ -110,6 +113,36 @@ class _ThreesSixtyWheelScreenState
     );
 
     final carouselState = ref.read(carouselProvider);
+    _displayedWheelRotation = carouselState.wheelRotation;
+    _wheelRotationAnimation = AlwaysStoppedAnimation(_displayedWheelRotation);
+
+    ref.listenManual<double>(wheelRotationProvider, (_, rotation) {
+      final currentRotation = _wheelRotationAnimation.value;
+      final isDragging = ref.read(isDraggingProvider);
+      if (isDragging) {
+        _wheelAnimationController.stop();
+        _displayedWheelRotation = rotation;
+        _wheelRotationAnimation = AlwaysStoppedAnimation(rotation);
+        return;
+      }
+
+      _wheelAnimationController.stop();
+      _displayedWheelRotation = currentRotation;
+      final difference = (rotation - currentRotation + pi) % (2 * pi) - pi;
+      final target = currentRotation + difference;
+      _wheelRotationAnimation =
+          Tween<double>(begin: _displayedWheelRotation, end: target).animate(
+            CurvedAnimation(
+              parent: _wheelAnimationController,
+              curve: Curves.easeOutCubic,
+            ),
+          );
+      _wheelAnimationController
+        ..duration = const Duration(milliseconds: 300)
+        ..forward(from: 0.0);
+      _displayedWheelRotation = target;
+    });
+
     _controller = WheelController(
       wheelItems: carouselState.wheelItems,
       sideCardItems: carouselState.sideCardItems,
@@ -125,13 +158,10 @@ class _ThreesSixtyWheelScreenState
       if (widget.initialCategory != null) {
         final items = ref.read(carouselProvider).wheelItems;
         final idx = items.indexWhere(
-          (i) =>
-              i.title.toLowerCase() ==
-              widget.initialCategory!.toLowerCase(),
+          (i) => i.title.toLowerCase() == widget.initialCategory!.toLowerCase(),
         );
         if (idx >= 0) ref.read(carouselProvider.notifier).selectIndex(idx);
       }
-    
     });
   }
 
@@ -144,6 +174,12 @@ class _ThreesSixtyWheelScreenState
     _wheelAnimationController.dispose();
     _ilabTapController.dispose();
     super.dispose();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    ref.invalidate(carouselProvider);
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -242,10 +278,11 @@ class _ThreesSixtyWheelScreenState
 
       if (response.statusCode == 200) {
         final data = response.data;
-        if (data is Map &&
-            (data['status'] == true || data['status'] == null)) {
-          legacy_provider.Provider.of<Providers>(context, listen: false)
-              .setIlabdata(data['data']);
+        if (data is Map && (data['status'] == true || data['status'] == null)) {
+          legacy_provider.Provider.of<Providers>(
+            context,
+            listen: false,
+          ).setIlabdata(data['data']);
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const I360LabScreen()),
@@ -323,7 +360,6 @@ class _ThreesSixtyWheelScreenState
                     ],
                   ),
                 ),
-
                 // ── Carousel slider ───────────────────────────────────────
                 Transform.translate(
                   offset: Offset(0, -20.h),
@@ -372,16 +408,19 @@ class _ThreesSixtyWheelScreenState
                                 child: LayoutBuilder(
                                   builder: (context, c) {
                                     final size = min(c.maxWidth, 600.w);
-                                    return CustomPaint(
-                                      size: Size(size, size),
-                                      painter: RotatingWheelPainter(
-                                        carouselState.wheelItems,
-                                        carouselState.wheelRotation,
-                                        selectedIndex, 
-                                        _centerIcons,
-                                        carouselState.wheelItems
-                                            .map((i) => i.gradienColor)
-                                            .toList(),
+                                    return AnimatedBuilder(
+                                      animation: _wheelAnimationController,
+                                      builder: (context, child) => CustomPaint(
+                                        size: Size(size, size),
+                                        painter: RotatingWheelPainter(
+                                          carouselState.wheelItems,
+                                          _wheelRotationAnimation.value,
+                                          selectedIndex,
+                                          _centerIcons,
+                                          carouselState.wheelItems
+                                              .map((i) => i.gradienColor)
+                                              .toList(),
+                                        ),
                                       ),
                                     );
                                   },
@@ -510,13 +549,19 @@ class _ThreesSixtyWheelScreenState
             );
           },
           child: SizedBox(
-            width: 16.w,
-            height: 16.h,
-            child: Image.asset(
-              isLeft
-                  ? 'assets/wheel_segments/animate_left.png'
-                  : 'assets/wheel_segments/animate_right.png',
-              fit: BoxFit.contain,
+            width: 48.w,
+            height: 48.h,
+            child: Center(
+              child: SizedBox(
+                width: 16.w,
+                height: 16.h,
+                child: Image.asset(
+                  isLeft
+                      ? 'assets/wheel_segments/animate_left.png'
+                      : 'assets/wheel_segments/animate_right.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
           ),
         ),

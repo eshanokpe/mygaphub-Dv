@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../protection/widget/retirement_dob_bottomsheet.dart';
 import '../provider/pension_provider.dart';
 import 'financialIndependence/financial_independence_tab.dart';
@@ -49,7 +50,7 @@ class _RetiredashState extends ConsumerState<Retiredash> {
 
   final Dio _dio = Dio();
 
-  @override 
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadRetirementData());
@@ -58,15 +59,6 @@ class _RetiredashState extends ConsumerState<Retiredash> {
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('tokenDB');
-  }
-
-  void _refreshRetirementData() {
-    if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadRetirementData();
-      }
-    });
   }
 
   Future<void> _loadRetirementData() async {
@@ -214,7 +206,7 @@ class _RetiredashState extends ConsumerState<Retiredash> {
                   ),
                   builder: (_) => AddPensionPopup(
                     title: "Pick your option",
-                    onRefresh: _refreshRetirementData,
+                    onRefresh: _loadRetirementData,
                   ),
                 );
               }

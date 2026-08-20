@@ -628,6 +628,11 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
     if (state.isNavigating) return false;
 
     // ✅ NEW: guard against a false-positive "success" on final submit.
+    // Everything below this point in Step 5's Summary screen assumes
+    // both allocation percentages have been picked — without them the
+    // allocation call is silently skipped further down, which used to
+    // still return true and pop the success modal even though nothing
+    // was allocated.
     if (isFinal &&
         (state.monthlyAllocationPercent == null ||
             state.lumpsumAllocationPercent == null)) {
@@ -683,19 +688,14 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
 
       final validStep2Items = _getValidStep2Items();
 
-      final validStep3Items = state.step3Items.where((item) {
-        final subCategory = item['sub_category'];
-        if (subCategory == null) return false;
-
-        return ![
-          'keep_savings',
-          'increase_savings',
-          'alpha_balance',
-          'savings_choice',
-          'new_monthly_savings',
-          'obtain_plan',
-        ].contains(subCategory);
-      }).toList();
+      final validStep3Items = state.step3Items
+          .where(
+            (item) =>
+                item['sub_category'] != 'keep_savings' &&
+                item['sub_category'] != 'increase_savings' &&
+                item['sub_category'] != 'alpha_balance',
+          )
+          .toList();
 
       final combinedItems = [...validStep2Items, ...validStep3Items];
 
@@ -720,42 +720,6 @@ class InvestmentFormController extends Notifier<InvestmentFormState> {
           _handleError(res);
           return false;
         }
-      }
-
-      final savingsGoalPayload = <String, dynamic>{
-        "savings_choice": state.savingsChoice,
-      };
-
-      if (state.savingsChoice == 'increase_amount') {
-        final newMonthlySavings = num.tryParse(
-          state.newMonthlySavings.replaceAll(',', ''),
-        );
-
-        if (newMonthlySavings == null || state.obtainPlan.trim().isEmpty) {
-          state = state.copyWith(
-            errorMessage: "New savings amount and plan are required",
-          );
-          return false;
-        }
-
-        savingsGoalPayload["new_monthly_savings"] = newMonthlySavings;
-        savingsGoalPayload["obtain_plan"] = state.obtainPlan.trim();
-      }
-
-      final savingsGoalRes = await http.post(
-        Uri.parse('$baseUrl/app/action-strategies/$strategyId/savings-goal'),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": 'Bearer $token',
-        },
-        body: jsonEncode(savingsGoalPayload),
-      );
-      print("state.res333:${savingsGoalRes.body}");
-
-      if (savingsGoalRes.statusCode != 200 &&
-          savingsGoalRes.statusCode != 201) {
-        _handleError(savingsGoalRes);
-        return false;
       }
 
       if (state.step4Items.isNotEmpty) {

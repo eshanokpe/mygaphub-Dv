@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:GapHub/utils/colors.dart';
 
@@ -78,10 +80,21 @@ class SuccessModal extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  onRefresh?.call();
-                  onClose();
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+                  final navigator = Navigator.of(context);
+
+                  navigator.pop();
+                  await Future<void>.delayed(Duration.zero);
+                  if (!navigator.mounted) return;
+
+                  await navigator.push(
+                    MaterialPageRoute(builder: (_) => const Retiredash()),
+                  );
+                  if (navigator.mounted) {
+                    onClose();
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   elevation: 0,

@@ -11,7 +11,6 @@ import 'forms/step_two.dart';
 import 'forms/step_three.dart';
 import 'forms/step_four.dart';
 import 'forms/step_five.dart';
-import 'widgets/recommended_percentage.dart';
 
 class InvestmentFormScreen extends ConsumerStatefulWidget {
   final String? strategyId;
@@ -24,6 +23,12 @@ class InvestmentFormScreen extends ConsumerStatefulWidget {
 }
 
 class _InvestmentFormScreenState extends ConsumerState<InvestmentFormScreen> {
+  // Guards against re-fetching on every rebuild. Screens opened via
+  // ActionPlanStrategy._resumeStrategy() already have the data loaded
+  // before this screen is pushed, so this fetch is only a fallback for
+  // entry points that navigate here directly with just a strategyId
+  // (e.g. a deep link) — and it should only ever fire once per screen
+  // instance, not every time state changes.
   bool _hasRequestedFetch = false;
 
   @override
@@ -72,41 +77,29 @@ class _InvestmentFormScreenState extends ConsumerState<InvestmentFormScreen> {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Row(
                 children: [
-                  if (state.currentStep != 1 &&
-                      state.currentStep != 2 &&
-                      state.currentStep != 3 &&
-                      !state.step5ShowSummaryScreen)
-                    ShaderMask(
-                      shaderCallback: (Rect bounds) {
-                        return const LinearGradient(
-                          colors: [Color(0xffFF7A00), Color(0xffFFD439)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ).createShader(bounds);
+                  ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return const LinearGradient(
+                        colors: [Color(0xffFF7A00), Color(0xffFFD439)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds);
+                    },
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled:
+                              true, // Allows content to determine height
+                          backgroundColor: Colors
+                              .transparent, // Transparent to show rounded corners
+                          builder: (context) =>
+                              const InvestmentInfoBottomSheet(),
+                        );
                       },
-                      child: GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) {
-                              if (state.currentStep == 4) {
-                                return const RecommendedPercentage();
-                              }
-
-                              return const InvestmentInfoBottomSheet();
-                            },
-                          );
-                        },
-                        child: Image.asset(
-                          'assets/action_plan/infor.png',
-                          width: 24.w,
-                          height: 24.h,
-                        ),
-                      ),
+                      child: Icon(Icons.info, size: 24.w, color: Colors.white),
                     ),
-
+                  ),
                   SizedBox(width: 12.w),
                   ShaderMask(
                     shaderCallback: (Rect bounds) {
@@ -149,10 +142,10 @@ class _InvestmentFormScreenState extends ConsumerState<InvestmentFormScreen> {
                           ),
                         );
                       },
-                      child: Image.asset(
-                        'assets/action_plan/play.png',
-                        width: 24.w,
-                        height: 24.h,
+                      child: Icon(
+                        Icons.play_circle_fill,
+                        size: 24.w,
+                        color: Colors.white,
                       ),
                     ),
                   ),

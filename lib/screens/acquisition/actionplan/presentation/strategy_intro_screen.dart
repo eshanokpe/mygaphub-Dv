@@ -8,6 +8,7 @@ import '../controller/strategy_intro_controller.dart';
 import 'investment_form_screen.dart';
 import 'widgets/welcome_strategy_subwidgets.dart';
 
+
 class StrategyIntroScreen extends ConsumerWidget {
   const StrategyIntroScreen({super.key});
 
@@ -37,15 +38,11 @@ class StrategyIntroScreen extends ConsumerWidget {
         surfaceTintColor: AppColors.contentColorWhite,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(
-            Icons.arrow_back_ios,
-            size: 24.w,
-            color: AppColors.blackColor,
-          ),
+          icon: Icon(Icons.arrow_back_ios, size: 24.w, color: AppColors.blackColor),
         ),
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.w),
+            padding: EdgeInsets.only(right:16.w),
             child: const BrandLogo(),
           ),
         ],
@@ -56,8 +53,9 @@ class StrategyIntroScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+            
               SizedBox(height: 10.h),
-
+ 
               // ---------------- Title ----------------
               RichText(
                 text: TextSpan(
@@ -87,11 +85,8 @@ class StrategyIntroScreen extends ConsumerWidget {
                     color: AppColors.blackColor,
                     height: 1.5,
                   ),
-                  children: [
-                    const TextSpan(
-                      text:
-                          'To gain a better understanding of your goals, we\'ll ask you',
-                    ),
+                  children:  [
+                    const TextSpan(text: 'To gain a better understanding of your goals, we\'ll ask you'),
                     TextSpan(
                       text: ' 5 ',
                       style: TextStyle(
@@ -100,21 +95,27 @@ class StrategyIntroScreen extends ConsumerWidget {
                         fontSize: 16.sp,
                       ),
                     ),
-                    const TextSpan(
-                      text:
-                          'quick questions, which will assist you in developing a precise action plan.',
-                    ),
+                    const TextSpan(text: 'quick questions, which will assist you in developing a precise action plan.'),
                   ],
                 ),
               ),
 
-              SizedBox(height: 60.h),
+              SizedBox(height:60.h),
 
               // ---------------- Get Started Button ----------------
               SizedBox(
                 width: double.infinity,
-                child: InkWell(
-                  onTap: state.isNavigating ? null : handleGetStarted,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.contentColorWhite,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    side: BorderSide.none,
+                  ),
+                  onPressed: state.isNavigating ? null : handleGetStarted,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -177,22 +178,18 @@ class _AnimatedChevronState extends State<_AnimatedChevron>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800), // forward animation time
-      reverseDuration: const Duration(
-        milliseconds: 1800,
-      ), // backward animation time
+      reverseDuration: const Duration(milliseconds: 1800), // backward animation time
     );
 
     // Scale: 1.0 → 1.3 → 1.0
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.3,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
 
     // Move: 0 → 6px right → 0
-    _translateAnimation = Tween<double>(
-      begin: 0,
-      end: 6.w,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _translateAnimation = Tween<double>(begin: 0, end: 6.w).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
 
     // Repeat forward and backward forever
     _controller.repeat(reverse: true);

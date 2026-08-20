@@ -3,6 +3,7 @@ import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -355,7 +356,7 @@ class _AddPensionScreenState extends ConsumerState<AddPensionScreen> {
 
                               // ✅ CRITICAL: Check mounted again after the async operation
                               if (!mounted) return;
-
+                              FocusScope.of(context).unfocus();
                               if (result.success) {
                                 SuccessModal.show(
                                   context: context,
@@ -363,11 +364,6 @@ class _AddPensionScreenState extends ConsumerState<AddPensionScreen> {
                                   onRefresh: widget.onRefresh,
                                   onClose: () {
                                     widget.onRefresh?.call();
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop();
-                                    }
                                   },
                                 );
                               } else {

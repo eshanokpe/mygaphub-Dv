@@ -293,7 +293,7 @@ class _StepFourState extends ConsumerState<StepFour> {
                 decoration: InputDecoration(
                   hintText: _questions[i]["hint"],
                   hintStyle: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.w300,
                     color: AppColors.grayColor,
                   ),

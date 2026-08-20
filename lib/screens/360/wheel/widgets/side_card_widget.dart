@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/wheel_controller.dart';
 import '../models/wheel_side_card.dart';
- 
+
 class SideCardWidget extends ConsumerWidget {
   final WheelItemSideCard item;
   final int index;
@@ -28,9 +28,9 @@ class SideCardWidget extends ConsumerWidget {
       },
       child: Center(
         child: SizedBox(
-          width: 194.w,
+          width: 210.w,
           height: 254.h,
-          child: Container( 
+          child: Container(
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18.r),
@@ -97,10 +97,7 @@ class SideCardWidget extends ConsumerWidget {
                     height: 140.h,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.r),
-                      child: Image.asset(
-                        item.imagePath,
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.asset(item.imagePath, fit: BoxFit.cover),
                     ),
                   ),
                 ),

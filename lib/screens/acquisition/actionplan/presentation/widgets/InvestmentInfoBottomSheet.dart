@@ -9,22 +9,21 @@ class InvestmentInfoBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.72,
-      minChildSize: 0.72,
-      maxChildSize: 0.72,
+      initialChildSize: 0.6, // Starts at 60% of screen
+      minChildSize: 0.3, // Minimum drag height
+      maxChildSize: 0.85, // Maximum drag height
       expand: false,
       builder: (context, scrollController) {
         return Container(
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
+              topLeft: Radius.circular(56),
+              topRight: Radius.circular(56),
             ),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
-            physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 40.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

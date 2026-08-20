@@ -56,68 +56,69 @@ final Map<String, List<InvestmentChecklistField>> investmentCategoryChecklists =
         const InvestmentChecklistField(
           subCategory: "private_pension",
           label: "Private Pension",
-          hint: "E.g. Research private pension provider, etc.",
+          hint:
+              "E.g. Research Vanguard and Fidelity private pension providers.",
         ),
         const InvestmentChecklistField(
           subCategory: "company_pension",
           label: "Company Pension",
-          hint: "E.g. Speak to HR on how to maximise pension",
+          hint: "E.g. Speak to HR about maximising employer match.",
         ),
         const InvestmentChecklistField(
           subCategory: "state_pension",
           label: "State Pension",
-          hint: "E.g. Review NI contribution with tax authorities...",
+          hint: "E.g. Review NI contribution record on HMRC portal.",
         ),
         const InvestmentChecklistField(
           subCategory: "other_pensions",
           label: "Other Pensions",
-          hint: "Any other details",
+          hint: "E.g. Trace old workplace pensions.",
         ),
       ],
       "cash": [
         const InvestmentChecklistField(
           subCategory: "isa",
-          label: "Individual Savings Account (ISA)",
-          hint: "E.g. Review ISA contribution limits and set up...",
+          label: "ISA",
+          hint: "E.g. Open a Stocks and Shares ISA.",
         ),
         const InvestmentChecklistField(
           subCategory: "fixed_income",
-          label: "Fixed Income Account",
-          hint: "E.g. Compare interest rates or fixed deposit terms",
+          label: "Fixed Income",
+          hint: "E.g. Compare fixed-rate bonds.",
         ),
         const InvestmentChecklistField(
           subCategory: "easy_asset",
-          label: "Easy Asset Account",
-          hint: "E.g. Review account flexibility and emergency...",
+          label: "Easy Access Asset",
+          hint: "E.g. Move emergency fund to high-interest account.",
         ),
       ],
       "investment": [
         const InvestmentChecklistField(
           subCategory: "business_asset",
           label: "Business Asset",
-          hint: "E.g. Explore business opportunities or equity...",
+          hint: "E.g. Explore buying equity in a business.",
         ),
         const InvestmentChecklistField(
           subCategory: "appreciating_asset",
           label: "Appreciating Asset",
-          hint: "E.g. Research property or collectible investments",
+          hint: "E.g. Research buy-to-let property.",
         ),
         const InvestmentChecklistField(
           subCategory: "risk_asset",
           label: "Risk Asset",
-          hint: "E.g. Assess comfort with higher-risk investments...",
+          hint: "E.g. Allocate portfolio to high-growth ETFs.",
         ),
       ],
       "equity": [
         const InvestmentChecklistField(
           subCategory: "wholly_owned_home",
-          label: "Wholly-Owned Home",
-          hint: "E.g. Actions to increase home value or leverage...",
+          label: "Wholly Owned Home",
+          hint: "E.g. Get a home valuation and explore remortgaging.",
         ),
         const InvestmentChecklistField(
           subCategory: "jointly_owned_home",
-          label: "Jointly-Owned Home",
-          hint: "E.g. Review co-ownership structure or shared...",
+          label: "Jointly Owned Home",
+          hint: "E.g. Review co-ownership agreement.",
         ),
       ],
     };

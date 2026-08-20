@@ -154,8 +154,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
       ),
       WheelItem(
         title: "Liabilities",
-        iconRotation: 90 * pi / 1.9920,
-        childIconRotation: 90 * pi / 1.9900,
+        iconRotation: 90 * pi / 1.990,
         activeCardPath: 'assets/wheel_segments/Liabilities.png',
         segmentPath: 'assets/wheel_segments/segment_liabilities.png',
         centerIconPath: 'assets/wheel_segments/liabilities_icon.png',

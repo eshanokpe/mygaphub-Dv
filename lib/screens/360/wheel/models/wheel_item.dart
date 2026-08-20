@@ -7,7 +7,8 @@ class WheelItem {
   final String centerIconPath;
   final String centerWheelIconPath;
   final List<Color> gradienColor;
-  final double iconRotation;
+  final double iconRotation; // ← now used when THIS item is active/selected
+  final double childIconRotation; // ← NEW: used when this item is NOT selected
 
   WheelItem({
     required this.title,
@@ -17,5 +18,6 @@ class WheelItem {
     required this.centerWheelIconPath,
     required this.gradienColor,
     this.iconRotation = 0.0,
+    this.childIconRotation = 0.0, // ← NEW, defaults to upright
   });
 }

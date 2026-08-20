@@ -637,7 +637,10 @@ class _StepFiveState extends ConsumerState<StepFive>
           SizedBox(height: 24.h),
 
           // ---------------- WHY? section ----------------
-          _buildSectionHeader('WHY?', onEdit: () => controller.goToStep(0)),
+          _buildSectionHeader(
+            'WHY?',
+            onEdit: () => controller.setStep5ShowSummaryEditTarget('why'),
+          ),
           SizedBox(height: 12.h),
           Container(
             width: double.infinity,
@@ -662,7 +665,10 @@ class _StepFiveState extends ConsumerState<StepFive>
           SizedBox(height: 24.h),
 
           // ---------------- Summary of Step Two ----------------
-          _buildSectionHeader('WHERE?', onEdit: () => controller.goToStep(1)),
+          _buildSectionHeader(
+            'WHERE?',
+            onEdit: () => controller.setStep2ShowSummaryEditTarget('where'),
+          ),
           SizedBox(height: 12.h),
           Container(
             width: double.infinity,
@@ -690,7 +696,10 @@ class _StepFiveState extends ConsumerState<StepFive>
           // Inside _buildSummaryScreen method...
 
           // ---------------- Summary of Step Three----------------
-          _buildSectionHeader('WHAT?', onEdit: () => controller.goToStep(2)),
+          _buildSectionHeader(
+            'WHAT?',
+            onEdit: () => controller.setStep3ShowSummaryEditTarget('where'),
+          ),
           SizedBox(height: 12.h),
           Container(
             width: double.infinity,
@@ -718,28 +727,24 @@ class _StepFiveState extends ConsumerState<StepFive>
 
                 _buildSummaryLabel('New Monthly Savings Goal'),
                 SizedBox(height: 4.h),
-                _buildSummaryValue(
-                  state.newMonthlySavings.trim().isNotEmpty
-                      ? state.newMonthlySavings
-                      : _monthlyAssetGrowthSavings,
-                  currency,
-                ),
+                _buildSummaryValue(_newGoalAmount(state.step3Items), currency),
 
                 _buildSummaryLabel(
                   'How do you intend to obtain this additional amount to add to your monthly savings?',
                 ),
                 SizedBox(height: 4.h),
-                _buildSummaryTextValue(
-                  state.obtainPlan.trim().isNotEmpty ? state.obtainPlan : '',
-                ),
+                _buildSummaryTextValue(_newGoalAmount(state.step4Items)),
 
                 SizedBox(height: 4.h),
               ],
             ),
           ),
-          SizedBox(height: 24.h),
+
           // ---------------- Summary of Step Four----------------
-          _buildSectionHeader('WHEN?', onEdit: () => controller.goToStep(3)),
+          _buildSectionHeader(
+            'WHEN?',
+            onEdit: () => controller.setStep3ShowSummaryEditTarget('where'),
+          ),
           SizedBox(height: 12.h),
           Container(
             width: double.infinity,
@@ -779,7 +784,10 @@ class _StepFiveState extends ConsumerState<StepFive>
           SizedBox(height: 24.h),
 
           // ---------------- Summary of Step Five First Screen----------------
-          _buildSectionHeader('HOW?', onEdit: () => controller.goToStep(4)),
+          _buildSectionHeader(
+            'HOW?',
+            onEdit: () => controller.setStep5ShowSummaryEditTarget('how'),
+          ),
           SizedBox(height: 12.h),
           Container(
             width: double.infinity,
