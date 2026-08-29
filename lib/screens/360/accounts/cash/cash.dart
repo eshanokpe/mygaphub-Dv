@@ -924,6 +924,7 @@ class _CashState extends State<Cash> {
 
   saveCash() async {
     FocusScope.of(context).requestFocus(FocusNode());
+
     if (accountType == "-Select-" ||
         currency == "-Select-" ||
         purpose == "-Select-") {
@@ -934,99 +935,109 @@ class _CashState extends State<Cash> {
       );
       return;
     }
+
     dialogBox.waiting(context, "Saving");
 
     var timer = Timer(const Duration(seconds: 40), () {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) Navigator.pop(context);
       dialogBox.information(context, 'Status', 'Service timed out');
-      return;
     });
-    var url = Uri.parse("$baseUrl/app/360/cash");
-    var url2 = "$baseUrl/app/360/cash";
-    var urlr = "$baseUrl/app/360/tiles";
-    var urlSnapshot = Uri.parse('$baseUrl/app/snapshot');
-    var url7G = Uri.parse('$baseUrl/app/seveng');
 
-    Map data = {
-      "name": name.text,
-      "cash": accountType,
-      "purpose": purpose,
-      "details": details.text,
-      "fund": location.text,
-      "currency": currency,
-      "target": target.text,
-      "current": current.text,
-      "automated_rate": "$_radioValue",
+    try {
+      var url = Uri.parse("$baseUrl/app/360/cash");
+      final prefs = await SharedPreferences.getInstance();
+      var token = prefs.getString('tokenDB');
 
-      // "target_date": date.text,
-      "analytics": show.toString(),
-    };
-    if (dateDB.isNotEmpty) {
-      data["target_date"] = dateDB;
-    }
-    final prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString('tokenDB');
+      Map<String, String> data = {
+        "name": name.text,
+        "cash": accountType,
+        "purpose": purpose,
+        "details": details.text,
+        "fund": location.text,
+        "currency": currency,
+        "target": target.text,
+        "current": current.text,
+        "automated_rate": "$_radioValue",
+        "analytics": show.toString(),
+      };
 
-    var response = await http.post(
-      url,
-      body: data,
-      headers: {"Authorization": 'Bearer $token'},
-    );
+      if (dateDB.isNotEmpty) {
+        data["target_date"] = dateDB;
+      }
 
-    if (response.statusCode == 400) {
-      timer.cancel();
-      Navigator.pop(context);
-      dialogBox.information(context, 'Status', response.body);
-      return null;
-    }
-
-    if (response.statusCode == 200) {
-      final response4 = await http.get(
-        url7G,
+      var postResponse = await http.post(
+        url,
+        body: data,
         headers: {"Authorization": 'Bearer $token'},
       );
 
+      if (postResponse.statusCode != 200) {
+        timer.cancel();
+        if (Navigator.canPop(context)) Navigator.pop(context);
+
+        String errorMsg = "An error occurred";
+        if (postResponse.body.isNotEmpty) {
+          try {
+            final decoded = jsonDecode(postResponse.body);
+            errorMsg =
+                decoded['message'] ?? decoded['error'] ?? postResponse.body;
+          } catch (_) {
+            errorMsg = postResponse.body;
+          }
+        }
+
+        dialogBox.information(context, 'Status', errorMsg);
+        return;
+      }
+
+      // Fetch updated cash data
+      var getCashResponse = await dio.get(
+        "$baseUrl/app/360/cash",
+        options: Options(headers: {"Authorization": 'Bearer $token'}),
+      );
+
+      var mapList = getCashResponse.data["cash"];
+      var seveng = getCashResponse.data["seveng"];
+      var mapListLite = getCashResponse.data["cash_detail"];
+      var bespokes = getCashResponse.data["bespokes"];
+
+      // ✅ FIXED: Parallel fetching with explicit types
+      final results = await Future.wait([
+        http.get(
+          Uri.parse('$baseUrl/app/seveng'),
+          headers: {"Authorization": 'Bearer $token'},
+        ),
+        http.get(
+          Uri.parse('$baseUrl/app/snapshot'),
+          headers: {"Authorization": 'Bearer $token'},
+        ),
+        dio.get(
+          "$baseUrl/app/360/tiles",
+          options: Options(headers: {"Authorization": 'Bearer $token'}),
+        ),
+      ]);
+
+      final sevengResponse = results[0] as http.Response;
+      final snapshotResponse = results[1] as http.Response;
+      final tilesResponse = results[2] as Response;
+
       Sevengeemodel sevengeemodel = Sevengeemodel.fromJson(
-        jsonDecode(response4.body),
+        jsonDecode(sevengResponse.body),
       );
       context.read<Providers>().setSevenGee(sevengeemodel);
 
-      final response3 = await http.get(
-        urlSnapshot,
-        headers: {"Authorization": 'Bearer $token'},
-      );
-
       Snapshotmodel snapshotmodel = Snapshotmodel.fromJson(
-        jsonDecode(response3.body),
+        jsonDecode(snapshotResponse.body),
       );
       context.read<Providers>().setSnapshot(snapshotmodel);
 
-      var responser = await dio.get(
-        urlr,
-        options: Options(headers: {"Authorization": 'Bearer $token'}),
-      );
-      context.read<Providers>().setRecent(responser.data["tiles"]);
-      Navigator.pop(context);
+      context.read<Providers>().setRecent(tilesResponse.data["tiles"]);
 
-      var response2 = await dio.get(
-        url2,
-        options: Options(headers: {"Authorization": 'Bearer $token'}),
-      );
-
-      var mapList = response2.data["cash"];
-      var seveng = response2.data["seveng"];
-      var mapListLite = response2.data["cash_detail"];
-      var bespokes = response2.data["bespokes"];
-
-      var response = await dio.get(
-        urlr,
-        options: Options(headers: {"Authorization": 'Bearer $token'}),
-      );
-      context.read<Providers>().setRecent(response.data["tiles"]);
       timer.cancel();
+      if (Navigator.canPop(context)) Navigator.pop(context);
+
       Navigator.pop(context);
-      Navigator.pop(context);
-      Navigator.pop(context);
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -1034,12 +1045,16 @@ class _CashState extends State<Cash> {
               Cashdetails(mapList, mapListLite, seveng, bespokes),
         ),
       );
-      Fluttertoast.showToast(msg: 'Account saved successfully');
-    } else {
-      timer.cancel();
-      dialogBox.information(context, 'Status', "An error occured");
 
-      Navigator.pop(context);
+      Fluttertoast.showToast(msg: 'Account saved successfully');
+    } catch (e) {
+      timer.cancel();
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      dialogBox.information(
+        context,
+        'Status',
+        'Network Error: ${e.toString()}',
+      );
     }
   }
 }

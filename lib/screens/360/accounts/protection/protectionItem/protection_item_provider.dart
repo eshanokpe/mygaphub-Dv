@@ -32,16 +32,20 @@ class ProtectionItemNotifier
 
 /// StateNotifierProvider for the currently viewed protection item.
 final protectionItemProvider =
-    StateNotifierProvider<ProtectionItemNotifier, AsyncValue<ProtectionItemModel>>(
-  (ref) => ProtectionItemNotifier(),
-);
+    StateNotifierProvider<
+      ProtectionItemNotifier,
+      AsyncValue<ProtectionItemModel>
+    >((ref) => ProtectionItemNotifier());
 
 // ── 3. Currency provider ─────────────────────────────────────────────────────
 //
 // Replace the body with a real source (e.g. watch your existing snapshotProvider)
 // once you wire Riverpod into the rest of the app.
-  // In protection_item_provider.dart — add this provider
-final documentSizeProvider = FutureProvider.family<String, String>((ref, url) async {
+// In protection_item_provider.dart — add this provider
+final documentSizeProvider = FutureProvider.family<String, String>((
+  ref,
+  url,
+) async {
   try {
     final response = await http.head(Uri.parse(url));
     final bytes = int.tryParse(response.headers['content-length'] ?? '');

@@ -558,7 +558,7 @@ class _ProtectiondetailsState extends ConsumerState<Protectiondetails> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12.h),
 
                               Piechart(
                                 labels:
@@ -628,7 +628,7 @@ class _ProtectiondetailsState extends ConsumerState<Protectiondetails> {
                                           .toList()
                                     : [],
                               ),
-                              const SizedBox(height: 30),
+                              SizedBox(height: 30.h),
                               InkWell(
                                 onTap: () {
                                   showModalBottomSheet(
@@ -666,7 +666,7 @@ class _ProtectiondetailsState extends ConsumerState<Protectiondetails> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 24),
+                              SizedBox(height: 24.h),
                             ],
                           ],
                         ),

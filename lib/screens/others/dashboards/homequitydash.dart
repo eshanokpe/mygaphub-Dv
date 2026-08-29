@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:GapHub/provider/providers.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/equity/equitydetails.dart';
+import 'package:GapHub/screens/360/accounts/assets/presentation/equitydetails.dart';
 import 'package:GapHub/screens/homepage/widget/row_view_details.dart';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/dialog.dart';
@@ -16,8 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:GapHub/widgets/piechart.dart';
-
-import '../../360/accounts/assetsAcc/equity/homequity.dart';
+import '../../360/accounts/assets/presentation/add_homequity.dart';
 
 class Homequitydash extends StatefulWidget {
   final double height;
@@ -298,13 +297,15 @@ class _HomequitydashState extends State<Homequitydash> {
       var seveng = response.data["seveng"];
       var bespokes = response.data["bespokes"];
       var invSum = response3.data["investment_sum"];
-
+      context.read<Providers>()
+        ..setequityList(equityList)
+        ..setequityDetail(equityListLite);
       Navigator.pop(context);
       //Navigator.pop(context);
       timer.cancel();
       navigateWithSlideTransition(
         context: context,
-        destinationScreen: Equitydetails(equityList, equityListLite),
+        destinationScreen: const Equitydetails(),
         transitionDuration: const Duration(milliseconds: 200),
       );
     }
@@ -372,7 +373,7 @@ class _HomequitydashState extends State<Homequitydash> {
         // Navigate to Homequity screen
         navigateWithSlideTransition(
           context: context,
-          destinationScreen: Homequity(),
+          destinationScreen: const AddHomeEquity(),
           transitionDuration: const Duration(milliseconds: 200),
         );
       } else {

@@ -257,7 +257,7 @@ class _CashdetailsState extends State<Cashdetails> {
                                             ),
                                           ),
                                           TextSpan(
-                                            text: "$currency1${seveng[index]['current']}"
+                                            text: "$currency1${seveng[index]['current'] == null ? '0' : seveng[index]['current'].toString()}"
                                                 .replaceAllMapped(
                                                   RegExp(
                                                     r'(\d{1,3})(?=(\d{3})+(?!\d))',

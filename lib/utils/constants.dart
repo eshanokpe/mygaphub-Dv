@@ -13,10 +13,10 @@ const imgPrefixAssets = "https://appstaging.mygaphub.com/assets";
 const assetBaseUrl = "https://gappropertyhub.com/wp-json/custom-api";
 const hubImageUrl = "https://www.gapassethub.com";
 const shareBase = "https://appstaging.mygaphub.com/api/v2";
+const String googlePlacesApiKey2 = 'AIzaSyB3ua-sAGur0RgiNQd9KtUZo1GG1pH7r10';
+// janny
+const String googlePlacesApiKey = 'AIzaSyBa5WqgM6DfIt5XsWYfbAwXckJ7MCeGcy0';
 
-const token2 =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9hcHBzdGFnaW5nLm15Z2FwaHViLmNvbVwvYXBpXC92MlwvbXlnYXBcL2xvZ2luIiwiaWF0IjoxNjU3Nzg3MzQyLCJleHAiOjE2NjI5NzEzNDIsIm5iZiI6MTY1Nzc4NzM0MiwianRpIjoiWUhNTUtya1ViODlHQW5RRyIsInN1YiI6MzcsInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.XZjLxr4tylO0Ex84L5BnlKvjH79XpmWNR1POt8048Zg';
-// const keyAPI = "JX89-UT26-YC76-YW83";
 const keyAPI = "HC66-HY31-MJ55-FG49";
 final amountValidator = RegExInputFormatter.withRegex(
   '^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$',
@@ -299,4 +299,3 @@ const Map<String, String> currencyToPhonePrefix = {
   "Rp IDR": '+62',
   '-Select-': '', // No prefix if '-Select-' is chosen
 };
-

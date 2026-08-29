@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart' as legacy;
 import 'package:url_launcher/url_launcher.dart';
+import '../../widget/formLabel.dart';
+import '../../widget/textInput.dart';
 import 'controller/protection_controller.dart';
 import 'provider/protection_provider.dart';
 import 'addProtection/widget/bottomSheetPickerField.dart';
@@ -13,8 +15,6 @@ import 'addProtection/widget/coverStartField.dart';
 import 'addProtection/widget/currencyInput.dart';
 import 'addProtection/widget/currencyPickerField.dart';
 import 'addProtection/widget/documentUploadField.dart';
-import 'addProtection/widget/formLabel.dart';
-import 'addProtection/widget/textInput.dart';
 import 'protectionItem/protection_item_provider.dart';
 
 class EditProtectionItem extends ConsumerStatefulWidget {

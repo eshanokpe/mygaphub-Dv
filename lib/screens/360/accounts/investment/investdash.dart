@@ -176,11 +176,12 @@ class _InvestdashState extends State<Investdash> {
     final Color iconColor = _appBarSolid ? Colors.black : Colors.white;
     final double titleOpacity = _appBarSolid ? 1.0 : 0.0;
 
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: _appBarSolid ? Colors.white : Colors.transparent,
-        statusBarIconBrightness: _appBarSolid ? Brightness.dark : Brightness.light,
+        statusBarIconBrightness: _appBarSolid
+            ? Brightness.dark
+            : Brightness.light,
       ),
       child: Scaffold(
         bottomNavigationBar: const BottomNav(4),
@@ -203,7 +204,7 @@ class _InvestdashState extends State<Investdash> {
                       height: 300.h,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xffB20049), Color(0xff032E53)],
+                          colors: [Color(0xFFF266C26), Color(0xffF6981E)],
                           begin: Alignment.topLeft,
                           end: Alignment(1.7, 2.1),
                         ),
@@ -257,9 +258,12 @@ class _InvestdashState extends State<Investdash> {
                                     ),
                                   ),
                                 ),
-                              ), 
+                              ),
                               Padding(
-                                padding: EdgeInsets.only(top: 16.h, bottom: 20.h),
+                                padding: EdgeInsets.only(
+                                  top: 16.h,
+                                  bottom: 20.h,
+                                ),
                                 child: CategoryDropdown(
                                   selectedCategory: "Investment",
                                   onTap: () {
@@ -276,10 +280,9 @@ class _InvestdashState extends State<Investdash> {
                       ),
                     ),
                   ),
-      
+
                   // White content section
-                 
-                 Transform.translate(
+                  Transform.translate(
                     offset: Offset(0, -60.h),
                     child: Container(
                       decoration: const BoxDecoration(
@@ -336,11 +339,10 @@ class _InvestdashState extends State<Investdash> {
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),
-      
+
             // ── ANIMATED APP BAR ────────────────────────────────────────
             Positioned(
               top: 0,
@@ -348,12 +350,15 @@ class _InvestdashState extends State<Investdash> {
               right: 0,
               child: AnnotatedRegion<SystemUiOverlayStyle>(
                 value: SystemUiOverlayStyle(
-                  statusBarColor:
-                      _appBarSolid ? Colors.white : Colors.transparent,
-                  statusBarIconBrightness:
-                      _appBarSolid ? Brightness.dark : Brightness.light,
-                  statusBarBrightness:
-                      _appBarSolid ? Brightness.light : Brightness.dark, // iOS
+                  statusBarColor: _appBarSolid
+                      ? Colors.white
+                      : Colors.transparent,
+                  statusBarIconBrightness: _appBarSolid
+                      ? Brightness.dark
+                      : Brightness.light,
+                  statusBarBrightness: _appBarSolid
+                      ? Brightness.light
+                      : Brightness.dark, // iOS
                 ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
@@ -361,8 +366,10 @@ class _InvestdashState extends State<Investdash> {
                   color: _appBarSolid ? Colors.white : Colors.transparent,
                   child: SafeArea(
                     child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 8.h,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -379,7 +386,7 @@ class _InvestdashState extends State<Investdash> {
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
-      
+
                           // Center title — fades in when scrolled
                           AnimatedOpacity(
                             opacity: titleOpacity,
@@ -393,7 +400,7 @@ class _InvestdashState extends State<Investdash> {
                               ),
                             ),
                           ),
-      
+
                           // Info button pinned right
                           Align(
                             alignment: Alignment.centerRight,
@@ -434,7 +441,6 @@ class _InvestdashState extends State<Investdash> {
                               ),
                             ),
                           ),
-                          
                         ],
                       ),
                     ),
@@ -447,7 +453,7 @@ class _InvestdashState extends State<Investdash> {
       ),
     );
   }
-  
+
   Future<void> getData(String cap, String small, BuildContext context) async {
     final timeoutTimer = Timer(const Duration(seconds: 40), () {
       EasyLoading.dismiss();
@@ -486,9 +492,7 @@ class _InvestdashState extends State<Investdash> {
       EasyLoading.dismiss();
     }
   }
- 
 }
-
 
 // ── AssetCard & _buildRow ─────────────────────────────────────────────────────
 

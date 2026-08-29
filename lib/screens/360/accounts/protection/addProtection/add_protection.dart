@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart' as legacy;
+import '../../../widget/formLabel.dart';
+import '../../../widget/textInput.dart';
 import '../../SuccessModal.dart';
 import '../provider/protection_provider.dart';
 import 'widget/bottomSheetPickerField.dart';
@@ -12,8 +14,6 @@ import 'widget/coverStartField.dart';
 import 'widget/currencyInput.dart';
 import 'widget/currencyPickerField.dart';
 import 'widget/documentUploadField.dart';
-import 'widget/formLabel.dart';
-import 'widget/textInput.dart';
 
 class AddProtectionScreen extends ConsumerWidget {
   final String? title;
@@ -307,7 +307,7 @@ class AddProtectionScreen extends ConsumerWidget {
                           );
                         },
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32.h),
 
                       SizedBox(
                         width: double.infinity,
@@ -371,7 +371,7 @@ class AddProtectionScreen extends ConsumerWidget {
                                 ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24.h),
                     ],
                   ),
                 ),

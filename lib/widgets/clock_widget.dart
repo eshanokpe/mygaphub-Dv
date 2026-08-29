@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:GapHub/screens/360/accounts/income/incomedash.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/assetdetails.dart';
+import 'package:GapHub/screens/360/accounts/assets/presentation/assetdetails.dart';
 import 'package:GapHub/screens/360/accounts/liabilities/liabilitydetails.dart';
 import 'package:GapHub/screens/360/accounts/mortgage/mortgagedetails.dart';
 import 'package:GapHub/screens/360/accounts/investment/investdash.dart';
@@ -377,24 +377,20 @@ class ClockWidget extends StatelessWidget {
         var invSum = response3.data['data']["investment_sum"];
         var braidTable = response3.data['data']['braid_table'];
         var pensions = response4.data['retirement_detail'];
-        print("pensions:$pensions");
+        context.read<Providers>()
+          ..setequityList(equityList)
+          ..setequityDetail(equityListLite)
+          ..setcashDataLite(cashListLite)
+          ..setcashData(cashList)
+          ..setpensions(pensions);
         Navigator.pop(context);
         Navigator.pop(context);
         timer.cancel();
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Assetdetails(
-              cashData: cashList,
-              cashDataLite: cashListLite,
-              seveng: seveng,
-              equityData: equityList,
-              equityDataLite: equityListLite,
-              pensions: pensions,
-              bespokes: bespokes,
-              invSum: invSum,
-              braidTable: braidTable,
-            ),
+            builder: (context) =>
+                Assetdetails(seveng: seveng, bespokes: bespokes),
           ),
         );
       }
@@ -523,9 +519,7 @@ class ClockWidget extends StatelessWidget {
         timer.cancel();
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const Retiredash(),
-          ),
+          MaterialPageRoute(builder: (context) => const Retiredash()),
         );
       } else {
         Navigator.pop(context);
@@ -728,7 +722,7 @@ class ClockWidget extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Networth(response.data),
+                        builder: (context) => Networth(item: response.data),
                       ),
                     );
                   } else if (netConfirm == '1') {
@@ -1282,7 +1276,9 @@ class ClockWidget extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ActionPlanStrategy()),
+                    MaterialPageRoute(
+                      builder: (context) => const ActionPlanStrategy(),
+                    ),
                   );
                 },
                 child: Container(

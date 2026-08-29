@@ -11,23 +11,22 @@ import '../edit_protectionItem.dart';
 import 'protection_item_model.dart';
 import 'protection_item_provider.dart';
 import 'widget/summaryCard.dart';
-import 'widget/topBar.dart';
-
+import '../../../widget/topBar.dart';
 
 class Protectionitem extends ConsumerStatefulWidget {
   final Map<String, dynamic> item;
-  final String imagePath; 
+  final String imagePath;
   final List<String> gradientColors;
   final bool archived;
- 
+
   const Protectionitem({
     super.key,
     required this.item,
     required this.imagePath,
     required this.gradientColors,
-    this.archived = false
-  }); 
- 
+    this.archived = false,
+  });
+
   @override
   ConsumerState<Protectionitem> createState() => _ProtectionitemState();
 }
@@ -41,9 +40,8 @@ class _ProtectionitemState extends ConsumerState<Protectionitem> {
     });
   }
 
-  List<Color> get _gradientColors => widget.gradientColors
-      .map((s) => Color(int.parse(s)))
-      .toList();
+  List<Color> get _gradientColors =>
+      widget.gradientColors.map((s) => Color(int.parse(s))).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +59,7 @@ class _ProtectionitemState extends ConsumerState<Protectionitem> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const EditProtectionItem()
+                    builder: (context) => const EditProtectionItem(),
                   ),
                 );
               },
@@ -104,7 +102,7 @@ class _ProtectionItemBody extends StatelessWidget {
     required this.gradientColors,
     required this.imagePath,
     required this.item,
-    required this.currency
+    required this.currency,
   });
 
   /// ✅ Extract only the symbol from full format like "$ USD", "₦ NGN"
@@ -130,10 +128,7 @@ class _ProtectionItemBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SummaryCard( 
-            imagePath: imagePath,
-            item: item
-          ),
+          SummaryCard(imagePath: imagePath, item: item),
 
           SizedBox(height: 4.h),
 
@@ -149,7 +144,8 @@ class _ProtectionItemBody extends StatelessWidget {
             currencySymbol: currencySymbol,
             whole: _formatNumber(item.premiumWhole),
             decimal: item.premiumDecimal,
-            suffix: 'per ${item.payFrequency.toLowerCase() == 'annually' ? 'Year' : 'Month'}',
+            suffix:
+                'per ${item.payFrequency.toLowerCase() == 'annually' ? 'Year' : 'Month'}',
           ),
 
           if (item.bank != null && item.bank!.isNotEmpty) ...[
@@ -176,14 +172,14 @@ class _ProtectionItemBody extends StatelessWidget {
           SizedBox(height: 50.h),
 
           InkWell(
-            onTap: (){
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EditProtectionItem()
+                  builder: (context) => const EditProtectionItem(),
                 ),
               );
-            }, 
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -192,7 +188,7 @@ class _ProtectionItemBody extends StatelessWidget {
                   width: 20.w,
                   height: 20.w,
                   color: AppColors.primaryColor,
-                ), 
+                ),
                 SizedBox(width: 2.w),
                 Text(
                   'Edit Information',
@@ -310,10 +306,7 @@ class _FieldBox extends StatelessWidget {
       ),
       child: Text(
         value,
-        style: GoogleFonts.nunitoSans(
-          fontSize: 15.sp,
-          color: Colors.black,
-        ),
+        style: GoogleFonts.nunitoSans(fontSize: 15.sp, color: Colors.black),
       ),
     );
   }
@@ -331,16 +324,19 @@ class _DocumentRow extends ConsumerWidget {
 
     final uri = Uri.parse(url);
     try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not open document')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error opening document: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error opening document: $e')));
     }
   }
 
@@ -351,7 +347,7 @@ class _DocumentRow extends ConsumerWidget {
         : const AsyncValue.data('PDF Document');
 
     return InkWell(
-      onTap: () => _openDocument(context), 
+      onTap: () => _openDocument(context),
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
@@ -409,7 +405,11 @@ class _DocumentRow extends ConsumerWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: const Color(0xffAAAAAA), size: 20.sp),
+            Icon(
+              Icons.chevron_right,
+              color: const Color(0xffAAAAAA),
+              size: 20.sp,
+            ),
           ],
         ),
       ),

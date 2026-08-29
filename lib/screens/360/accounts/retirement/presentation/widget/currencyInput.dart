@@ -7,11 +7,13 @@ import 'package:provider/provider.dart';
 class CurrencyInput extends StatefulWidget {
   final String value;
   final ValueChanged<String> onChanged;
+  final double border;
 
   const CurrencyInput({
     super.key,
     required this.value,
     required this.onChanged,
+    this.border = 10,
   });
 
   @override
@@ -95,10 +97,10 @@ class _CurrencyInputState extends State<CurrencyInput> {
       onTap: () => _focusNode.requestFocus(),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(widget.border),
           border: Border.all(
             color: _isFocused ? Colors.black87 : const Color(0xFFD0D0D0),
             width: _isFocused ? 1.5 : 1.0,

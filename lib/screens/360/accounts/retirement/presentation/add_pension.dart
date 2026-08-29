@@ -13,7 +13,7 @@ import '../provider/pension_provider.dart';
 import 'widget/currencyInputAge.dart';
 import 'widget/currencyInput.dart';
 import 'widget/formLabel.dart';
-import 'widget/textInput.dart';
+import '../../../widget/textInput.dart';
 
 class AddPensionScreen extends ConsumerStatefulWidget {
   final String? title;
@@ -166,8 +166,8 @@ class _AddPensionScreenState extends ConsumerState<AddPensionScreen> {
                           Image.asset(
                             widget.imagePath ??
                                 'assets/wheel_segments/default.png',
-                            width: 24,
-                            height: 24,
+                            width: 24.w,
+                            height: 24.h,
                           ),
                         ],
                       ),

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:GapHub/models/analyticsinfo.dart';
 import 'package:GapHub/models/loginusermodel.dart';
 import 'package:GapHub/models/propertyModel.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/equity/equitydetails.dart';
+import 'package:GapHub/screens/360/accounts/assets/presentation/equitydetails.dart';
 import 'package:GapHub/screens/360/accounts/income/incomedash.dart';
 import 'package:GapHub/screens/360/decider.dart';
 import 'package:GapHub/screens/homepage/assistance/assistant.dart';
@@ -684,14 +684,14 @@ class _HomepageState extends State<Homepage> {
     if (response.statusCode == 200 &&
         response2.statusCode == 200 &&
         response3.statusCode == 200) {
+      context.read<Providers>()
+        ..setequityList(response2.data["equity"])
+        ..setequityDetail(response2.data["equity_detail"]);
       timer.cancel();
       Navigator.pop(context);
       navigateWithSlideTransition(
         context: context,
-        destinationScreen: Equitydetails(
-          response2.data["equity"],
-          response2.data["equity_detail"],
-        ),
+        destinationScreen: Equitydetails(),
         transitionDuration: const Duration(milliseconds: 200),
       );
     }

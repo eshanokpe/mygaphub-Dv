@@ -137,42 +137,6 @@ class _ViewdetailsState extends State<Viewdetails> {
                 ),
               ),
               SizedBox(height: height * .01),
-              // Column(
-              //   children: <Widget>[
-              //     ListTile(
-              //       title: Text("Average SEED Total",
-              //           style: TextStyle(
-              //               fontSize: width * .04,
-              //               fontWeight: FontWeight.w700)),
-              //       trailing: Radio<Average>(
-              //         value: Average.seed,
-              //         groupValue: _selectedAverage,
-              //         onChanged: (Average value) {
-              //           setState(() {
-              //             _selectedAverage = value;
-              //             print("Selected Average: $_selectedAverage");
-              //           });
-              //         },
-              //       ),
-              //     ),
-              //     ListTile(
-              //       title: Text("Average Monthly Expenditure",
-              //           style: TextStyle(
-              //               fontSize: width * .04,
-              //               fontWeight: FontWeight.w700)),
-              //       trailing: Radio<Average>(
-              //         value: Average.expenditure,
-              //         groupValue: _selectedAverage,
-              //         onChanged: (Average value) {
-              //           setState(() {
-              //             _selectedAverage = value;
-              //             print("Selected Average: $_selectedAverage");
-              //           });
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
               SizedBox(
                 height: height * .05,
                 child: const Divider(thickness: 1.5),

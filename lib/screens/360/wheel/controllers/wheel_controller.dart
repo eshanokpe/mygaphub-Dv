@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:GapHub/models/analyticsinfo.dart';
 import 'package:GapHub/provider/providers.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/assetdetails.dart';
+import 'package:GapHub/screens/360/accounts/assets/presentation/assetdetails.dart';
 import 'package:GapHub/screens/360/accounts/cash/cashdetails.dart';
 import 'package:GapHub/screens/360/accounts/expenditure/expenditure.dart';
 import 'package:GapHub/screens/360/accounts/income/incomedash.dart';
@@ -121,9 +122,9 @@ class WheelController {
     try {
       await action();
       timer.cancel();
-    } catch (e) {
+    } catch (e, stackTrace) {
       timer.cancel();
-      await _handleError(e);
+      await _handleError(e, stackTrace: stackTrace);
     }
   }
 
@@ -228,10 +229,30 @@ class WheelController {
             "$baseUrl/app/360/equity",
             options: Options(headers: _getHeaders(token)),
           ),
+          // dio.get(
+          //   "$baseUrl/app/360/retirement?archive=0&header=&access=&account=",
+          //   options: Options(headers: _getHeaders(token)),
+          // ),
+          dio.get(
+            "$baseUrl/app/360/cash?archive=0&header=&access=&account=&kpi=",
+            options: Options(headers: _getHeaders(token)),
+          ),
+          dio.get(
+            "$baseUrl/app/360/investment",
+            options: Options(headers: _getHeaders(token)),
+          ),
+          dio.get(
+            "$baseUrl/app/360/liability?archive=0&header=&access=&account=&kpi=&crd=&alo=",
+            options: Options(headers: _getHeaders(token)),
+          ),
         ]);
 
         final response = responses[0];
         final response2 = responses[1];
+        // final retirementResponse = responses[2].data;
+        final cashResponse = responses[2].data;
+        final investmentResponse = responses[3].data;
+        final liabilityResponse = responses[4].data;
 
         _safePopDialog();
 
@@ -244,11 +265,16 @@ class WheelController {
         // Get the data from the response
         final netWorthData = response.data['data'];
         final equityData = response2.data['data'];
+        // final retirementData = retirementResponse['data'] as Map? ?? {};
+        final cashData = cashResponse['data'] as Map? ?? {};
 
-        // Get net_confirm value from the data object
         final netConfirmValue = netWorthData['isNet']?['net_confirm'];
+        final investmentData = investmentResponse['data'] as Map? ?? {};
+        final liabilityData = liabilityResponse['data'] as Map? ?? {};
 
-        // Handle type conversion (it's coming as String "1")
+        final List mapList = liabilityData["liabilities"];
+        final mapListLite = liabilityData["liabilities_detail"];
+
         int? isNetConfirmed;
 
         if (netConfirmValue is String) {
@@ -258,16 +284,8 @@ class WheelController {
         } else if (netConfirmValue is num) {
           isNetConfirmed = netConfirmValue.toInt();
         }
-
-        debugPrint(
-          'isNetConfirmed: $isNetConfirmed (original type: ${netConfirmValue.runtimeType})',
-        );
-
-        // Get equity sum - based on your response structure
         num equity = 0;
 
-        // Your equity response has equity array, but you need the sum from somewhere
-        // You might need to calculate the sum from the equity array or get it from another source
         if (equityData.containsKey('equity') && equityData['equity'] is List) {
           // If you need to calculate sum from equity list
           final equityList = equityData['equity'] as List;
@@ -275,12 +293,22 @@ class WheelController {
             equity += num.tryParse(item['equity']?.toString() ?? '0') ?? 0;
           }
         }
-
-        // If you need the equity from netWorthData instead
-        // final equity = netWorthData['net_detail']?['equity'] ?? 0;
-
+        context.read<Providers>()
+          ..setequityList(equityData['equity'])
+          ..setequityDetail(equityData['equity_detail']);
+        // ..setpensions(retirementData);
         if (isNetConfirmed == 0) {
-          _safeNavigate(Networth(netWorthData));
+          _safeNavigate(
+            Networth(
+              item: netWorthData,
+              seveng: cashData['seveng'],
+              bespokes: cashData['bespokes'],
+              invSum: investmentData['investment_sum'] ?? 0,
+              braidTable: investmentData['braid_table'],
+              mapList: mapList,
+              mapListLite: mapListLite,
+            ),
+          );
         } else if (isNetConfirmed == 1) {
           _safeNavigate(
             Networthdetails(
@@ -314,34 +342,48 @@ class WheelController {
             "$baseUrl/app/360/equity",
             options: Options(headers: _getHeaders(token)),
           ),
+          // dio.get(
+          //   "$baseUrl/app/360/investment",
+          //   options: Options(headers: _getHeaders(token)),
+          // ),
+          // dio.get(
+          //   "$baseUrl/app/360/retirement?archive=0&header=&access=&account=",
+          //   options: Options(headers: _getHeaders(token)),
+          // ),
           dio.get(
-            "$baseUrl/app/360/investment",
+            "$baseUrl/app/360/asset",
             options: Options(headers: _getHeaders(token)),
           ),
         ]);
 
         final cashResponse = responses[0].data;
         final equityResponse = responses[1].data;
-        final investmentResponse = responses[2].data;
+        // final investmentResponse = responses[2].data;
+        // final retirementResponse = responses[3].data;
+        final assetsResponse = responses[2].data;
 
         // ✅ All three are nested under 'data'
         final cashData = cashResponse['data'] as Map? ?? {};
         final equityData = equityResponse['data'] as Map? ?? {};
-        final investmentData = investmentResponse['data'] as Map? ?? {};
+        // final investmentData = investmentResponse['data'] as Map? ?? {};
+        // final retirementData = retirementResponse['data'] as Map? ?? {};
+        final assetsData = assetsResponse['data'] as Map? ?? {};
 
-        _safePopDialog();
+        if (context.mounted) {
+          context.read<Providers>()
+            ..setequityList(equityData['equity'])
+            ..setequityDetail(equityData['equity_detail'])
+            ..setcashDataLite(cashData['cash_detail'])
+            ..setcashData(cashData['cash'])
+            ..setAssetsData(assetsData);
+          // ..setpensions(retirementData);
+          _safePopDialog();
+        }
 
         _safeNavigate(
           Assetdetails(
-            cashData: cashData['cash'] ?? [],
-            cashDataLite: cashData['cash_detail'] ?? {},
             seveng: cashData['seveng'] ?? [],
-            equityData: equityData['equity'] ?? [],
-            equityDataLite: equityData['equity_detail'] ?? {},
             bespokes: cashData['bespokes'] ?? [],
-            // ✅ Fixed: was reading from wrong level
-            invSum: investmentData['investment_sum'] ?? 0,
-            braidTable: investmentData['braid_table'] ?? {},
           ),
         );
       },
@@ -486,10 +528,10 @@ class WheelController {
         }
 
         if (grant != setgiving) {
-          print("Setgiving:$data");
+          debugPrint('Setgiving: $data');
           _safeNavigate(Setgiving(data));
         } else {
-          print("Philanthropy");
+          debugPrint('Philanthropy');
           _safeNavigate(Philanthropy(data, currency));
         }
       },
@@ -592,154 +634,53 @@ class WheelController {
 
   // ==================== INVESTMENT ====================
 
-  void handleInvestmentTap() async {
-    DialogBox dialogBox = DialogBox();
+  Future<void> handleInvestmentTap() async {
+    await _executeWithLoadingAndTimeout(
+      loadingMessage: 'Loading investment data...',
+      timeoutSeconds: 40,
+      action: () async {
+        final token = await _getToken();
+        if (token == null) throw Exception('Authentication token not found');
 
-    // Set timeout timer
-    Timer timer = Timer(const Duration(seconds: 40), () {
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      dialogBox.information(
-        context,
-        'Timeout Error',
-        'Request timed out. Please check your internet connection and try again.',
-      );
-    });
+        final url = Uri.parse('$baseUrl/app/360/investment');
+        final response = await http
+            .get(
+              url,
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+              },
+            )
+            .timeout(const Duration(seconds: 40));
 
-    try {
-      // Show loading dialog
-      dialogBox.waiting(context, 'Loading investment data...');
-
-      // Get token from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString('tokenDB');
-
-      // Validate token
-      if (token == null) {
-        timer.cancel();
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-        dialogBox.information(
-          context,
-          'Authentication Error',
-          'Please log in again to continue.',
-        );
-        return;
-      }
-
-      // Make API request
-      final url = Uri.parse('$baseUrl/app/360/investment');
-      final response = await http
-          .get(
-            url,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-            },
-          )
-          .timeout(
-            const Duration(seconds: 40),
-            onTimeout: () {
-              timer.cancel();
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-              throw TimeoutException('Request timeout');
-            },
+        if (response.statusCode != 200) {
+          throw Exception(
+            'Failed to load investment data (Status: ${response.statusCode})',
           );
+        }
 
-      // Cancel timer as request completed
-      timer.cancel();
-
-      // Handle response
-      if (response.statusCode == 200) {
         final Map<String, dynamic> investmentData = jsonDecode(response.body);
 
-        // Validate response data
-        if (investmentData.containsKey('data')) {
-          // Update provider
+        if (!investmentData.containsKey('data')) {
+          throw Exception('Invalid response format: missing investment_sum');
+        }
+
+        if (context.mounted) {
           context.read<Providers>().setinvSum(
             investmentData['data']['investment_sum'],
           );
-
-          // Dismiss loading dialog
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          // Navigate to Investdash
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Investdash(
-                sums: investmentData['data']['investment_sum'],
-                braidTable: investmentData['data']['braid_table'],
-              ),
-            ),
-          );
-        } else {
-          throw Exception('Invalid response format: missing investment_sum');
-        }
-      } else {
-        // Handle error response
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
         }
 
-        await _handleInvestmentError(response.statusCode);
-      }
-    } on TimeoutException catch (_) {
-      // Timeout already handled in onTimeout callback
-      debugPrint('Investment request timed out');
-    } on http.ClientException catch (e) {
-      // Handle network errors
-      timer.cancel();
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      debugPrint('Network error: $e');
+        _safePopDialog();
 
-      dialogBox.information(
-        context,
-        'Connection Error',
-        'Unable to connect to server. Please check your internet connection.',
-      );
-    } on FormatException catch (e) {
-      // Handle JSON parsing errors
-      timer.cancel();
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      debugPrint('JSON parsing error: $e');
-
-      dialogBox.information(
-        context,
-        'Data Error',
-        'Received invalid data format from server.',
-      );
-    } catch (e) {
-      // Handle any other errors
-      timer.cancel();
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      debugPrint('Unexpected error: $e');
-
-      dialogBox.information(
-        context,
-        'Error',
-        'An unexpected error occurred. Please try again.',
-      );
-    }
-  }
-
-  Future<void> _handleInvestmentError(int statusCode) async {
-    DialogBox dialogBox = DialogBox();
-    String title = 'Error $statusCode';
-    String message = _getErrorMessage(statusCode);
-
-    dialogBox.information(context, title, message);
+        _safeNavigate(
+          Investdash(
+            sums: investmentData['data']['investment_sum'],
+            braidTable: investmentData['data']['braid_table'],
+          ),
+        );
+      },
+    );
   }
 
   // ==================== RETIREMENT ====================
@@ -769,8 +710,9 @@ class WheelController {
             'Failed to load protection data (Status: ${response.statusCode})',
           );
         }
-        print('Error:${response.data}');
+
         if (!_isSuccessResponse(response.data)) {
+          debugPrint('Protection endpoint error payload: ${response.data}');
           throw Exception(_getErrorMessageFromResponse(response.data));
         }
 
@@ -781,24 +723,18 @@ class WheelController {
 
         final protectionList = protectionData['protection'] ?? [];
         final protectionDetailList = protectionData['protection_detail'] ?? [];
-        // final protectionDistribution = protectionData['protection_distribution'] ?? [];
         final protectionDistribution =
             protectionData['protection_distribution'] ?? {'distribution': []};
 
         if (protectionList.isEmpty) {
           debugPrint('No protection data found');
         }
-        print("protectionList:$protectionList");
-        print("protectionDetailList:$protectionDetailList");
-
         if (context.mounted) {
           context.read<Providers>()
             ..setProtectionList(protectionList)
             ..setProtectionListLite(protectionDetailList)
             ..setProtectionDistribution(protectionDistribution);
         }
-        print("protectionDistribution:$protectionDistribution");
-
         _safePopDialog();
 
         if (context.mounted) {
@@ -864,48 +800,36 @@ class WheelController {
   // ==================== LIABILITIES ====================
 
   Future<void> handleLiabilitiesTap() async {
-    var timer = Timer(const Duration(seconds: 20), () {
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      dialogBox.information(context, 'Status', 'Service timed out');
-      return;
-    });
+    await _executeWithLoadingAndTimeout(
+      loadingMessage: "Loading",
+      action: () async {
+        final token = await _getToken();
+        if (token == null) throw Exception('Authentication token not found');
 
-    dialogBox.waiting(context, "Loading");
+        final url2 = Uri.parse('$baseUrl/app/seveng/edit');
+        const url =
+            "$baseUrl/app/360/liability?archive=0&header=&access=&account=&kpi=&crd=&alo=";
 
-    try {
-      var url2 = Uri.parse('$baseUrl/app/seveng/edit');
-      var url =
-          "$baseUrl/app/360/liability?archive=0&header=&access=&account=&kpi=&crd=&alo=";
+        final response = await dio.get(
+          url,
+          options: Options(headers: _getHeaders(token)),
+        );
+        final response2 = await http.get(url2, headers: _getHeaders(token));
 
-      final prefs = await SharedPreferences.getInstance();
-      var token = prefs.getString('tokenDB');
+        if (response.statusCode != 200 || response2.statusCode != 200) {
+          throw Exception('Failed to load liability data');
+        }
 
-      if (token == null) {
-        throw Exception('Authentication token not found');
-      }
+        final List mapList = response.data['data']["liabilities"];
+        final mapListLite = response.data['data']["liabilities_detail"];
+        final List seveng = response.data['data']["seveng"] ?? [];
+        final bespokes = response.data['data']["bespokes"];
+        final isAllocated = response.data['data']["audit"]["is_allocated"];
 
-      var response = await dio.get(
-        url,
-        options: Options(headers: {"Authorization": 'Bearer $token'}),
-      );
-      var response2 = await http.get(
-        url2,
-        headers: {"Authorization": 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200 && response2.statusCode == 200) {
-        List mapList = response.data['data']["liabilities"];
-        var mapListLite = response.data['data']["liabilities_detail"];
-        List seveng = response.data['data']["seveng"] ?? [];
-        var bespokes = response.data['data']["bespokes"];
-        var isAllocated = response.data['data']["audit"]["is_allocated"];
-        var creditCurrent = "0";
-        int creditCurrentInt = int.tryParse(creditCurrent) ?? 0;
-        var cc = jsonDecode(response2.body);
-        Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(cc["data"]);
-        creditCurrent = analyticsinfo.credit["current"].toString();
+        final cc = jsonDecode(response2.body);
+        final analyticsinfo = Analyticsinfo.fromJson(cc["data"]);
+        var creditCurrent = analyticsinfo.credit["current"].toString();
+        final creditCurrentInt = int.tryParse(creditCurrent) ?? 0;
 
         num total = 0;
         List<num> real = [];
@@ -923,123 +847,192 @@ class WheelController {
           }
         }
 
-        timer.cancel();
+        _safePopDialog();
 
         if (isAllocated.toString() == "1") {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Liabilitydetails(
-                liabilityData: mapList,
-                liabilityDataLite: mapListLite,
-                seveng: seveng,
-                bespokes: bespokes,
-              ),
+          _safeNavigate(
+            Liabilitydetails(
+              liabilityData: mapList,
+              liabilityDataLite: mapListLite,
+              seveng: seveng,
+              bespokes: bespokes,
             ),
           );
         } else if (int.parse(creditCurrent.toString()) == 0) {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Liabilitydetails(
-                liabilityData: mapList,
-                liabilityDataLite: mapListLite,
-                seveng: seveng,
-                bespokes: bespokes,
-              ),
+          _safeNavigate(
+            Liabilitydetails(
+              liabilityData: mapList,
+              liabilityDataLite: mapListLite,
+              seveng: seveng,
+              bespokes: bespokes,
             ),
           );
         } else if (total != int.parse(creditCurrent.toString())) {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Threesixty(
-                unallocated: true,
-                data: seveng,
-                balance: seveng.isEmpty
-                    ? creditCurrentInt
-                    : (creditCurrentInt - total).toInt(),
-              ),
+          _safeNavigate(
+            Threesixty(
+              unallocated: true,
+              data: seveng,
+              balance: seveng.isEmpty
+                  ? creditCurrentInt
+                  : (creditCurrentInt - total).toInt(),
             ),
           );
         } else {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Liabilitydetails(
-                liabilityData: mapList,
-                liabilityDataLite: mapListLite,
-                seveng: seveng,
-                bespokes: bespokes,
-              ),
+          _safeNavigate(
+            Liabilitydetails(
+              liabilityData: mapList,
+              liabilityDataLite: mapListLite,
+              seveng: seveng,
+              bespokes: bespokes,
             ),
           );
         }
-      } else {
-        throw Exception('Failed to load liability data');
-      }
-    } catch (e) {
-      print('Error:$e');
-      timer.cancel();
-
-      await _handleError(e);
-    }
+      },
+    );
   }
-
-  // ==================== ERROR HANDLING ====================
 
   void _handleTimeout() {
     _safePopDialog();
     dialogBox.information(
       context,
-      'Status',
-      'Service timed out. Please try again.',
+      'Request Timed Out',
+      'This is taking longer than expected. Please check your connection and try again.',
     );
   }
 
-  Future<void> _handleError(dynamic error) async {
+  Future<void> _handleError(dynamic error, {StackTrace? stackTrace}) async {
     _safePopDialog();
 
-    String errorMessage = _getErrorMessage(error);
+    _logError(error, stackTrace);
 
-    dialogBox.information(context, 'Error', errorMessage);
+    final classified = _classifyError(error);
+
+    dialogBox.information(context, classified.title, classified.message);
   }
 
-  String _getErrorMessage(dynamic error) {
-    if (error == null) return 'An unknown error occurred';
+  void _logError(dynamic error, StackTrace? stackTrace) {
+    debugPrint('[WheelController] Endpoint failure: $error');
+    if (stackTrace != null) {
+      debugPrint('[WheelController] $stackTrace');
+    }
+  }
 
-    if (error is Exception) {
-      final errorString = error.toString();
-
-      if (errorString.contains('token')) {
-        return 'Authentication failed. Please log in again.';
-      } else if (errorString.contains('timeout')) {
-        return 'Connection timeout. Please check your internet connection.';
-      } else if (errorString.contains('SocketException')) {
-        return 'Network error. Please check your internet connection.';
-      } else if (errorString.contains('format')) {
-        return 'Invalid data format received from server.';
+  /// Maps a raw error (network, HTTP, parsing, or app-level) to a
+  /// short professional title and a plain-language message that is
+  /// safe to show to the user — never raw exception text or stack
+  /// traces.
+  ({String title, String message}) _classifyError(dynamic error) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return (
+            title: 'Request Timed Out',
+            message:
+                'The server took too long to respond. Please check your connection and try again.',
+          );
+        case DioExceptionType.connectionError:
+          return (
+            title: 'Connection Error',
+            message:
+                'Unable to reach the server. Please check your internet connection and try again.',
+          );
+        case DioExceptionType.badResponse:
+          return (
+            title: _statusTitle(error.response?.statusCode),
+            message: _statusMessage(error.response?.statusCode),
+          );
+        case DioExceptionType.cancel:
+          return (
+            title: 'Request Cancelled',
+            message: 'The request was cancelled before it could complete.',
+          );
+        case DioExceptionType.badCertificate:
+        case DioExceptionType.unknown:
+          return (
+            title: 'Connection Error',
+            message:
+                'Unable to reach the server. Please check your internet connection and try again.',
+          );
       }
-
-      return errorString
-          .replaceAll('Exception:', '')
-          .replaceAll('FormatException:', '')
-          .replaceAll('DioException:', '')
-          .trim();
     }
 
-    return 'An error occurred: $error';
+    if (error is TimeoutException) {
+      return (
+        title: 'Request Timed Out',
+        message:
+            'The server took too long to respond. Please check your connection and try again.',
+      );
+    }
+
+    if (error is SocketException || error is http.ClientException) {
+      return (
+        title: 'Connection Error',
+        message:
+            'Unable to reach the server. Please check your internet connection and try again.',
+      );
+    }
+
+    if (error is FormatException) {
+      return (
+        title: 'Data Error',
+        message: 'Received an unreadable response from the server.',
+      );
+    }
+
+    final raw = error?.toString() ?? '';
+
+    if (raw.contains('Authentication token not found')) {
+      return (
+        title: 'Authentication Required',
+        message: 'Your session has expired. Please log in again to continue.',
+      );
+    }
+
+    final statusMatch = RegExp(r'Status:\s*(\d+)').firstMatch(raw);
+    if (statusMatch != null) {
+      return (
+        title: _statusTitle(int.tryParse(statusMatch.group(1)!)),
+        message: _statusMessage(int.tryParse(statusMatch.group(1)!)),
+      );
+    }
+
+    if (raw.trim().isEmpty) {
+      return (
+        title: 'Something Went Wrong',
+        message: 'An unexpected error occurred. Please try again.',
+      );
+    }
+
+    return (
+      title: 'Something Went Wrong',
+      message: 'We couldn\'t complete that request. Please try again shortly.',
+    );
+  }
+
+  String _statusTitle(int? statusCode) {
+    if (statusCode == null) return 'Something Went Wrong';
+    if (statusCode == 401 || statusCode == 403)
+      return 'Authentication Required';
+    if (statusCode == 404) return 'Not Found';
+    if (statusCode >= 500) return 'Server Error';
+    return 'Something Went Wrong';
+  }
+
+  String _statusMessage(int? statusCode) {
+    if (statusCode == null) {
+      return 'An unexpected error occurred. Please try again.';
+    }
+    if (statusCode == 401 || statusCode == 403) {
+      return 'Your session has expired. Please log in again to continue.';
+    }
+    if (statusCode == 404) {
+      return 'The requested information could not be found.';
+    }
+    if (statusCode >= 500) {
+      return 'Our servers are having trouble right now. Please try again shortly.';
+    }
+    return 'We couldn\'t complete that request. Please try again shortly.';
   }
 }

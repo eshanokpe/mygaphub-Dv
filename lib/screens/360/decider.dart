@@ -1,9 +1,8 @@
 import 'package:GapHub/screens/360/accounts/income/income.dart';
 import 'package:GapHub/screens/360/accounts/mortgage/mortgage.dart';
-import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:flutter/material.dart';
 import 'package:GapHub/screens/360/accounts/cash/cash.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/assets.dart';
+import 'package:GapHub/screens/360/accounts/assets/assets.dart';
 import 'package:GapHub/screens/360/accounts/protection/addProtection/add_protection.dart';
 import 'accounts/liabilities/liabilities.dart';
 import 'package:GapHub/screens/360/accounts/retirement/retirement.dart';

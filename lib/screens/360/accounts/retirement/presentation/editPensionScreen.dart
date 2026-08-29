@@ -12,7 +12,7 @@ import '../provider/pension_provider.dart';
 import 'widget/currencyInputAge.dart';
 import 'widget/currencyInput.dart';
 import 'widget/formLabel.dart';
-import 'widget/textInput.dart';
+import '../../../widget/textInput.dart';
 
 class EditPensionScreen extends ConsumerStatefulWidget {
   final Map existingData;

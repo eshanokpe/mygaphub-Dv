@@ -1,605 +1,731 @@
 import 'dart:async';
-
-import 'package:GapHub/screens/360/accounts/assetsAcc/assetdetails.dart';
-import 'package:GapHub/screens/360/accounts/liabilities/liabilitydetails.dart';
-import 'package:GapHub/screens/360/accounts/mortgage/mortgagedetails.dart';
-import 'package:GapHub/screens/360/accounts/networth/networthdetails.dart';
-import 'package:GapHub/screens/360/threesixty.dart';
-import 'package:GapHub/utils/constants.dart';
-import 'package:GapHub/provider/providers.dart';
-import 'package:GapHub/widgets/bottomnav.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:GapHub/utils/dialog.dart';
-import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:GapHub/models/analyticsinfo.dart';
 import 'dart:convert';
+import 'package:GapHub/provider/providers.dart';
+import 'package:GapHub/screens/portfolio/braidetails.dart';
+import 'package:GapHub/utils/colors.dart';
+import 'package:GapHub/utils/constants.dart';
+import 'package:GapHub/widgets/bottomnav.dart';
+import 'package:GapHub/widgets/customBottomSheet.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../assets/provider/equity_provider.dart';
+import '../cash/provider/cash_provider.dart';
+import '../investment/provider/investment_provider.dart';
+import '../../wheel/360WheelScreen.dart';
+import '../../widget/category_dropdown.dart';
+import '../retirement/provider/pension_sum_provider.dart';
+import 'widget/add_networth_popup.dart';
+import 'widget/netWorthDistributionCard.dart';
+import 'widget/networthContent.dart';
 
-class Networth extends StatefulWidget {
+class Networth extends ConsumerStatefulWidget {
   final Map item;
+  final List? seveng;
+  final List? bespokes;
+  final num? invSum;
+  final Map<String, dynamic>? braidTable;
+  final List? mapList;
+  final Map? mapListLite;
 
-  const Networth(this.item, {super.key});
+  const Networth({
+    super.key,
+    required this.item,
+    this.seveng,
+    this.bespokes,
+    this.invSum,
+    this.braidTable,
+    this.mapList,
+    this.mapListLite,
+  });
+
   @override
-  _NetworthState createState() => _NetworthState();
+  ConsumerState<Networth> createState() => _NetworthState();
 }
 
-class _NetworthState extends State<Networth> {
-  bool show = false;
-  Dio dio = Dio();
-  DialogBox dialogBox = DialogBox();
-  @override
-  Widget build(BuildContext context) {
-    String currency = context.watch<Providers>().snapshotmodel.currency;
-    Orientation orientation = MediaQuery.of(context).orientation;
-    final height = orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.height
-        : MediaQuery.of(context).size.width;
-    final width = orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.width
-        : MediaQuery.of(context).size.height;
+class _NetworthState extends ConsumerState<Networth> {
+  bool isDropdownActive = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _appBarSolid = false;
 
-    // var assetValue = 0;
-    double assetSum = double.parse(widget.item["net"]["asset"].toString());
-    var mortSum = widget.item["net"]["mortgage"];
-    var liaSum = widget.item["net"]["liability"];
-    var equitySum =
-        double.parse(widget.item["net"]["home"].toString()) -
-        double.parse(widget.item["net"]["mortgage"].toString());
-    var homeSum = widget.item["net"]["home"];
+  // Toggle state for what's included in the total net worth sum.
+  bool _includePension = true;
+  bool _includeHomeEquity = true;
 
-    double networth = 0;
-    show == true
-        ? networth = equitySum + assetSum - liaSum
-        : networth = assetSum - liaSum;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Net Worths",
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontSize: MediaQuery.of(context).size.width * 0.04,
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      bottomNavigationBar: const BottomNav(4),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            vertical: height * .02,
-            horizontal: width * .02,
-          ),
-          child: Column(
-            children: [
-              Text(
-                "(Complete the form below to set your preference)",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: width * .035,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Your current Asset Value:',
-                  style: TextStyle(
-                    fontSize: width * .045,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * .005),
-              Row(
-                children: [
-                  Text(
-                    "$currency ${assetSum.toStringAsFixed(2)}".replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]},',
-                    ),
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: width * .045,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(width: width * .03),
-                  InkWell(
-                    onTap: () {
-                      assets();
-                    },
-                    child: Text(
-                      "Go to Assets to edit",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        decoration: TextDecoration.underline,
-                        fontSize: width * .035,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Your Current Liabilities Value:',
-                  style: TextStyle(
-                    fontSize: width * .045,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * .005),
-              Row(
-                children: [
-                  Text(
-                    "$currency $liaSum".replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]},',
-                    ),
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: width * .045,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(width: width * .03),
-                  InkWell(
-                    onTap: () {
-                      liability();
-                    },
-                    child: Text(
-                      "Go to Liabilities to edit",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        decoration: TextDecoration.underline,
-                        fontSize: width * .035,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Your Current Home Value: ',
-                  style: TextStyle(
-                    fontSize: width * .045,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * .005),
-              Row(
-                children: [
-                  Text(
-                    "$currency $homeSum".replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]},',
-                    ),
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: width * .045,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(width: width * .03),
-                  InkWell(
-                    onTap: () {
-                      assets();
-                    },
-                    child: Text(
-                      "Go to Assets to edit",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        decoration: TextDecoration.underline,
-                        fontSize: width * .035,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Your Current Mortgage Value:',
-                  style: TextStyle(
-                    fontSize: width * .045,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * .005),
-              Row(
-                children: [
-                  Text(
-                    "$currency$mortSum".replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]},',
-                    ),
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: width * .045,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(width: width * .03),
-                  InkWell(
-                    onTap: () {
-                      mortgage();
-                    },
-                    child: Text(
-                      "Go to Mortgage to edit",
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontSize: width * .035,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Your Current Home Equity:  ',
-                  style: TextStyle(
-                    fontSize: width * .045,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * .005),
-              Row(
-                children: [
-                  Text(
-                    "$currency$equitySum".replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]},',
-                    ),
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: width * .045,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Row(
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Add Home Equity to your Net Worth:',
-                      style: TextStyle(
-                        fontSize: width * .045,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Switch(
-                    activeThumbColor: Theme.of(context).primaryColor,
-                    value: show,
-                    onChanged: (val) {
-                      setState(() {
-                        show = val;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .03,
-                child: const Divider(thickness: 1.5),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Your Current Net Worth:',
-                  style: TextStyle(
-                    fontSize: width * .045,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * .005),
-              Row(
-                children: [
-                  Text(
-                    "$currency${networth.toStringAsFixed(2)}".replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]},',
-                    ),
-                    style: TextStyle(
-                      color: assetSum - liaSum < 0 && !show
-                          ? Theme.of(context).primaryColor
-                          : Colors.green,
-                      fontSize: width * .045,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * .05,
-                child: const Divider(thickness: 1.5),
-              ),
-              Text(
-                "Are the figures above a true representation of your net worth? If yes, confirm below",
-                style: TextStyle(
-                  fontSize: width * .04,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              SizedBox(height: height * .05),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(width * .01),
-                  ),
-                ),
-                onPressed: () async {
-                  dialogBox.waiting(context, "Loading");
-                  var url = "$baseUrl/app/360/net";
-                  final prefs = await SharedPreferences.getInstance();
-                  var token = prefs.getString('tokenDB');
-                  var response = await dio.post(
-                    url,
-                    data: 1,
-                    options: Options(
-                      headers: {"Authorization": 'Bearer $token'},
-                    ),
-                  );
-                  if (response.statusCode == 200) {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Networthdetails(
-                          item: widget.item,
-                          currency: currency,
-                        ),
-                      ),
-                    );
-                  } else {
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text(
-                  "Confirm",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: width * .045,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _togglePension() {
+    setState(() => _includePension = !_includePension);
   }
 
-  assets() async {
-    dialogBox.waiting(context, "Loading");
-    var timer = Timer(const Duration(milliseconds: 20000), () {
-      Navigator.pop(context);
-      dialogBox.information(context, 'Status', 'Service timed out');
-      return;
+  void _toggleHomeEquity() {
+    setState(() => _includeHomeEquity = !_includeHomeEquity);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      final statusBarHeight = MediaQuery.of(context).padding.top;
+      final triggerOffset = 200.h - statusBarHeight - 56.h;
+      final shouldBeSolid = _scrollController.offset >= triggerOffset;
+      if (shouldBeSolid != _appBarSolid) {
+        setState(() => _appBarSolid = shouldBeSolid);
+      }
     });
 
-    var url = "$baseUrl/app/360/cash";
-    var url2 = "$baseUrl/app/360/equity";
-    var url3 = "$baseUrl/app/360/investment";
+    // ✅ Fetch ALL financial data in parallel as soon as the screen renders
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(investmentProvider.notifier).refreshInvestments();
+      ref.read(equityProvider.notifier).refreshEquity();
+      ref.read(cashProvider.notifier).refreshCash();
+      ref.read(pensionProvider.notifier).refreshPensions();
+    });
+  }
 
-    final prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString('tokenDB');
-    var response = await dio.get(
-      url,
-      options: Options(headers: {"Authorization": 'Bearer $token'}),
-    );
-    var response2 = await dio.get(
-      url2,
-      options: Options(headers: {"Authorization": 'Bearer $token'}),
-    );
-    var response3 = await dio.get(
-      url3,
-      options: Options(headers: {"Authorization": 'Bearer $token'}),
-    );
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    if (response.statusCode == 200 && response2.statusCode == 200) {
-      var equityList = response2.data["equity"];
-      var equityListLite = response2.data["equity_detail"];
-      var cashList = response.data["cash"];
-      var cashListLite = response.data["cash_detail"];
-      var seveng = response.data["seveng"];
-      var bespokes = response.data["bespokes"];
-      var invSum = response3.data["data"]["investment_sum"];
-      var braidTable = response3.data['data']['braid_table'];
-      print("invSum:$invSum");
-      timer.cancel();
-      Navigator.pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Assetdetails(
-            cashData: cashList,
-            cashDataLite: cashListLite,
-            seveng: seveng,
-            equityData: equityList,
-            equityDataLite: equityListLite,
-            bespokes: bespokes,
-            invSum: invSum,
-            braidTable: braidTable,
+  Future<void> _showWheelBottomSheet(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      enableDrag: true,
+      isDismissible: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(56.0),
+          topRight: Radius.circular(56.0),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(56.0),
+            topRight: Radius.circular(56.0),
           ),
-        ),
-      );
-    }
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            color: Colors.white,
+            child: Column(
+              children: [
+                SizedBox(height: 16.sp),
+                InkWell(
+                  onTap: () => Navigator.pop(context),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 160),
+                    child: Container(
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xffCDCDCD),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 7.sp),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.close, color: Colors.black, size: 20.sp),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Close',
+                          style: GoogleFonts.nunitoSans(
+                            fontSize: 14.sp,
+                            color: AppColors.blackColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  child: ThreesSixtyWheelScreen(initialCategory: "Networths"),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ).whenComplete(() {
+      if (mounted) setState(() => isDropdownActive = false);
+    });
   }
 
-  mortgage() async {
-    dialogBox.waiting(context, "Loading");
+  /// Computes the total net worth figure based on the current toggle state.
+  num _calculateDisplaySum({
+    required num assetSum,
+    required num liabilitySum,
+    required num equitySum,
+    required num pensionSum,
+  }) {
+    // Net Worth = Assets - Liabilities + (Optional Equity/Pension if not already in Assets)
+    // Note: Adjust this logic based on whether 'assetSum' from API already includes equity/pension.
+    // Assuming standard logic: Total Net Worth = (Assets + Equity + Pension) - Liabilities
 
-    var url = "$baseUrl/app/360/mortgage";
+    num totalAssets = assetSum;
+    if (_includeHomeEquity) totalAssets += equitySum;
+    if (_includePension) totalAssets += pensionSum;
 
-    final prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString('tokenDB');
-    var response = await dio.get(
-      url,
-      options: Options(headers: {"Authorization": 'Bearer $token'}),
-    );
-
-    if (response.statusCode == 200) {
-      var mapList = response.data["mortgages"];
-      var seveng = response.data["seveng"];
-      var mapListLite = response.data["mortgages_detail"];
-      Navigator.pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Mortgagedetails(mapList, mapListLite, seveng),
-        ),
-      );
-    }
+    return totalAssets - liabilitySum;
   }
 
-  liability() async {
-    if (!mounted) return;
-    dialogBox.waiting(context, "Loading");
-    var url2 = Uri.parse('$baseUrl/app/seveng/edit');
-    var url = "$baseUrl/app/360/liability";
+  @override
+  Widget build(BuildContext context) {
+    // ✅ 1. Watch ALL providers so the header total updates reactively
+    final investmentState = ref.watch(investmentProvider);
+    final equityState = ref.watch(equityProvider);
+    final cashState = ref.watch(cashProvider);
+    final pensionState = ref.watch(pensionProvider);
 
-    final prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString('tokenDB');
-    var response = await dio.get(
-      url,
-      options: Options(headers: {"Authorization": 'Bearer $token'}),
+    // Keep legacy provider for currency and static assetsData if needed
+    final providers = context.watch<Providers>();
+    final currency = providers.snapshotmodel.currency;
+    final assetsData = providers.assetsData;
+
+    // ✅ 2. Extract sums safely (fallback to 0 while loading)
+    // Note: If widget.item contains pre-calculated sums, you might prefer those.
+    // However, using providers ensures real-time accuracy after edits.
+    final double invSum = investmentState.loading
+        ? 0
+        : (investmentState.investmentSum ?? 0).toDouble();
+    final double cashSum = cashState.loading
+        ? 0
+        : (cashState.cashDetail?["sum"] ?? 0).toDouble();
+
+    // Combine Cash and Investment into "Current Assets" for this screen if needed,
+    // or use the passed widget.item values if they represent the total snapshot.
+    // For consistency with previous screens, let's use the provider values for dynamic parts:
+
+    final double equitySum = equityState.loading
+        ? 0
+        : (equityState.equityDetail?["sum"] ?? 0).toDouble();
+    final double pensionSum = pensionState.loading
+        ? 0
+        : (pensionState.pensionDetail?["sum"] ?? 0).toDouble();
+
+    // Use legacy data for Asset/Liability totals if they come from a different endpoint (snapshot)
+    final num assetSumFromSnapshot =
+        double.tryParse(widget.item["net"]["asset"].toString()) ?? 0;
+    final num liabilitySum =
+        double.tryParse(widget.item["net"]["liability"].toString()) ?? 0;
+
+    // Calculate Display Sum dynamically
+    final num displaySum = _calculateDisplaySum(
+      assetSum:
+          assetSumFromSnapshot, // Or use (invSum + cashSum) if you want purely live calculation
+      liabilitySum: liabilitySum,
+      equitySum: equitySum,
+      pensionSum: pensionSum,
     );
-    var response2 = await http.get(
-      url2,
-      headers: {"Authorization": 'Bearer $token'},
+
+    int wholeNumber = displaySum.toInt();
+    String decimalPart = displaySum.toStringAsFixed(2).split('.').last;
+
+    final Color iconColor = _appBarSolid ? Colors.black : Colors.white;
+    final double titleOpacity = _appBarSolid ? 1.0 : 0.0;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: _appBarSolid ? Colors.white : Colors.transparent,
+        statusBarIconBrightness: _appBarSolid
+            ? Brightness.dark
+            : Brightness.light,
+      ),
+      child: Scaffold(
+        bottomNavigationBar: const BottomNav(4),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: const SystemUiOverlayStyle(
+                      statusBarColor: Colors.transparent,
+                      statusBarIconBrightness: Brightness.light,
+                      statusBarBrightness: Brightness.dark,
+                    ),
+                    child: Container(
+                      height: 300.h,
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                            'assets/wheel_segments/networthblur.png',
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF134EB2), Color(0xff266C26)],
+                          stops: [0.0, 5.8],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Column(
+                            children: [
+                              SizedBox(height: 110.h),
+                              Padding(
+                                padding: EdgeInsets.only(top: 8.h),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: RichText(
+                                        overflow: TextOverflow.ellipsis,
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: "${currency ?? '0'}$wholeNumber"
+                                                  .replaceAllMapped(
+                                                    RegExp(
+                                                      r'(\d{1,3})(?=(\d{3})+(?!\d))',
+                                                    ),
+                                                    (Match m) => '${m[1]},',
+                                                  ),
+                                              style: GoogleFonts.nunitoSans(
+                                                fontSize: 36.sp,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: ".$decimalPart",
+                                              style: GoogleFonts.nunitoSans(
+                                                fontSize: 24.sp,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: 16.h,
+                                  bottom: 20.h,
+                                ),
+                                child: CategoryDropdown(
+                                  selectedCategory: "Net Worth",
+                                  onTap: () {
+                                    setState(() => isDropdownActive = true);
+                                    _showWheelBottomSheet(context);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Transform.translate(
+                    offset: Offset(0, -60.h),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ✅ 3. Pass live provider data to NetworthContent
+                            NetworthContent(
+                              mapList: widget.mapList,
+                              mapListLite: widget.mapListLite,
+                              seveng: widget.seveng ?? [],
+                              bespokes: widget.bespokes ?? [],
+                              invSum: invSum, // Live value
+                              braidTable:
+                                  investmentState.braidTable, // Live value
+                              assetSum: assetSumFromSnapshot,
+                              equitySum: equitySum, // Live value
+                              liabilitySum: liabilitySum,
+                              pensionSum: pensionSum, // Live value
+                              includePension: _includePension,
+                              includeHomeEquity: _includeHomeEquity,
+                              onPensionTap: _togglePension,
+                              onHomeEquityTap: _toggleHomeEquity,
+                            ),
+                            SizedBox(height: 10.h),
+                            Text(
+                              "Net worth Distribution".toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 12.h),
+                            if (widget.item.isNotEmpty)
+                              NetWorthDistributionCard(
+                                netDetail: widget.item['net_detail'],
+                              ),
+                            if (widget.item.isEmpty)
+                              Container(
+                                clipBehavior: Clip.hardEdge,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: const Color(0xffEEEEEE),
+                                    width: 0.7,
+                                  ),
+                                ),
+                                child: SizedBox(
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          height: 170.h,
+                                          child: Center(
+                                            child: Text(
+                                              'Add your assets to view their distribution',
+                                              style: GoogleFonts.nunitoSans(
+                                                fontSize: 14.sp,
+                                                color: const Color(0xff808080),
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xffF7F7F7),
+                                            border: Border.all(
+                                              color: const Color(0xffEEEEEE),
+                                              width: 0.7,
+                                            ),
+                                          ),
+                                          child: const Column(
+                                            children: [
+                                              AssetRow(label: 'Investment'),
+                                              AssetRow(label: 'Cash'),
+                                              AssetRow(label: 'Pension'),
+                                              AssetRow(label: 'Home Equity'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            SizedBox(height: 30.h),
+                            Center(
+                              child: SizedBox(
+                                width: 180.w,
+                                height: 50.h,
+                                child: InkWell(
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(56.0),
+                                          topRight: Radius.circular(56.0),
+                                        ),
+                                      ),
+                                      builder: (context) =>
+                                          const FractionallySizedBox(
+                                            heightFactor: 1.9,
+                                            child: AddNetworkPopup(
+                                              title: 'Select an account to add',
+                                              subTitle: '...',
+                                            ),
+                                          ),
+                                    );
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add,
+                                        color: AppColors.primaryColor,
+                                        size: 20.sp,
+                                      ),
+                                      SizedBox(width: 3.w),
+                                      Text(
+                                        'Add Account',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: _appBarSolid
+                      ? Colors.white
+                      : Colors.transparent,
+                  statusBarIconBrightness: _appBarSolid
+                      ? Brightness.dark
+                      : Brightness.light,
+                  statusBarBrightness: _appBarSolid
+                      ? Brightness.light
+                      : Brightness.dark,
+                ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  color: _appBarSolid ? Colors.white : Colors.transparent,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 8.h,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios,
+                              color: iconColor,
+                              size: 20.sp,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          AnimatedOpacity(
+                            opacity: titleOpacity,
+                            duration: const Duration(milliseconds: 250),
+                            child: Text(
+                              "Net Worth",
+                              style: GoogleFonts.nunitoSans(
+                                fontSize: 16.sp,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(56.0),
+                                        topRight: Radius.circular(56.0),
+                                      ),
+                                    ),
+                                    builder: (context) =>
+                                        const FractionallySizedBox(
+                                          heightFactor: 1.9,
+                                          child: AddNetworkPopup(
+                                            title: 'Select an account to add',
+                                            subTitle: '...',
+                                          ),
+                                        ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: SvgPicture.asset(
+                                    'assets/wheel_segments/add_thin.svg',
+                                    colorFilter: ColorFilter.mode(
+                                      iconColor,
+                                      BlendMode.srcIn,
+                                    ),
+                                    width: 16.w,
+                                    height: 16.h,
+                                  ),
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(56.0),
+                                        topRight: Radius.circular(56.0),
+                                      ),
+                                    ),
+                                    builder: (BuildContext context) {
+                                      return const CustomBottomSheet(
+                                        title: "Net Worth",
+                                        content:
+                                            "Here is the difference between what you own and what you owe financially.",
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: SvgPicture.asset(
+                                    'assets/wheel_segments/info_thin.svg',
+                                    colorFilter: ColorFilter.mode(
+                                      iconColor,
+                                      BlendMode.srcIn,
+                                    ),
+                                    width: 24.w,
+                                    height: 24.h,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
-    if (response.statusCode == 200 && response2.statusCode == 200) {
-      var mapList = response.data["liabilities"];
-      var seveng = response.data["seveng"];
-      var mapListLite = response.data["liabilities_detail"];
-      var isAllocated = response.data["audit"]["is_allocated"];
-      var bespokes = response.data["bespokes"];
-      var creditCurrent = "0";
-      var info = jsonDecode(response2.body);
-      Analyticsinfo analyticsinfo = Analyticsinfo.fromJson(info["data"]);
-      creditCurrent = analyticsinfo.credit["current"].toString();
-      num total = 0;
-      List real = [];
-      if (seveng.isNotEmpty) {
-        var a = seveng.map((e) => e["current"].round()).toList();
+  }
 
-        for (var item in a) {
-          real.add(int.parse(item.toString()));
-        }
+  Future<void> getData(String cap, String small, BuildContext context) async {
+    final timeoutTimer = Timer(const Duration(seconds: 40), () {
+      EasyLoading.dismiss();
+      Fluttertoast.showToast(msg: "Request timed out. Please try again.");
+    });
 
-        for (var item in a) {
-          total = total + item;
-        }
-      }
-      if (mounted) Navigator.pop(context);
+    EasyLoading.show(status: 'Loading', dismissOnTap: false);
 
-      if (isAllocated.toString() == "1") {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Liabilitydetails(
-                liabilityData: mapList,
-                liabilityDataLite: mapListLite,
-                seveng: seveng,
-                bespokes: bespokes,
-              ),
-            ),
-          );
-        }
-      } else if (int.parse(creditCurrent.toString()) == 0) {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Liabilitydetails(
-                liabilityData: mapList,
-                liabilityDataLite: mapListLite,
-                seveng: seveng,
-                bespokes: bespokes,
-              ),
-            ),
-          );
-        }
-      } else if (total != int.parse(creditCurrent.toString())) {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Threesixty(
-                unallocated: true,
-                data: seveng,
-                balance: seveng.isEmpty
-                    ? int.parse(creditCurrent)
-                    : (int.parse(creditCurrent) - total).toInt(),
-              ),
-            ),
-          );
-        }
+    try {
+      var url = Uri.parse("$baseUrl/app/portfolio/$small");
+      final prefs = await SharedPreferences.getInstance();
+      var token = prefs.getString('tokenDB');
+
+      var response = await http.get(
+        url,
+        headers: {"Authorization": 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                Braidetails(cap, jsonDecode(response.body), false),
+          ),
+        );
       } else {
-        if (mounted) {
-          Navigator.pop(context);
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Liabilitydetails(
-                liabilityData: mapList,
-                liabilityDataLite: mapListLite,
-                seveng: seveng,
-                bespokes: bespokes,
-              ),
-            ),
-          );
-        }
+        Fluttertoast.showToast(
+          msg: "Error: ${response.statusCode}. Something went wrong.",
+        );
       }
+    } catch (error) {
+      Fluttertoast.showToast(msg: "An error occurred: ${error.toString()}");
+    } finally {
+      timeoutTimer.cancel();
+      EasyLoading.dismiss();
     }
+  }
+}
+
+class AssetRow extends StatelessWidget {
+  final String label;
+  const AssetRow({super.key, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      child: Row(
+        children: [
+          Container(
+            width: 12.w,
+            height: 12.h,
+            decoration: const BoxDecoration(
+              color: Color(0xFFCECECE),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
+            ),
+          ),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '0',
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+                TextSpan(
+                  text: '%',
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grayColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

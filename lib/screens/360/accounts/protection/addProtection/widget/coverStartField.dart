@@ -16,6 +16,8 @@ class CoverStartField extends StatelessWidget {
   final VoidCallback onToggle;
   final ValueChanged<DateTime?> onDateSelected;
   final bool allowFuture;
+  final bool darkColor;
+  final bool downArrow;
 
   const CoverStartField({
     required this.selectedDate,
@@ -23,10 +25,13 @@ class CoverStartField extends StatelessWidget {
     required this.onToggle,
     required this.onDateSelected,
     this.allowFuture = false,
+    this.darkColor = false,
+    this.downArrow = false,
+    super.key,
   });
 
   String get _displayText => selectedDate == null
-      ? 'No Set Date'
+      ? '-Select Date'
       : DateFormat('dd MMM yyyy').format(selectedDate!);
 
   Future<void> _showAndroidPicker(BuildContext context) async {
@@ -67,13 +72,15 @@ class CoverStartField extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: darkColor
+                  ? const Color(0xFFEAEAEA)
+                  : const Color(0xFFF5F5F5),
               borderRadius: (Platform.isIOS && isExpanded)
                   ? const BorderRadius.only(
                       topLeft: Radius.circular(10),
                       topRight: Radius.circular(10),
                     )
-                  : BorderRadius.circular(10),
+                  : BorderRadius.circular(darkColor ? 16 : 10),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -90,15 +97,17 @@ class CoverStartField extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Icon(
-                  Platform.isIOS
-                      ? (isExpanded
-                          ? Icons.arrow_drop_up
-                          : Icons.arrow_drop_down)
-                      : Icons.arrow_drop_down,
-                  size: 20,
-                  color: Colors.black87,
-                ),
+                darkColor || downArrow
+                    ? const SizedBox.shrink()
+                    : Icon(
+                        Platform.isIOS
+                            ? (isExpanded
+                                  ? Icons.arrow_drop_up
+                                  : Icons.arrow_drop_down)
+                            : Icons.arrow_drop_down,
+                        size: 20,
+                        color: Colors.black87,
+                      ),
               ],
             ),
           ),
@@ -119,7 +128,7 @@ class CoverStartField extends StatelessWidget {
               child: CupertinoDatePicker(
                 initialDateTime: selectedDate ?? DateTime.now(),
                 mode: CupertinoDatePickerMode.date,
-                maximumDate: allowFuture ? DateTime(2100) : DateTime.now(), 
+                maximumDate: allowFuture ? DateTime(2100) : DateTime.now(),
                 minimumYear: 1900,
                 onDateTimeChanged: onDateSelected,
               ),

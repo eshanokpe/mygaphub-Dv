@@ -458,7 +458,7 @@ class _NetworthcardState extends State<Networthcard> {
       timer.cancel();
       navigateWithSlideTransition(
         context: context,
-        destinationScreen: Networth(response.data),
+        destinationScreen: Networth(item: response.data),
         transitionDuration: const Duration(milliseconds: 200),
       );
     } else if (int.tryParse(response.data["isNet"]["net_confirm"]) == 1) {

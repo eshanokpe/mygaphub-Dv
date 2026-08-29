@@ -12,16 +12,13 @@ import 'package:GapHub/screens/more/feedbacks.dart';
 import 'package:GapHub/screens/others/dashboards/dashboard.dart';
 import 'package:GapHub/screens/registration/verification.dart';
 import 'package:GapHub/screens/reminder/reminder.dart';
-import 'screens/360/accounts/assetsAcc/assets.dart';
-import 'screens/360/accounts/assetsAcc/equity/homequity.dart';
+import 'screens/360/accounts/assets/assets.dart';
+import 'screens/360/accounts/assets/presentation/add_homequity.dart';
 import 'screens/360/accounts/expenditure/expenditure.dart';
 import 'screens/360/accounts/income/income.dart';
 import 'screens/360/accounts/liabilities/liabilities.dart';
-import 'screens/360/accounts/mortgage/mortgage.dart';
-import 'screens/360/accounts/mortgage/mortgageitem.dart';
 import 'screens/360/accounts/protection/addProtection/add_protection.dart';
 import 'screens/360/accounts/protection/protectiondetails.dart';
-import 'screens/360/accounts/retirement/retirementdetails.dart';
 import 'screens/360/iLAB/ilab.dart';
 import 'screens/360/iLAB/settarget.dart';
 import 'screens/acquisition/actionplan/presentation/action_plan_strategy.dart';
@@ -50,7 +47,7 @@ final appRoutes = {
   'Actionplan': (BuildContext ctx) => const ActionPlanStrategy(),
   'FavouritesPage': (BuildContext ctx) => const FavouritesPage(),
   'Feedbacks': (BuildContext ctx) => const Feedbacks(),
-  'Homequity': (BuildContext ctx) => const Homequity(),
+  'Homequity': (BuildContext ctx) => const AddHomeEquity(),
   'Support': (BuildContext ctx) => const Support(),
   'Comingsoon': (BuildContext ctx) => const Comingsoon(),
   "Opportunities": (BuildContext ctx) => const Opportunities(value: 0),

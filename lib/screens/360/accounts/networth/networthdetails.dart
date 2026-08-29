@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:GapHub/models/analyticsinfo.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/assetdetails.dart';
+import 'package:GapHub/screens/360/accounts/assets/presentation/assetdetails.dart';
 import 'package:GapHub/screens/360/accounts/retirement/presentation/retiredash.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/widgets/clock_widget.dart';
 import 'package:GapHub/screens/360/threesixty.dart';
-import 'package:GapHub/screens/360/accounts/assetsAcc/equity/equitydetails.dart';
+import 'package:GapHub/screens/360/accounts/assets/presentation/equitydetails.dart';
 import 'package:dio/dio.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/utils/dialog.dart';
@@ -430,13 +430,14 @@ class _NetworthdetailsState extends State<Networthdetails> {
     if (response.statusCode == 200) {
       var mapList = response.data["equity"];
       var mapListLite = response.data["equity_detail"];
+      context.read<Providers>()
+        ..setequityList(mapList)
+        ..setequityDetail(mapListLite);
       Navigator.pop(context);
       // Navigator.pop(context);
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => Equitydetails(mapList, mapListLite),
-        ),
+        MaterialPageRoute(builder: (context) => const Equitydetails()),
       );
     }
   }
@@ -471,9 +472,7 @@ class _NetworthdetailsState extends State<Networthdetails> {
       //Navigator.of(context).pushNamed('Retiredash');
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const Retiredash(),
-        ),
+        MaterialPageRoute(builder: (context) => const Retiredash()),
       );
     }
     timer.cancel();
@@ -519,23 +518,19 @@ class _NetworthdetailsState extends State<Networthdetails> {
       var invSum = response3.data['data']["investment_sum"];
       var braidTable = response3.data['data']["braid_table"];
       var pensions = response4.data["retirement_detail"];
-
+      context.read<Providers>()
+        ..setequityList(equityList)
+        ..setequityDetail(equityListLite)
+        ..setcashDataLite(cashListLite)
+        ..setcashData(cashList)
+        ..setpensions(pensions);
       Navigator.pop(context);
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => Assetdetails(
-            cashData: cashList,
-            cashDataLite: cashListLite,
-            seveng: seveng,
-            equityData: equityList,
-            equityDataLite: equityListLite,
-            bespokes: bespokes,
-            invSum: invSum,
-            pensions: pensions,
-            braidTable: braidTable,
-          ),
+          builder: (context) =>
+              Assetdetails(seveng: seveng, bespokes: bespokes),
         ),
       );
     }

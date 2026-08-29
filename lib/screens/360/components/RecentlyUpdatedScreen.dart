@@ -216,7 +216,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
       timer.cancel();
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Networth(response.data)),
+        MaterialPageRoute(builder: (context) => Networth(item: response.data)),
       );
     } else if (response.data["isNet"]["net_confirm"] == 1) {
       timer.cancel();
@@ -975,10 +975,7 @@ class _RecentlyUpdatedScreenState extends State<RecentlyUpdatedScreen> {
         // Navigate to retirement dashboard
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) =>
-                Retiredash(),
-          ),
+          MaterialPageRoute(builder: (context) => Retiredash()),
         );
       } else {
         throw Exception('Failed to load retirement data');

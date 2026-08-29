@@ -4,11 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class CategoryDropdown extends StatelessWidget {
   final String selectedCategory;
   final VoidCallback? onTap;
+  final bool dropdown;
 
   const CategoryDropdown({
     super.key,
     required this.selectedCategory,
     this.onTap,
+    this.dropdown = true,
   });
 
   @override
@@ -22,13 +24,6 @@ class CategoryDropdown extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(32),
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: Colors.black.withOpacity(0.1),
-          //     blurRadius: 5,
-          //     offset: const Offset(0, 2),
-          //   ),
-          // ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -42,11 +37,13 @@ class CategoryDropdown extends StatelessWidget {
               ),
             ),
             SizedBox(width: 5.w),
-            Image.asset(
-              'assets/wheel_segments/dropdown.png',
-              width: 10.w,
-              height: 10.w,
-            ),
+            dropdown
+                ? Image.asset(
+                    'assets/wheel_segments/dropdown.png',
+                    width: 10.w,
+                    height: 10.w,
+                  )
+                : Container(),
           ],
         ),
       ),

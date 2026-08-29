@@ -171,6 +171,7 @@ class Providers extends ChangeNotifier {
   List feedbackData = [];
 
   Map pensionsdata = {};
+  Map assetsData = {};
   Map retiredata = {};
   Map nonporfolioData = {};
   List mortgageList = [];
@@ -182,6 +183,10 @@ class Providers extends ChangeNotifier {
   Map cashDataLite = {};
   List cashbespokes = [];
   List cashseveng = [];
+
+  //equity
+  // Map equityData = {};
+  // Map equityDataDistribution = {};
 
   //Protection
   List protectionList = [];
@@ -536,7 +541,7 @@ class Providers extends ChangeNotifier {
     notifyListeners();
   }
 
-  setequityListLite(Map data) {
+  setequityDetail(Map data) {
     equityDataLite = data;
     notifyListeners();
   }
@@ -633,6 +638,11 @@ class Providers extends ChangeNotifier {
 
   setpensions(Map data) {
     pensionsdata = data;
+    notifyListeners();
+  }
+
+  setAssetsData(Map data) {
+    assetsData = data;
     notifyListeners();
   }
 
@@ -819,6 +829,16 @@ class Providers extends ChangeNotifier {
     archivedData = a;
     notifyListeners();
   }
+
+  // setEquityData(Map data) {
+  //   equityData = data;
+  //   notifyListeners();
+  // }
+
+  // setEquityDataDistribution(Map data) {
+  //   equityDataDistribution = data;
+  //   notifyListeners();
+  // }
 
   //cash
   setcashData(List list) {

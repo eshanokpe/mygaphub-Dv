@@ -33,8 +33,8 @@ class _PiechartState extends State<Piechart> {
     if (widget.labels.isEmpty ||
         widget.values.isEmpty ||
         widget.percent.isEmpty) {
-      return const SizedBox(
-        height: 240,
+      return SizedBox(
+        height: 240.h,
         child: Center(child: Text('No data available')),
       );
     }

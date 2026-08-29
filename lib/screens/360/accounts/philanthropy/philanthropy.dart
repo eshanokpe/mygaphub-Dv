@@ -177,7 +177,9 @@ class _PhilanthropyState extends State<Philanthropy> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: _appBarSolid ? Colors.white : Colors.transparent,
-        statusBarIconBrightness: _appBarSolid ? Brightness.dark : Brightness.light,
+        statusBarIconBrightness: _appBarSolid
+            ? Brightness.dark
+            : Brightness.light,
       ),
       child: Scaffold(
         bottomNavigationBar: const BottomNav(4),
@@ -256,7 +258,10 @@ class _PhilanthropyState extends State<Philanthropy> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(top: 16.h, bottom: 20.h),
+                                padding: EdgeInsets.only(
+                                  top: 16.h,
+                                  bottom: 20.h,
+                                ),
                                 child: CategoryDropdown(
                                   selectedCategory: "Philanthropy",
                                   onTap: () {
@@ -273,7 +278,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                       ),
                     ),
                   ),
-      
+
                   // White content section
                   Transform.translate(
                     offset: Offset(0, -70.h),
@@ -301,7 +306,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                                 ),
                               ),
                               SizedBox(height: 12.h),
-      
+
                               /// PROFILE CARD
                               Container(
                                 clipBehavior: Clip.hardEdge,
@@ -324,7 +329,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                                     ),
                                   ],
                                 ),
-                                child: Column( 
+                                child: Column(
                                   children: [
                                     ListView.builder(
                                       shrinkWrap: true,
@@ -362,9 +367,9 @@ class _PhilanthropyState extends State<Philanthropy> {
                                   ],
                                 ),
                               ),
-      
+
                               SizedBox(height: 32.h),
-      
+
                               /// PHILANTHROPY DISTRIBUTION
                               Text(
                                 "PHILANTHROPY DISTRIBUTION",
@@ -376,7 +381,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                                 ),
                               ),
                               SizedBox(height: 12.h),
-      
+
                               /// CHART CARD
                               Container(
                                 clipBehavior: Clip.hardEdge,
@@ -387,13 +392,6 @@ class _PhilanthropyState extends State<Philanthropy> {
                                     color: const Color(0xffEEEEEE),
                                     width: 0.7,
                                   ),
-                                  // boxShadow: [
-                                  //   BoxShadow(
-                                  //     color: Colors.black.withOpacity(0.04),
-                                  //     blurRadius: 10,
-                                  //     offset: const Offset(0, 4),
-                                  //   ),
-                                  // ],
                                 ),
                                 child: Column(
                                   children: [
@@ -626,7 +624,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                                         ),
                                       ),
                                     ),
-      
+
                                     /// LEGEND
                                     Container(
                                       decoration: BoxDecoration(
@@ -695,7 +693,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                 ],
               ),
             ),
-      
+
             // ── ANIMATED APP BAR ────────────────────────────────────────
             Positioned(
               top: 0,
@@ -703,12 +701,15 @@ class _PhilanthropyState extends State<Philanthropy> {
               right: 0,
               child: AnnotatedRegion<SystemUiOverlayStyle>(
                 value: SystemUiOverlayStyle(
-                  statusBarColor:
-                      _appBarSolid ? Colors.white : Colors.transparent,
-                  statusBarIconBrightness:
-                      _appBarSolid ? Brightness.dark : Brightness.light,
-                  statusBarBrightness:
-                      _appBarSolid ? Brightness.light : Brightness.dark, // iOS
+                  statusBarColor: _appBarSolid
+                      ? Colors.white
+                      : Colors.transparent,
+                  statusBarIconBrightness: _appBarSolid
+                      ? Brightness.dark
+                      : Brightness.light,
+                  statusBarBrightness: _appBarSolid
+                      ? Brightness.light
+                      : Brightness.dark, // iOS
                 ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
@@ -716,8 +717,10 @@ class _PhilanthropyState extends State<Philanthropy> {
                   color: _appBarSolid ? Colors.white : Colors.transparent,
                   child: SafeArea(
                     child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 8.h,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -734,7 +737,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
-      
+
                           // Center title — fades in when scrolled
                           AnimatedOpacity(
                             opacity: titleOpacity,
@@ -748,7 +751,7 @@ class _PhilanthropyState extends State<Philanthropy> {
                               ),
                             ),
                           ),
-      
+
                           // Info button
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),

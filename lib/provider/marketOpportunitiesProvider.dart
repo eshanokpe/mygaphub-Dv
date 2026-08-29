@@ -80,7 +80,4 @@ class MarketOpportunitiesProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
-
-
 }

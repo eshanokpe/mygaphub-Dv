@@ -54,6 +54,12 @@ class AssetClasses extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 28),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text(
           'Portfolio Management',
           style: TextStyle(
