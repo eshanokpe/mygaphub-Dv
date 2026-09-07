@@ -471,7 +471,7 @@ class _NetworthState extends ConsumerState<Networth> {
                                             heightFactor: 1.9,
                                             child: AddNetworkPopup(
                                               title: 'Select an account to add',
-                                              subTitle: '...',
+                                              subTitle: '',
                                             ),
                                           ),
                                     );
@@ -572,7 +572,7 @@ class _NetworthState extends ConsumerState<Networth> {
                                           heightFactor: 1.9,
                                           child: AddNetworkPopup(
                                             title: 'Select an account to add',
-                                            subTitle: '...',
+                                            subTitle: '',
                                           ),
                                         ),
                                   );

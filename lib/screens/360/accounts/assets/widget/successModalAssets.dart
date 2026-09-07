@@ -11,6 +11,7 @@ class SuccessModalAssets extends ConsumerWidget {
   final String imagePath;
   // We keep this, but we'll use it smarter to avoid double-refreshing
   final VoidCallback? onRefresh;
+  final String? control; // New optional parameter
 
   const SuccessModalAssets({
     super.key,
@@ -18,12 +19,14 @@ class SuccessModalAssets extends ConsumerWidget {
     required this.onClose,
     this.imagePath = 'assets/images/thankYou.png',
     this.onRefresh,
+    this.control,
   });
 
   static Future<void> show({
     required BuildContext context,
     required String message,
     required VoidCallback onClose,
+    String? control,
     String imagePath = 'assets/images/thankYou.png',
     VoidCallback? onRefresh,
   }) {
@@ -36,6 +39,7 @@ class SuccessModalAssets extends ConsumerWidget {
           onClose: onClose,
           imagePath: imagePath,
           onRefresh: onRefresh,
+          control: control,
         );
       },
     );
@@ -58,8 +62,6 @@ class SuccessModalAssets extends ConsumerWidget {
                 border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
                 borderRadius: BorderRadius.circular(16.r),
               ),
-              // Note: 120.w horizontal padding might be too wide on small screens.
-              // Consider using a fixed width or less padding if it overflows.
               padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 5.h),
               child: Image.asset(
                 imagePath,
@@ -81,24 +83,11 @@ class SuccessModalAssets extends ConsumerWidget {
             SizedBox(height: 24.h),
             _LoadingButton(
               onPressed: () async {
-                // 1. Refresh the data
                 final ok = await ref
                     .read(equityProvider.notifier)
                     .refreshEquity();
 
-                if (ok) {
-                  // 2. Call onRefresh ONLY if it does something OTHER than refreshing equity
-                  // (See explanation below)
-                  onRefresh?.call();
-
-                  // 3. Close the Modal
-                  Navigator.pop(context);
-
-                  // 4. Close the Equitydetails form screen (returning to dashboard)
-                  // ⚠️ Ensure this double-pop is your intended behavior!
-                  Navigator.pop(context);
-                } else {
-                  // Fetch failed — surface it instead of silently closing
+                if (!ok) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -110,6 +99,17 @@ class SuccessModalAssets extends ConsumerWidget {
                       ),
                     );
                   }
+                  return;
+                }
+
+                if (control == 'editor') {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                } else {
+                  onRefresh?.call();
+                  Navigator.pop(context);
+                  Navigator.pop(context);
                 }
               },
             ),

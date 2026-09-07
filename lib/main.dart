@@ -411,7 +411,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
                 visualDensity: VisualDensity.adaptivePlatformDensity,
                 colorScheme: Theme.of(context).colorScheme.copyWith(
                       secondary: const Color(0xff494949),
-                    ),
+                    ), 
               ),
               home: UpgradeAlert(
                 dialogStyle: UpgradeDialogStyle.cupertino,

@@ -36,7 +36,7 @@ class EquityState {
 
   /// Convenience empty check
   bool get isEmpty =>
-      equityDetail == null || (equityDetail is Map && equityDetail.isEmpty);
+      equityData == null || (equityData is List && equityData.isEmpty);
 }
 
 class EquityNotifier extends StateNotifier<EquityState> {

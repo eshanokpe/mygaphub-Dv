@@ -82,17 +82,17 @@ class AddNetworkPopup extends StatelessWidget {
                         SizedBox(height: 10.h),
                       ],
                     )
-                  : Container(),
+                  : SizedBox(height: 10.h),
               _buildContentRow(
                 assetPath: 'assets/wheel_segments/income_icon.png',
                 title: 'Income',
                 subTitle: '',
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Income()),
-                  );
+                  // Navigator.pop(context);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const Income()),
+                  // );
                 },
               ),
               Divider(
@@ -107,13 +107,13 @@ class AddNetworkPopup extends StatelessWidget {
                 title: 'Liabilities',
                 subTitle: '',
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const Liabilities(),
-                    ),
-                  );
+                  // Navigator.pop(context);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const Liabilities(),
+                  //   ),
+                  // );
                 },
               ),
               Divider(
@@ -128,10 +128,10 @@ class AddNetworkPopup extends StatelessWidget {
                 title: 'Asset',
                 subTitle: '',
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Assets()),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const Assets()),
+                  // );
                 },
               ),
               Divider(
@@ -146,11 +146,11 @@ class AddNetworkPopup extends StatelessWidget {
                 title: 'Cash',
                 subTitle: '',
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Income()),
-                  );
+                  // Navigator.pop(context);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const Income()),
+                  // );
                 },
               ),
               Divider(
@@ -165,13 +165,13 @@ class AddNetworkPopup extends StatelessWidget {
                 title: 'Protection',
                 subTitle: '',
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddProtectionScreen(),
-                    ),
-                  );
+                  // Navigator.pop(context);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const AddProtectionScreen(),
+                  //   ),
+                  // );
                 },
               ),
               Divider(
@@ -186,13 +186,13 @@ class AddNetworkPopup extends StatelessWidget {
                 title: 'Retirement ',
                 subTitle: '(Pension)',
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddPensionScreen(),
-                    ),
-                  );
+                  // Navigator.pop(context);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const AddPensionScreen(),
+                  //   ),
+                  // );
                 },
               ),
               Divider(
@@ -207,7 +207,7 @@ class AddNetworkPopup extends StatelessWidget {
                 title: 'Mortgage',
                 subTitle: '',
                 onTap: () {
-                  Navigator.pop(context);
+                  // Navigator.pop(context);
                   // Navigator.push(
                   //   context,
                   //   MaterialPageRoute(

@@ -17,15 +17,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../portfolio/assetclasses.dart';
-import '../../cash/cash.dart';
-import '../../cash/cashdetails.dart';
-import '../../investment/investdash.dart';
-import '../../retirement/presentation/retiredash.dart';
-import '../../retirement/presentation/widget/category_of_pensionScreen.dart';
-import '../presentation/equitydetails.dart';
-import '../presentation/add_homequity.dart';
-
 class AddInvestmentPopup extends StatelessWidget {
   final String title;
   final num sums;
@@ -138,8 +129,7 @@ class AddInvestmentPopup extends StatelessWidget {
                 value: businessValue,
                 currency: currency,
                 onTap: () {
-                  Navigator.pop(context);
-                  // return getData("Business", "business", context);
+                  getData("Business", "business", context);
                 },
               ),
               SizedBox(height: 5.h),
@@ -159,7 +149,7 @@ class AddInvestmentPopup extends StatelessWidget {
                 value: appreciatingValue,
                 currency: currency,
                 onTap: () {
-                  // return getData("Appreciating", "appreciating", context);
+                  getData("Appreciating", "appreciating", context);
                 },
               ),
               Divider(
@@ -175,8 +165,7 @@ class AddInvestmentPopup extends StatelessWidget {
                 value: riskValue,
                 currency: currency,
                 onTap: () {
-                  Navigator.pop(context);
-                  // return getData("Risk", "risk", context);
+                  getData("Risk", "risk", context);
                 },
               ),
               SizedBox(height: 30.h),

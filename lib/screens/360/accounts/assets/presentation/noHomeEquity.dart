@@ -58,39 +58,43 @@ class NoHomeEquity extends StatelessWidget {
             ),
           ),
           SizedBox(height: 60.h),
-          InkWell(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(56.0),
-                    topRight: Radius.circular(56.0),
+          SizedBox(
+            width: 200.w,
+            height: 40.h,
+            child: InkWell(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(56.0),
+                      topRight: Radius.circular(56.0),
+                    ),
                   ),
-                ),
-                builder: (BuildContext context) {
-                  return const AddAssetsPopup(
-                    title: "Add Home Equity",
-                    subTitle: "Choose the type of asset you will like to add",
-                  );
-                },
-              );
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.add, color: AppColors.primaryColor, size: 22.sp),
-                SizedBox(width: 2.w),
-                Text(
-                  "Add Home Equity",
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
+                  builder: (BuildContext context) {
+                    return const AddAssetsPopup(
+                      title: "Add Home Equity",
+                      subTitle: "Choose the type of asset you will like to add",
+                    );
+                  },
+                );
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, color: AppColors.primaryColor, size: 22.sp),
+                  SizedBox(width: 2.w),
+                  Text(
+                    "Add Home Equity",
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           SizedBox(height: 80.h),

@@ -43,6 +43,8 @@ class HomeEquityFormState {
   final String townCity;
   final String zipcode;
   final String currentValue;
+  final String address;
+  final String address2;
   final String creditor;
 
   final DateTime? targetDate; // Payoff Target Date
@@ -73,6 +75,8 @@ class HomeEquityFormState {
     this.townCity = '',
     this.zipcode = '',
     this.currentValue = '',
+    this.address = '',
+    this.address2 = '',
     this.creditor = '',
     this.targetDate,
     this.isTargetDateExpanded = false,
@@ -100,6 +104,8 @@ class HomeEquityFormState {
     String? townCity,
     String? zipcode,
     String? currentValue,
+    String? address,
+    String? address2,
     String? creditor,
     DateTime? targetDate,
     bool? isTargetDateExpanded,
@@ -128,6 +134,8 @@ class HomeEquityFormState {
       townCity: townCity ?? this.townCity,
       zipcode: zipcode ?? this.zipcode,
       currentValue: currentValue ?? this.currentValue,
+      address: address ?? this.address,
+      address2: address2 ?? this.address2,
       creditor: creditor ?? this.creditor,
       targetDate: targetDate ?? this.targetDate,
       isTargetDateExpanded: isTargetDateExpanded ?? this.isTargetDateExpanded,
@@ -228,6 +236,8 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
       state = state.copyWith(zipcode: value, zipVerified: false);
   void setCurrentValue(String value) =>
       state = state.copyWith(currentValue: value);
+  void setAddress(String value) => state = state.copyWith(address: value);
+  void setAddress2(String value) => state = state.copyWith(address2: value);
 
   void setCoverStart(DateTime? value) =>
       state = state.copyWith(targetDate: value, isTargetDateExpanded: false);
@@ -245,6 +255,32 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
 
   // ---- initialization for Edit Screen ------------------------------------
   void initializeFromMap(Map<String, dynamic> data) {
+    final addressMap = data['address'] is Map
+        ? Map<String, dynamic>.from(data['address'] as Map)
+        : <String, dynamic>{};
+
+    final mortgageMap = data['mortgage'] is Map
+        ? Map<String, dynamic>.from(data['mortgage'] as Map)
+        : <String, dynamic>{};
+
+    final addressLine1 =
+        (addressMap['address_line_1'] ?? data['address_line_1'] ?? '')
+            .toString();
+    final addressLine2 =
+        (addressMap['address_line_2'] ?? data['address_line_2'] ?? '')
+            .toString();
+    final townCity = (addressMap['town_city'] ?? data['town_city'] ?? '')
+        .toString();
+    final postcode = (addressMap['postcode'] ?? data['postcode'] ?? '')
+        .toString();
+
+    final fullAddress = [
+      addressLine1,
+      addressLine2,
+      // townCity,
+      // postcode,
+    ].where((e) => e.trim().isNotEmpty).join(', ');
+
     state = state.copyWith(
       id: data['id']?.toString(),
       mortgageProperty:
@@ -253,21 +289,40 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
               data['ismortgage'] == 'Yes')
           ? 'Yes'
           : 'No',
-      creditor: data['creditor'] ?? '',
-      mortgageDescription: data['description'] ?? '-Select-',
-      mortgageSecured: data['secured_against'] ?? '-Select-',
-      mortgageOpeningBalance: data['open_balance']?.toString() ?? '',
-      mortgageCurrentBalance: data['current_balance']?.toString() ?? '',
-      monthlyPayment: data['monthly_pay']?.toString() ?? '',
-      mortgageInterestRate: data['interest_rate']?.toString() ?? '',
+      creditor: (mortgageMap['creditor_name'] ?? data['creditor'] ?? '')
+          .toString(),
+      mortgageDescription:
+          (mortgageMap['description'] ?? data['description'] ?? '-Select-')
+              .toString(),
+      mortgageSecured:
+          (mortgageMap['secured_against'] ??
+                  data['secured_against'] ??
+                  '-Select-')
+              .toString(),
+      mortgageOpeningBalance:
+          (mortgageMap['open_balance'] ?? data['open_balance'])?.toString() ??
+          '',
+      mortgageCurrentBalance:
+          (mortgageMap['current_balance'] ?? data['current_balance'])
+              ?.toString() ??
+          '',
+      monthlyPayment:
+          (mortgageMap['monthly_pay'] ?? data['monthly_pay'])?.toString() ?? '',
+      mortgageInterestRate:
+          (mortgageMap['interest_rate'] ?? data['interest_rate'])?.toString() ??
+          '',
       payOffStrategy: data['payoff_strategy'] ?? '',
       country: data['country'] ?? '-Select-',
-      homeAddress: data['location'] ?? data['address_line_1'] ?? '',
-      townCity: data['town_city'] ?? '',
-      zipcode: data['postcode'] ?? '',
+      homeAddress: fullAddress,
+      townCity: townCity,
+      zipcode: postcode,
       currentValue: data['market_value']?.toString() ?? '',
-      targetDate: data['target_date'] != null
-          ? DateTime.tryParse(data['target_date'].toString())
+      address: addressLine1,
+      address2: addressLine2,
+      targetDate: (mortgageMap['target_date'] ?? data['target_date']) != null
+          ? DateTime.tryParse(
+              (mortgageMap['target_date'] ?? data['target_date']).toString(),
+            )
           : null,
       dateAcquired: data['date_acquired'] != null
           ? DateTime.tryParse(data['date_acquired'].toString())
@@ -317,13 +372,51 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
     }
   }
 
+  // ---- DELETE ----------------------------------------------------------
+  Future<HomeEquitySubmitResult> delete(String id) async {
+    state = state.copyWith(loading: true, error: null);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenDB');
+
+      final response = await _http.delete(
+        Uri.parse('$baseUrl/app/360/equity/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      final success = response.statusCode == 200 || response.statusCode == 204;
+
+      if (success) {
+        state = state.copyWith(loading: false);
+        return const HomeEquitySubmitResult(success: true);
+      }
+
+      String message = 'Failed to delete home equity (${response.statusCode}).';
+      if (response.body.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(response.body);
+          message = (decoded is Map && decoded['message'] != null)
+              ? decoded['message'].toString()
+              : response.body;
+        } catch (_) {
+          message = response.body;
+        }
+      }
+      state = state.copyWith(loading: false, error: message);
+      return HomeEquitySubmitResult(success: false, errorMessage: message);
+    } catch (e) {
+      state = state.copyWith(loading: false, error: e.toString());
+      return HomeEquitySubmitResult(success: false, errorMessage: e.toString());
+    }
+  }
+
   // ---- SUBMIT (Create) ---------------------------------------------------
   Future<HomeEquitySubmitResult> submit() async {
     state = state.copyWith(loading: true, error: null);
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('tokenDB');
-
+      print('Submitting Home Equity: ${state.address.toString()}');
       final body = <String, dynamic>{
         'postcode': state.zipcode == '' ? '0' : state.zipcode,
         'town_city': state.townCity.trim(),
@@ -332,8 +425,12 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
         'country': state.country,
         'location': state.homeAddress,
         'date_acquired': state.dateAcquired?.toIso8601String(),
-        'address_line_1': state.homeAddress,
-        'address_line_2': '',
+        'address_line_1': state.address.trim().isEmpty
+            ? null
+            : state.address.trim(),
+        'address_line_2': state.address2.trim().isEmpty
+            ? null
+            : state.address2.trim(),
         'creditor': state.creditor,
         'description': state.mortgageDescription,
         'secured_against': state.mortgageSecured,
@@ -341,7 +438,7 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
         'current_balance': state.mortgageCurrentBalance,
         'monthly_pay': state.monthlyPayment,
         'interest_rate': state.mortgageInterestRate,
-        'repayment_plan': 'Repayment',
+        'repayment_plan': state.payOffStrategy,
         'target_date': state.targetDate?.toIso8601String(),
       };
 
@@ -376,8 +473,8 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
         'country': state.country,
         'location': state.homeAddress,
         'date_acquired': state.dateAcquired?.toIso8601String(),
-        'address_line_1': state.homeAddress,
-        'address_line_2': '',
+        'address_line_1': state.address == '' ? '' : state.address.trim(),
+        'address_line_2': state.address2 == '' ? '' : state.address2.trim(),
         'creditor': state.creditor,
         'description': state.mortgageDescription,
         'secured_against': state.mortgageSecured,
@@ -385,7 +482,7 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
         'current_balance': state.mortgageCurrentBalance,
         'monthly_pay': state.monthlyPayment,
         'interest_rate': state.mortgageInterestRate,
-        'repayment_plan': 'Repayment',
+        'repayment_plan': state.payOffStrategy,
         'target_date': state.targetDate?.toIso8601String(),
       };
 
@@ -398,7 +495,7 @@ class HomeEquityFormNotifier extends StateNotifier<HomeEquityFormState> {
         },
         body: jsonEncode(body),
       );
-
+      print('Update Response: ${response.statusCode} - ${response.body}');
       return _handleResponse(response, isNew: false);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());

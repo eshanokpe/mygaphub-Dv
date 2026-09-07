@@ -1,9 +1,6 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:GapHub/screens/360/accounts/assets/provider/equity_provider.dart';
 import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
-import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
 import 'package:GapHub/widgets/customBottomSheet.dart';
 import 'package:flutter/services.dart';
@@ -15,9 +12,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 import '../../../widget/category_dropdown.dart';
-import '../widget/add_protection_popup.dart';
 import '../widget/assetsListCard.dart';
 import '../widget/piechartHomeEquity.dart';
+import 'add_homequity.dart';
 import 'homeEquityItem.dart';
 import 'noHomeEquity.dart';
 
@@ -47,7 +44,7 @@ class _EquitydetailsState extends ConsumerState<Equitydetails> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(equityProvider.notifier);
       // Only fetch if we don't have data yet to avoid unnecessary reloads
-      if (notifier.state.equityData == null) {
+      if (ref.read(equityProvider).equityData == null) {
         notifier.refreshEquity();
       }
     });
@@ -208,11 +205,12 @@ class _EquitydetailsState extends ConsumerState<Equitydetails> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // const NoHomeEquity(),
                             // ✅ LOADING STATE: Show spinner if loading and no data
                             if (equityState.loading && equityData.isEmpty)
                               SizedBox(
                                 height: 200.h,
-                                child: Center(
+                                child: const Center(
                                   child: CircularProgressIndicator(
                                     color: AppColors.primaryColor,
                                   ),
@@ -259,7 +257,7 @@ class _EquitydetailsState extends ConsumerState<Equitydetails> {
                                         imagePath:
                                             'assets/wheel_segments/home_equity_icon.png',
                                         value: item['value'] ?? 0,
-                                        income: item['market_value'] ?? 0,
+                                        income: item['equity'] ?? 0,
                                         ismortgage:
                                             (item['ismortgage'] ?? 'false')
                                                 .toString(),
@@ -326,21 +324,12 @@ class _EquitydetailsState extends ConsumerState<Equitydetails> {
                                   height: 50.h,
                                   child: InkWell(
                                     onTap: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(56.0),
-                                            topRight: Radius.circular(56.0),
-                                          ),
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AddHomeEquity(),
                                         ),
-                                        builder: (BuildContext context) {
-                                          return const AddAssetsPopup(
-                                            title: "Add Account",
-                                            subTitle:
-                                                "Choose the type of asset you will like to add",
-                                          );
-                                        },
                                       );
                                     },
                                     child: Row(
@@ -431,21 +420,12 @@ class _EquitydetailsState extends ConsumerState<Equitydetails> {
                             children: [
                               InkWell(
                                 onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(56.0),
-                                        topRight: Radius.circular(56.0),
-                                      ),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AddHomeEquity(),
                                     ),
-                                    builder: (BuildContext context) {
-                                      return const AddAssetsPopup(
-                                        title: "Add Account",
-                                        subTitle:
-                                            "Choose the type of asset you will like to add",
-                                      );
-                                    },
                                   );
                                 },
                                 child: Padding(

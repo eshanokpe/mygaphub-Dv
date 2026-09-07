@@ -34,16 +34,14 @@ class TargetDate extends StatelessWidget {
       ? '-Select Date'
       : DateFormat('dd MMM yyyy').format(selectedDate!);
 
-  Future<void> _showAndroidPicker(BuildContext context) async {
-    // Determine the last date based on allowFuture flag
-    // Using 2050 is safer for the picker's internal rendering than 2100
-    final DateTime lastDate = allowFuture ? DateTime(2050) : DateTime.now();
+  DateTime get _maximumDate => allowFuture ? DateTime(2050) : DateTime.now();
 
+  Future<void> _showAndroidPicker(BuildContext context) async {
     final picked = await DatePicker.showSimpleDatePicker(
       context,
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime(1900),
-      // lastDate: lastDate,
+      lastDate: _maximumDate,
       dateFormat: "dd-MMMM-yyyy",
 
       // ✅ CRITICAL FIX: Set looping to FALSE.
@@ -138,7 +136,7 @@ class TargetDate extends StatelessWidget {
               child: CupertinoDatePicker(
                 initialDateTime: selectedDate ?? DateTime.now(),
                 mode: CupertinoDatePickerMode.date,
-                maximumDate: allowFuture ? DateTime(2050) : DateTime.now(),
+                maximumDate: _maximumDate,
                 minimumYear: 1900,
                 onDateTimeChanged: onDateSelected,
               ),

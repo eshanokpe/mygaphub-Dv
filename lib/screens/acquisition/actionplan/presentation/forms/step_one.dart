@@ -177,8 +177,8 @@ class _StepOneState extends ConsumerState<StepOne> {
                           context: context,
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(24.0),
-                              topRight: Radius.circular(24.0),
+                              topLeft: Radius.circular(56.0),
+                              topRight: Radius.circular(56.0),
                             ),
                           ),
                           builder: (_) => const ContinueStrategisingPopup(

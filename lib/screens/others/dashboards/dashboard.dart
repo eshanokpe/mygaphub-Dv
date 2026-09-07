@@ -249,20 +249,10 @@ class _DashboardState extends State<Dashboard> {
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 0,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 0;
-            });
-          },
           child: Image.asset('assets/images/snapshotFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 0,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 0;
-            });
-          },
           child: Image.asset('assets/images/snapshot000.png', height: 22.h),
         ),
         label: '',
@@ -270,20 +260,10 @@ class _DashboardState extends State<Dashboard> {
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 1,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 1;
-            });
-          },
           child: Image.asset('assets/images/analyticsFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 1,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 1;
-            });
-          },
           child: Image.asset('assets/images/analytics000.png', height: 22.h),
         ),
         label: '',
@@ -291,20 +271,10 @@ class _DashboardState extends State<Dashboard> {
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 2,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 2;
-            });
-          },
           child: Image.asset('assets/images/acquisitionFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 2,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 2;
-            });
-          },
           child: Image.asset('assets/images/acquisition000.png', height: 22.h),
         ),
         label: '',
@@ -312,20 +282,10 @@ class _DashboardState extends State<Dashboard> {
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 3,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 3;
-            });
-          },
           child: Image.asset('assets/images/portfolioFFF.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 3,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 3;
-            });
-          },
           child: Image.asset('assets/images/portfolio000.png', height: 22.h),
         ),
         label: '',
@@ -333,20 +293,10 @@ class _DashboardState extends State<Dashboard> {
       BottomNavigationBarItem(
         icon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 4,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 4;
-            });
-          },
           child: Image.asset('assets/images/more000.png', height: 20.h),
         ),
         activeIcon: CustomAnimatedBottomNav(
           isActive: currentTabIndex == 4,
-          onTap: () {
-            setState(() {
-              currentTabIndex = 4;
-            });
-          },
           child: Image.asset('assets/images/more000.png', height: 22.h),
         ),
         label: '',
@@ -395,11 +345,12 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: currentTabIndex,
-        // onTap: (index) {
-        //   setState(() {
-        //     currentTabIndex = index;
-        //   });
-        // },
+        onTap: (index) {
+          if (index == currentTabIndex) return;
+          setState(() {
+            currentTabIndex = index;
+          });
+        },
       ),
     );
   }

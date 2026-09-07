@@ -1,26 +1,24 @@
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../controller/investment_form_controller.dart';
-import '../action_plan_strategy.dart';
-
-class ContinueStrategisingPopup extends ConsumerWidget {
+class DeletePopup extends StatefulWidget {
   final String title;
-  const ContinueStrategisingPopup({super.key, required this.title});
+  final Future<void> Function() onConfirm;
+
+  const DeletePopup({super.key, required this.title, required this.onConfirm});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.read(investmentFormControllerProvider.notifier);
-    final isSaving = ref.watch(
-      investmentFormControllerProvider.select(
-        (state) => state.isNavigating || state.isLoading,
-      ),
-    );
+  State<DeletePopup> createState() => _DeletePopupState();
+}
 
+class _DeletePopupState extends State<DeletePopup> {
+  bool _isDeleting = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
@@ -38,7 +36,7 @@ class ContinueStrategisingPopup extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 InkWell(
-                  onTap: isSaving ? null : () => Navigator.pop(context),
+                  onTap: () => Navigator.pop(context),
                   child: Center(
                     child: Container(
                       height: 5.h,
@@ -51,17 +49,19 @@ class ContinueStrategisingPopup extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(height: 20.h),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.nunitoSans(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16.sp,
+                Center(
+                  child: Text(
+                    widget.title,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunitoSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16.sp,
+                    ),
                   ),
                 ),
                 SizedBox(height: 10.h),
                 Text(
-                  'Your progress will be saved and can be easily accessed on the strategy page',
+                  'This asset will be permanently deleted. This action cannot be reversed once the account has been deleted.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.nunitoSans(
                     fontWeight: FontWeight.w400,
@@ -72,44 +72,30 @@ class ContinueStrategisingPopup extends ConsumerWidget {
                 SizedBox(height: 30.h),
                 CustomButton(
                   color: AppColors.primaryColor,
-                  text: 'Continue Strategy',
+                  text: 'Go Back',
                   fontSize: 16.sp,
                   borderRadius: 30,
                   icon: null,
                   iconColor: AppColors.primaryColor,
                   borderColor: AppColors.primaryColor,
-                  onPressed: isSaving ? null : () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context),
                   textColor: AppColors.contentColorWhite,
                 ),
                 SizedBox(height: 20.h),
                 CustomButton(
-                  text: 'Save for Later',
+                  text: 'Delete Asset',
                   fontSize: 16.sp,
                   borderRadius: 30,
                   icon: null,
                   iconColor: AppColors.primaryColor,
                   borderColor: const Color(0xffC8CECC),
-                  isLoading: isSaving,
-                  onPressed: isSaving
+                  isLoading: _isDeleting,
+                  onPressed: _isDeleting
                       ? null
                       : () async {
-                          final saved = await controller.saveAndContinueLater(
-                            context,
-                          );
-
-                          if (saved && context.mounted) {
-                            // Capture the navigator before popping the bottom-sheet
-                            // route; the sheet's BuildContext is no longer safe to
-                            // navigate with after it has been dismissed.
-                            final navigator = Navigator.of(context);
-                            navigator.pop();
-                            navigator.pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => const ActionPlanStrategy(),
-                              ),
-                            );
-                          }
-                          // if not saved, the sheet stays open and the error banner shows on the form screen behind it
+                          setState(() => _isDeleting = true);
+                          await widget.onConfirm();
+                          if (mounted) setState(() => _isDeleting = false);
                         },
                   color: Colors.white,
                   textColor: AppColors.blackColor,

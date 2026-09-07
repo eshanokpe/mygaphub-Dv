@@ -1,12 +1,21 @@
+import 'package:GapHub/provider/providers.dart';
 import 'package:GapHub/utils/colors.dart';
+import 'package:GapHub/utils/constants.dart';
+import 'package:GapHub/widgets/bottomnav.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart' hide Provider;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../widget/topBar.dart';
+import '../../mortgage/mortgagedetails.dart';
 import '../provider/homeEquityItemModel.dart';
+import '../widget/assetsListCard.dart';
+import '../widget/piechartHomeEquity.dart';
 import 'editHomeEquityItem.dart';
 
 final homeEquityItemProvider =
@@ -32,6 +41,7 @@ class HomeEquityItem extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      bottomNavigationBar: const BottomNav(4),
       body: SafeArea(
         child: Column(
           children: [
@@ -51,7 +61,6 @@ class HomeEquityItem extends ConsumerWidget {
               ),
             ),
             Expanded(
-              // ✅ FIX 2: Pass the raw Map down to _HomeEquityItemBody
               child: _HomeEquityItemBody(
                 item: model,
                 imagePath: imagePath,
@@ -78,6 +87,7 @@ class _HomeEquityItemBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currency = context.watch<Providers>().snapshotmodel.currency;
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Column(
@@ -85,7 +95,7 @@ class _HomeEquityItemBody extends StatelessWidget {
         children: [
           _SummaryCard(item: item, imagePath: imagePath),
           SizedBox(height: 16.h),
-          _DetailsCard(item: item),
+          _DetailsCard(item: item, currency: currency),
 
           if (item.document != null && item.document!.isNotEmpty) ...[
             SizedBox(height: 16.h),
@@ -95,8 +105,84 @@ class _HomeEquityItemBody extends StatelessWidget {
             ),
           ],
 
-          SizedBox(height: 40.h),
+          SizedBox(height: 30.h),
 
+          item.ismortgage == true
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Mortgage Account".toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    AssetsListCard(
+                      currency: currency,
+                      title: item.creditorName ?? 'Unknown',
+                      subTitle: item.securedAgainst ?? '',
+                      imagePath: 'assets/wheel_segments/house.png',
+                      value: item.currentBalance ?? 0,
+                      income: item.currentBalance ?? 0,
+                      ismortgage: 'false',
+                      onTap: () async {
+                        Dio dio = Dio();
+                        const fetchUrl = '$baseUrl/app/360/mortgage';
+                        final prefs = await SharedPreferences.getInstance();
+                        final token = prefs.getString('tokenDB');
+                        final response = await dio.get(
+                          fetchUrl,
+                          options: Options(
+                            headers: {'Authorization': 'Bearer $token'},
+                          ),
+                        );
+                        final mapList = response.data['data']['mortgages'];
+                        final mapListLite =
+                            response.data['data']['mortgages_detail'];
+                        final seveng = response.data['data']['seveng'];
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                Mortgagedetails(mapList, mapListLite, seveng),
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 15.h),
+                    Text(
+                      "Equity Distribution".toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    PiechartHomeEquity(
+                      labels: item.chartLabels ?? [],
+                      percent: item.chartPercentages ?? [],
+                      values: item.chartValues ?? [],
+                      gradients: (item.chartLabels ?? []).map((label) {
+                        var gradientByAssetCategory = {
+                          'Home Equity': ['0XFFF6981E', '0XFF825212'],
+                          'Mortgage': ['0XFF266C26', '0XFF173C17'],
+                        };
+                        final stops =
+                            gradientByAssetCategory[label] ??
+                            ['0XFFAA076B', '0XFF61045F'];
+                        return [
+                          Color(int.parse(stops[0])),
+                          Color(int.parse(stops[1])),
+                        ];
+                      }).toList(),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+          SizedBox(height: 30.h),
           InkWell(
             onTap: () {
               Navigator.push(
@@ -230,8 +316,9 @@ class _SummaryCard extends StatelessWidget {
 
 class _DetailsCard extends StatelessWidget {
   final HomeEquityItemModel item;
+  final String currency;
 
-  const _DetailsCard({required this.item});
+  const _DetailsCard({required this.item, required this.currency});
 
   @override
   Widget build(BuildContext context) {
@@ -262,10 +349,24 @@ class _DetailsCard extends StatelessWidget {
           _DetailRow(
             label: 'Current market value of your home',
             valueWidget: RichText(
-              text: TextSpan(children: _splitAmount(item.formattedMarketValue)),
+              text: TextSpan(
+                children: _splitAmount(item.formattedMarketValue, currency),
+              ),
             ),
           ),
           _Divider(),
+          item.ismortgage == true
+              ? _DetailRow(
+                  label: 'Mortgage Amount',
+                  valueWidget: RichText(
+                    text: TextSpan(
+                      children: _splitAmount(item.currentBalance, currency),
+                    ),
+                  ),
+                  valueFontSize: 24.sp,
+                  valueWeight: FontWeight.w700,
+                )
+              : const SizedBox.shrink(),
           _DetailRow(
             label: 'Ownership Percentage',
             value: item.ownershipPercentage != null
@@ -286,11 +387,13 @@ class _DetailsCard extends StatelessWidget {
     );
   }
 
-  List<TextSpan> _splitAmount(String formatted) {
-    final parts = formatted.split('.');
+  List<TextSpan> _splitAmount(String? formatted, String? currency) {
+    final safeFormatted = formatted ?? '0.00';
+    final parts = safeFormatted.split('.');
+
     return [
       TextSpan(
-        text: '£${parts[0]}',
+        text: '${currency}${parts[0]}',
         style: GoogleFonts.nunitoSans(
           fontSize: 24.sp,
           fontWeight: FontWeight.w700,
@@ -358,7 +461,7 @@ class _DetailRow extends StatelessWidget {
 class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Divider(height: 1, thickness: 1, color: const Color(0xffF0F0F0));
+    return const Divider(height: 1, thickness: 1, color: Color(0xffF0F0F0));
   }
 }
 

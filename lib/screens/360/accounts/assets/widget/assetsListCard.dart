@@ -66,7 +66,7 @@ class AssetsListCard extends StatelessWidget {
                     end: Alignment.centerRight,
                     colors: _isMortgage
                         ? const [Color(0xFF174E18), Color(0xFF0F2B10)]
-                        : const [],
+                        : const [Colors.transparent, Colors.transparent],
                   ),
                   borderRadius: BorderRadius.only(
                     topRight: Radius.circular(16.r),
@@ -86,7 +86,7 @@ class AssetsListCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.h),
+              padding: EdgeInsets.symmetric(vertical: 16.h),
               child: Row(
                 children: [
                   Container(
@@ -107,6 +107,7 @@ class AssetsListCard extends StatelessWidget {
                         Text(
                           title,
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
@@ -120,6 +121,7 @@ class AssetsListCard extends StatelessWidget {
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w300,
                             color: const Color(0xFF808080),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

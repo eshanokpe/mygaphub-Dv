@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:GapHub/utils/colors.dart';
 import 'package:GapHub/utils/constants.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
+import 'package:GapHub/widgets/customBottomSheet.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,16 +15,12 @@ import 'package:provider/provider.dart' as legacy;
 import 'package:GapHub/provider/providers.dart';
 import '../../../widget/percentageInput.dart';
 import '../../../widget/textInput.dart';
-import '../../SuccessModal.dart';
-import '../../protection/addProtection/widget/coverStartField.dart';
 import '../../retirement/presentation/widget/currencyInput.dart';
-import '../../retirement/presentation/widget/currencyInputAge.dart';
 import '../provider/home_equity_form_provider.dart';
 import '../widget/TargetDate.dart';
 import '../widget/bottomSheetPickerField.dart';
 import '../../../widget/formLabel.dart';
 import '../widget/successModalAssets.dart';
-import 'equitydetails.dart';
 
 class AddHomeEquity extends ConsumerStatefulWidget {
   const AddHomeEquity({super.key});
@@ -41,6 +38,8 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
   bool _debtLoaded = false;
 
   late List<Country> _allCountries;
+
+  bool _showManualAddress = false; //
 
   @override
   void initState() {
@@ -61,9 +60,6 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
     super.dispose();
   }
 
-  /// Finds the Country entry matching the currently selected country name
-  /// so we can show its flag next to the field. Returns null if nothing
-  /// has been picked yet (or the stored value doesn't match a known name).
   Country? _findCountryByName(String name) {
     try {
       return _allCountries.firstWhere((c) => c.name == name);
@@ -242,10 +238,6 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
     );
   }
 
-  /// Shared parser for the `address_components` array returned by both the
-  /// Place Details and Geocoding APIs (they use the same shape).
-  /// Shared parser for the `address_components` array returned by both the
-  /// Place Details and Geocoding APIs.
   ({String townCity, String postcode}) _parseAddressComponents(
     List components,
   ) {
@@ -381,10 +373,6 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
     }
   }
 
-  /// Fallback for when Place Details has no postal_code at all — this
-  /// happens for route-level picks (e.g. a bare street name with no house
-  /// number), since a street can span multiple postcodes and Place Details
-  /// won't guess. The Geocoding API is more willing to interpolate one.
   Future<({String townCity, String postcode})> _fetchFromGeocoding(
     String placeId,
   ) async {
@@ -428,6 +416,7 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
   Future<void> _openAddressSearch(HomeEquityFormNotifier notifier) async {
     List<Map<String, String>> predictions = [];
     bool isLoading = false;
+    bool hasText = false;
     Timer? debounce;
     final TextEditingController searchController = TextEditingController();
 
@@ -500,9 +489,14 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
           builder: (BuildContext innerContext, StateSetter setModalState) {
             return SafeArea(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                padding: EdgeInsets.only(
+                  left: 16.w,
+                  right: 16.w,
+                  top: 12.h,
+                  bottom: 12.h + MediaQuery.of(innerContext).viewInsets.bottom,
+                ),
                 child: SizedBox(
-                  height: MediaQuery.of(innerContext).size.height * 0.80,
+                  height: MediaQuery.of(innerContext).size.height * 0.50,
                   child: Column(
                     children: [
                       Container(
@@ -521,6 +515,7 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                               controller: searchController,
                               autofocus: true,
                               onChanged: (value) {
+                                setModalState(() => hasText = value.isNotEmpty);
                                 debounce?.cancel();
                                 debounce = Timer(
                                   const Duration(milliseconds: 400),
@@ -570,12 +565,21 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                                 Navigator.pop(innerContext);
                               }
                             },
-                            child: Image.asset(
-                              'assets/settings/xcancel.png',
-                              width: 20.sp,
-                              height: 20.sp,
-                              fit: BoxFit.contain,
-                            ),
+                            child: hasText
+                                ? Text(
+                                    'Cancel',
+                                    style: GoogleFonts.nunitoSans(
+                                      color: Colors.black,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  )
+                                : Image.asset(
+                                    'assets/settings/xcancel.png',
+                                    width: 20.sp,
+                                    height: 20.sp,
+                                    fit: BoxFit.contain,
+                                  ),
                           ),
                         ],
                       ),
@@ -584,27 +588,80 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                         child: isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : predictions.isEmpty
-                            ? Padding(
-                                padding: EdgeInsets.only(top: 24.h),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Image.asset(
-                                      'assets/wheel_segments/search_address.png',
-                                      width: 100.w,
-                                    ),
-                                    SizedBox(height: 12.h),
-                                    Text(
-                                      'Search for your home address',
-                                      style: GoogleFonts.nunitoSans(
-                                        color: AppColors.grayColor,
-                                        fontSize: 14.sp,
+                            ? (searchController.text.trim().isEmpty
+                                  ? Padding(
+                                      padding: EdgeInsets.only(top: 24.h),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            'assets/wheel_segments/search_address.png',
+                                            width: 100.w,
+                                          ),
+                                          SizedBox(height: 80.h),
+                                          Text(
+                                            'Search for your home address',
+                                            style: GoogleFonts.nunitoSans(
+                                              color: AppColors.grayColor,
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              )
+                                    )
+                                  : Padding(
+                                      padding: EdgeInsets.only(top: 20.h),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          ListTile(
+                                            contentPadding: EdgeInsets.zero,
+                                            leading: Image.asset(
+                                              'assets/wheel_segments/noaddress.png',
+                                              width: 40.w,
+                                            ),
+                                            title: Text(
+                                              "Can't find your address?",
+                                              style: GoogleFonts.nunitoSans(
+                                                color: AppColors.grayColor,
+                                                fontSize: 14.sp,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            subtitle: InkWell(
+                                              onTap: () {
+                                                // Close the address search modal
+                                                if (Navigator.canPop(
+                                                  innerContext,
+                                                )) {
+                                                  Navigator.pop(innerContext);
+                                                }
+                                                // Open the manual address entry form
+                                                setState(
+                                                  () =>
+                                                      _showManualAddress = true,
+                                                );
+                                              },
+                                              child: Text(
+                                                "Type it in manually",
+                                                style: GoogleFonts.nunitoSans(
+                                                  color: AppColors.primaryColor,
+                                                  fontSize: 14.sp,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ))
                             : ListView.builder(
                                 itemCount: predictions.length,
                                 itemBuilder: (context, index) {
@@ -627,11 +684,15 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                                           await _fetchAddressComponents(
                                             placeId,
                                           );
-
+                                      print(
+                                        'Selected Address -> Town: "${result.townCity}", Postcode: "${result.postcode}"',
+                                      );
+                                      print("description: $description");
                                       // ✅ FIX: Check if we can still pop before doing so
                                       if (!mounted) return;
 
                                       notifier.setHomeAddress(description);
+                                      notifier.setAddress(description);
                                       notifier.setTownCity(result.townCity);
                                       notifier.setZipcode(result.postcode);
 
@@ -680,7 +741,6 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
     final height = orientation == Orientation.portrait
         ? MediaQuery.of(context).size.height
         : MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -740,6 +800,7 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                     title: 'Is there mortgage on this property',
                   ),
                   SizedBox(height: 20.h),
+
                   if (formState.mortgageProperty == 'Yes') ...[
                     Container(
                       padding: EdgeInsets.symmetric(
@@ -764,10 +825,34 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                                 ),
                               ),
                               SizedBox(width: 4.w),
-                              Image.asset(
-                                'assets/wheel_segments/mortgage_infor.png',
-                                width: 24.w,
-                                height: 24.h,
+                              SizedBox(
+                                width: 30.w,
+                                height: 30.h,
+                                child: InkWell(
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(56.0),
+                                          topRight: Radius.circular(56.0),
+                                        ),
+                                      ),
+                                      builder: (BuildContext context) {
+                                        return const CustomBottomSheet(
+                                          title: "Mortgage",
+                                          content:
+                                              "Here is an aggregation of all your debt that are secure against properties",
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Image.asset(
+                                    'assets/wheel_segments/mortgage_infor.png',
+                                    width: 24.w,
+                                    height: 24.h,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -925,50 +1010,134 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                   ),
                   SizedBox(height: 10.h),
 
-                  const FormLabel('Home Address'),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(14.r),
-                    onTap: () => _openAddressSearch(notifier),
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 14.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFffffff),
-                        borderRadius: BorderRadius.circular(14.r),
-                        border: Border.all(
-                          color: const Color(0xFFD0D0D0),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'assets/settings/search.png',
-                            fit: BoxFit.contain,
-                            width: 20.w,
+                  Row(
+                    mainAxisAlignment: _showManualAddress
+                        ? MainAxisAlignment.spaceBetween
+                        : MainAxisAlignment.start,
+                    children: [
+                      const FormLabel('Home Address'),
+                      _showManualAddress
+                          ? InkWell(
+                              onTap: () => _openAddressSearch(notifier),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Search ',
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Image.asset(
+                                      'assets/settings/search.png',
+                                      color: AppColors.primaryColor,
+                                      width: 12.sp,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : Container(),
+                    ],
+                  ),
+                  _showManualAddress
+                      ? Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 13.h,
                           ),
-                          SizedBox(width: 8.w),
-                          Expanded(
-                            child: Text(
-                              formState.homeAddress.isEmpty
-                                  ? 'Enter a street address, postcode, e.t.c'
-                                  : formState.homeAddress,
-                              style: GoogleFonts.nunitoSans(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w500,
-                                color: formState.homeAddress.isEmpty
-                                    ? AppColors.grayColor
-                                    : Colors.black,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const FormLabel('Address line 1'),
+                              TextInput(
+                                hint: 'Street and house number',
+                                value: formState.address,
+                                onChanged: notifier.setAddress,
+                                expandable: true,
+                                border: 16.sp,
+                              ),
+                              SizedBox(height: 10.h),
+                              const FormLabel('Address line 2'),
+                              TextInput(
+                                hint: 'Flat, buidling, or unit',
+                                value: formState.address2,
+                                onChanged: notifier.setAddress2,
+                                expandable: true,
+                                border: 16.sp,
+                              ),
+                              SizedBox(height: 10.h),
+                              const FormLabel('Town/City?'),
+                              TextInput(
+                                hint: 'Enter town or city',
+                                value: formState.townCity,
+                                onChanged: notifier.setTownCity,
+                                expandable: true,
+                                border: 16.sp,
+                              ),
+                              SizedBox(height: 10.h),
+
+                              const FormLabel('Postcode?'),
+                              TextInput(
+                                hint: 'e.g L1 8JQ',
+                                value: formState.zipcode,
+                                onChanged: notifier.setZipcode,
+                                expandable: true,
+                                border: 16,
+                              ),
+                            ],
+                          ),
+                        )
+                      : InkWell(
+                          borderRadius: BorderRadius.circular(14.r),
+                          onTap: () => _openAddressSearch(notifier),
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 14.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFffffff),
+                              borderRadius: BorderRadius.circular(14.r),
+                              border: Border.all(
+                                color: const Color(0xFFD0D0D0),
+                                width: 1.0,
                               ),
                             ),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  'assets/settings/search.png',
+                                  fit: BoxFit.contain,
+                                  width: 20.w,
+                                ),
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: Text(
+                                    formState.homeAddress.isEmpty
+                                        ? 'Enter a street address, postcode, e.t.c'
+                                        : formState.homeAddress,
+                                    style: GoogleFonts.nunitoSans(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: formState.homeAddress.isEmpty
+                                          ? AppColors.grayColor
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        ),
 
                   SizedBox(height: 15.h),
                   const FormLabel('Current market value of your home?'),
