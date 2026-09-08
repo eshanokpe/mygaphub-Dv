@@ -13,15 +13,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:GapHub/provider/providers.dart';
+import 'package:GapHub/screens/360/accounts/cash/provider/cash_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Cash extends StatefulWidget {
+class Cash extends ConsumerStatefulWidget {
   const Cash({super.key});
 
   @override
-  _CashState createState() => _CashState();
+  ConsumerState<Cash> createState() => _CashState();
 }
 
-class _CashState extends State<Cash> {
+class _CashState extends ConsumerState<Cash> {
   var key = GlobalKey<FormState>();
   TextEditingController name = TextEditingController();
   TextEditingController details = TextEditingController();
@@ -990,6 +992,8 @@ class _CashState extends State<Cash> {
         return;
       }
 
+      await ref.read(cashProvider.notifier).refreshCash();
+
       // Fetch updated cash data
       var getCashResponse = await dio.get(
         "$baseUrl/app/360/cash",
@@ -1000,6 +1004,7 @@ class _CashState extends State<Cash> {
       var seveng = getCashResponse.data["seveng"];
       var mapListLite = getCashResponse.data["cash_detail"];
       var bespokes = getCashResponse.data["bespokes"];
+      ref.read(cashProvider.notifier).updateCashData(getCashResponse.data);
 
       // ✅ FIXED: Parallel fetching with explicit types
       final results = await Future.wait([
@@ -1036,15 +1041,15 @@ class _CashState extends State<Cash> {
       timer.cancel();
       if (Navigator.canPop(context)) Navigator.pop(context);
 
-      Navigator.pop(context);
-
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) =>
               Cashdetails(mapList, mapListLite, seveng, bespokes),
         ),
       );
+
+      if (mounted) Navigator.pop(context, true);
 
       Fluttertoast.showToast(msg: 'Account saved successfully');
     } catch (e) {

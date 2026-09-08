@@ -101,12 +101,12 @@ class AddAssetsPopup extends StatelessWidget {
                 assetPath: 'assets/wheel_segments/cash_icon.png',
                 title: 'Cash',
                 subTitle: 'Sync and add Insurance automatically',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
+                onTap: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const Cash()),
                   );
+                  if (context.mounted) Navigator.pop(context);
                 },
               ),
               Divider(

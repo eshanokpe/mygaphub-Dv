@@ -516,9 +516,9 @@ class AssetsContent extends ConsumerWidget {
             title: 'Cash',
             subTitle: cashState.loading ? 'Updating...' : '360',
             amount: cashSum,
-            onTap: () {
+            onTap: () async {
               // Pass raw data from provider if Cashdetails needs it
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => Cashdetails(
@@ -529,6 +529,7 @@ class AssetsContent extends ConsumerWidget {
                   ),
                 ),
               );
+              ref.read(cashProvider.notifier).refreshCash();
             },
           ),
 

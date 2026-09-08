@@ -55,16 +55,24 @@ class CashNotifier extends StateNotifier<CashState> {
       if (response.statusCode != 200) throw Exception('Failed to load cash');
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = body["data"] as Map<String, dynamic>?;
-
-      state = state.copyWith(
-        cashData: data?['cash'],
-        cashDetail: data?['cash_detail'],
-        loading: false,
-      );
+      updateCashData(body);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
+  }
+
+  void updateCashData(dynamic responseData) {
+    final body = Map<String, dynamic>.from(responseData as Map);
+    final data = body['data'] is Map
+        ? Map<String, dynamic>.from(body['data'] as Map)
+        : body;
+
+    state = state.copyWith(
+      cashData: data['cash'],
+      cashDetail: data['cash_detail'],
+      loading: false,
+      error: null,
+    );
   }
 }
 

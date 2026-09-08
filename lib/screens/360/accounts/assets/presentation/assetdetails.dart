@@ -595,7 +595,13 @@ class _AssetdetailsState extends ConsumerState<Assetdetails> {
                                             "Choose the type of asset you will like to add",
                                       );
                                     },
-                                  );
+                                  ).whenComplete(() {
+                                    if (mounted) {
+                                      ref
+                                          .read(cashProvider.notifier)
+                                          .refreshCash();
+                                    }
+                                  });
                                 },
                                 child: Padding(
                                   padding: EdgeInsets.all(8.w),

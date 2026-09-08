@@ -21,6 +21,7 @@ import '../widget/TargetDate.dart';
 import '../widget/bottomSheetPickerField.dart';
 import '../../../widget/formLabel.dart';
 import '../widget/successModalAssets.dart';
+import '../widget/targetDateFuture.dart';
 
 class AddHomeEquity extends ConsumerStatefulWidget {
   const AddHomeEquity({super.key});
@@ -413,12 +414,21 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
     }
   }
 
-  Future<void> _openAddressSearch(HomeEquityFormNotifier notifier) async {
+  Future<void> _openAddressSearch(
+    HomeEquityFormNotifier notifier,
+    String selectedCountry,
+  ) async {
     List<Map<String, String>> predictions = [];
     bool isLoading = false;
     bool hasText = false;
     Timer? debounce;
     final TextEditingController searchController = TextEditingController();
+    final countryCode = _findCountryByName(
+      selectedCountry,
+    )?.countryCode.toLowerCase();
+    final countryFilter = countryCode == null || countryCode.isEmpty
+        ? 'country:gb|country:us|country:ca|country:za'
+        : 'country:$countryCode';
 
     Future<void> fetchPredictions(
       String query,
@@ -437,7 +447,7 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
             'input': query,
             // ✅ FIX 1: Use 'geocode' to prioritize precise locations over broad areas
             'types': 'geocode',
-            'components': 'country:gb|country:us|country:ca|country:za',
+            'components': countryFilter,
             'key': googlePlacesApiKey,
           },
         );
@@ -601,7 +611,7 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                                             'assets/wheel_segments/search_address.png',
                                             width: 100.w,
                                           ),
-                                          SizedBox(height: 80.h),
+                                          SizedBox(height: 20.h),
                                           Text(
                                             'Search for your home address',
                                             style: GoogleFonts.nunitoSans(
@@ -950,8 +960,9 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                           SizedBox(height: 10.h),
 
                           const FormLabel('Payoff Target Date'),
-                          TargetDate(
+                          TargetDateFuture(
                             darkColor: true,
+                            allowFuture: true,
                             selectedDate: formState.targetDate,
                             isExpanded: formState.isTargetDateExpanded,
                             onToggle: notifier.toggleTargetDateExpanded,
@@ -1018,7 +1029,10 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                       const FormLabel('Home Address'),
                       _showManualAddress
                           ? InkWell(
-                              onTap: () => _openAddressSearch(notifier),
+                              onTap: () => _openAddressSearch(
+                                notifier,
+                                formState.country,
+                              ),
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 8.0),
                                 child: Row(
@@ -1097,7 +1111,8 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
                         )
                       : InkWell(
                           borderRadius: BorderRadius.circular(14.r),
-                          onTap: () => _openAddressSearch(notifier),
+                          onTap: () =>
+                              _openAddressSearch(notifier, formState.country),
                           child: Container(
                             width: double.infinity,
                             padding: EdgeInsets.symmetric(
