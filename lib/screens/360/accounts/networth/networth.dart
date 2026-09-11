@@ -277,12 +277,6 @@ class _NetworthState extends ConsumerState<Networth> {
                           ),
                           fit: BoxFit.cover,
                         ),
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF134EB2), Color(0xff266C26)],
-                          stops: [0.0, 5.8],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
                       ),
                       child: Stack(
                         fit: StackFit.expand,

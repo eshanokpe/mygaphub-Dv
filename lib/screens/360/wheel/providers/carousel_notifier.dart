@@ -35,14 +35,211 @@ class CarouselState {
 }
 
 class CarouselNotifier extends Notifier<CarouselState> {
-  double _rotationForIndex(int index, int total) {
-    if (total == 0) return 0.0; // ← guard
-    final sectionAngle = (2 * pi) / total;
-    const double pointerAngle = -pi / 2;
-    double r =
-        (pointerAngle - (index * sectionAngle + sectionAngle / 2)) % (2 * pi);
-    if (r > pi) r -= 2 * pi;
-    return r;
+  // Adjust each active wheel independently.
+  static const double wheelRotation = -7 * pi / 12;
+  static const double wheelRotation1 = -3 * pi / 4;
+  static const double wheelRotation2 = -11 * pi / 12;
+  static const double wheelRotation3 = 11 * pi / 12;
+  static const double wheelRotation4 = 3 * pi / 4;
+  static const double wheelRotation5 = 7 * pi / 12;
+  static const double wheelRotation6 = 5 * pi / 12;
+  static const double wheelRotation7 = pi / 4;
+  static const double wheelRotation8 = pi / 12;
+  static const double wheelRotation9 = -pi / 12;
+  static const double wheelRotation10 = -pi / 4;
+  static const double wheelRotation11 = -5 * pi / 12;
+
+  // Each row belongs to one active wheel and contains angles for the other
+  // wheel icons. Use null for the active item's unused child angle.
+  static const List<List<double?>> childWheelRotations = [
+    [
+      null,
+      90 * pi / 1.890,
+      90 * pi / 1.10,
+      90 * pi / 3.16,
+      90 * pi / 5.020,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 2.230,
+      90 * pi / 4.950,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.090,
+      null,
+      90 * pi / 2.280,
+      90 * pi / 5.010,
+      90 * pi / 5.070,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 5.090,
+      90 * pi / 5.050,
+      90 * pi / 1.110,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 2.445, //assets
+      null,
+      90 * pi / 5.040, //stretegy
+      90 * pi / 4.650, //philanthropy
+      90 * pi / 1.1026, // Mortage
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 5.300,
+      0.0,
+      90 * pi / 4.3750, //cash
+    ],
+    [
+      90 * pi / 4.020, //network
+      90 * pi / 3.630, //assets
+      90 * pi / 4.299, //income
+      null,
+      90 * pi / 5.300, //philanthropy
+      90 * pi / 4.240, //morgage
+      90 * pi / 1.899, //cash
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      null,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 5.020,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      null,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 5.020,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      0.0,
+      null,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 5.020,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      0.0,
+      0.0,
+      null,
+      0.0,
+      0.0,
+      90 * pi / 5.020,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      0.0,
+      0.0,
+      0.0,
+      null,
+      0.0,
+      90 * pi / 5.020,
+      90 * pi / 1.9900,
+    ],
+    // Protection
+    [
+      90 * pi / 1.900,
+      90 * pi / 1.200,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 0.190, // investment
+      90 * pi / 0.090, //retirement
+      null,
+      90 * pi / 5.020,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      null,
+      90 * pi / 1.9900,
+    ],
+    [
+      90 * pi / 2.1,
+      90 * pi / 1.9,
+      90 * pi / 1.099990 * 0.1,
+      90 * pi / 5.010,
+      90 * pi / 5.020,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90 * pi / 5.020,
+      null,
+    ],
+  ];
+
+  static const List<double> wheelRotations = [
+    wheelRotation,
+    wheelRotation1,
+    wheelRotation2,
+    wheelRotation3,
+    wheelRotation4,
+    wheelRotation5,
+    wheelRotation6,
+    wheelRotation7,
+    wheelRotation8,
+    wheelRotation9,
+    wheelRotation10,
+    wheelRotation11,
+  ];
+
+  double _rotationForIndex(int index) {
+    return wheelRotations[index];
   }
 
   @override
@@ -50,8 +247,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
     final items = <WheelItem>[
       WheelItem(
         title: "Net \n   Worth",
-        iconRotation: 90 * pi / 2.1,
-        childIconRotation: 90 * pi / 1.9,
+        iconRotation: 90 * pi / 2.4055,
         activeCardPath: 'assets/wheel_segments/networth_icon.png',
         segmentPath: 'assets/wheel_segments/segment_networth.png',
         centerIconPath: 'assets/wheel_segments/networth_icon.png',
@@ -60,8 +256,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
       ),
       WheelItem(
         title: "Assets",
-        iconRotation: 90 * pi / 2.2 / 0.2,
-        childIconRotation: 90 * pi / 1.9,
+        iconRotation: 90 * pi / 2.1800,
         activeCardPath: 'assets/wheel_segments/Assets.png',
         segmentPath: 'assets/wheel_segments/segment_assets.png',
         centerIconPath: 'assets/wheel_segments/assets_icon.png',
@@ -70,8 +265,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
       ),
       WheelItem(
         title: "Income",
-        iconRotation: 90 * pi / 1.099990 * 0.1,
-        childIconRotation: 90 * pi / 1.099990 * 0.1,
+        iconRotation: 90 * pi / 2.900,
         activeCardPath: 'assets/wheel_segments/Income.png',
         segmentPath: 'assets/wheel_segments/segment_income.png',
         centerIconPath: 'assets/wheel_segments/income_icon.png',
@@ -80,8 +274,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
       ),
       WheelItem(
         title: "Strategy",
-        iconRotation: 90 * pi / 5.010,
-        childIconRotation: 90 * pi / 5.010,
+        iconRotation: 90 * pi / 5.320,
         activeCardPath: 'assets/wheel_segments/Strategy.png',
         segmentPath: 'assets/wheel_segments/segment_strategy.png',
         centerIconPath: 'assets/wheel_segments/strategy_icon.png',
@@ -91,7 +284,6 @@ class CarouselNotifier extends Notifier<CarouselState> {
       WheelItem(
         title: "Philanthropy",
         iconRotation: 90 * pi / 1.980,
-        childIconRotation: 90 * pi / 5.020,
         activeCardPath: 'assets/wheel_segments/Philanthropy.png',
         segmentPath: 'assets/wheel_segments/segment_philanthropy.png',
         centerIconPath: 'assets/wheel_segments/philanthropy_icon.png',
@@ -136,26 +328,27 @@ class CarouselNotifier extends Notifier<CarouselState> {
       ),
       WheelItem(
         title: "Protection",
-        iconRotation: 90 * pi / 5.1,
+        iconRotation: 90 * pi / 5.210,
         activeCardPath: 'assets/wheel_segments/Protection.png',
         segmentPath: 'assets/wheel_segments/segment_protection.png',
         centerIconPath: 'assets/wheel_segments/protection_icon.png',
+        centerIconRotation: 90 * pi / 2.1112,
         centerWheelIconPath: 'assets/wheel_segments/networth_wheelIcon.png',
         gradienColor: [const Color(0xFFF06708), const Color(0xFF7F3802)],
       ),
       WheelItem(
         title: "Expenditure",
-        iconRotation: 90 * pi / 5.1,
+        iconRotation: 90 * pi / 1.270,
         activeCardPath: 'assets/wheel_segments/Expenditure.png',
         segmentPath: 'assets/wheel_segments/segment_expenditure.png',
         centerIconPath: 'assets/wheel_segments/expenditure_icon.png',
-        centerWheelIconPath: 'assets/wheel_segments/networth_wheelIcon.png',
+        centerIconRotation: 90 * pi / 2.20,
+        // centerWheelIconPath: 'assets/wheel_segments/networth_wheelIcon.png',
         gradienColor: [const Color(0xFFC61A24), const Color(0xFF6A1116)],
       ),
       WheelItem(
         title: "Liabilities",
         iconRotation: 90 * pi / 1.9920,
-        childIconRotation: 90 * pi / 1.9900,
         activeCardPath: 'assets/wheel_segments/Liabilities.png',
         segmentPath: 'assets/wheel_segments/segment_liabilities.png',
         centerIconPath: 'assets/wheel_segments/liabilities_icon.png',
@@ -229,7 +422,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
 
     return CarouselState(
       selectedIndex: 0,
-      wheelRotation: _rotationForIndex(0, items.length),
+      wheelRotation: _rotationForIndex(0),
       isDragging: false, // ← NEW
       wheelItems: items,
       sideCardItems: sideCards,
@@ -242,7 +435,7 @@ class CarouselNotifier extends Notifier<CarouselState> {
     final real = ((index % total) + total) % total;
     state = state.copyWith(
       selectedIndex: real,
-      wheelRotation: _rotationForIndex(real, total),
+      wheelRotation: _rotationForIndex(real),
       isDragging: false,
     );
   }

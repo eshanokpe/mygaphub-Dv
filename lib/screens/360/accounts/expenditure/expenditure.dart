@@ -1,275 +1,465 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:GapHub/screens/SEED/seedash/seedash.dart';
-import 'package:GapHub/utils/constants.dart';
-import 'package:GapHub/utils/dialog.dart';
 import 'package:GapHub/provider/providers.dart';
+import 'package:GapHub/screens/SEED/seedash/seedash.dart';
+import 'package:GapHub/screens/portfolio/braidetails.dart';
+import 'package:GapHub/utils/colors.dart';
+import 'package:GapHub/utils/constants.dart';
+import 'package:GapHub/utils/httpErrorDisplay.dart';
 import 'package:GapHub/widgets/bottomnav.dart';
+import 'package:GapHub/widgets/customBottomSheet.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:nimble_charts/flutter.dart' as charts;
 import 'package:http/http.dart' as http;
-import 'package:GapHub/models/chartsmodel.dart';
-import 'package:GapHub/widgets/clock_widget.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../assets/provider/equity_provider.dart';
+import '../cash/provider/cash_provider.dart';
+import '../investment/provider/investment_provider.dart';
+import '../../wheel/360WheelScreen.dart';
+import '../../widget/category_dropdown.dart';
+import '../retirement/provider/pension_sum_provider.dart';
+import 'widget/BuildExpenditureContent.dart';
 
-class Expenditure extends StatefulWidget {
+class Expenditure extends ConsumerStatefulWidget {
   const Expenditure({super.key});
+
   @override
-  _ExpenditureState createState() => _ExpenditureState();
+  ConsumerState<Expenditure> createState() => _ExpenditureState();
 }
 
-class _ExpenditureState extends State<Expenditure> {
-  DialogBox dialogBox = DialogBox();
-  final List<charts.Series<Kpi, String>> _seriesData = [];
+class _ExpenditureState extends ConsumerState<Expenditure> {
+  bool isDropdownActive = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _appBarSolid = false;
+
+  // ✅ KEPT: Expenditure data variables
   Map? expenditureData;
   Map? expenditureDataLite;
-  String? currency;
-
-  addData(value, currency) {
-    _seriesData.add(
-      charts.Series(
-        data: [
-          Kpi(
-            kpi: const Text("Accomodat..."),
-            value: double.parse(value[0].toString()),
-            gradientColors: [const Color(0xff8C8D86), const Color(0xff8C8D86)],
-          ),
-          Kpi(
-            kpi: const Text("Mobility"),
-            value: double.parse(value[1].toString()),
-            gradientColors: [const Color(0xff8C8D86), const Color(0xff8C8D86)],
-          ),
-          Kpi(
-            kpi: const Text("General"),
-            value: double.parse(value[2].toString()),
-            gradientColors: [const Color(0xff8C8D86), const Color(0xff8C8D86)],
-          ),
-
-          Kpi(
-            kpi: const Text("Utilities"),
-            value: double.parse(value[3].toString()),
-            gradientColors: [const Color(0xff8C8D86), const Color(0xff8C8D86)],
-          ),
-          Kpi(
-            kpi: const Text("Debt"),
-            value: double.parse(value[4].toString()),
-            gradientColors: [const Color(0xff8C8D86), const Color(0xff8C8D86)],
-          ),
-          // Kpi(kpi: '', value: 100, colorVal: 0xfffffff)
-        ],
-        // domainFn: (Kpi kpi, int a) => kpi.kpi.data,
-        domainFn: (Kpi kpi, _) => kpi.kpi.data!,
-        measureFn: (Kpi kpi, _) => kpi.value,
-        colorFn: (Kpi kpi, _) =>
-            charts.ColorUtil.fromDartColor(kpi.gradientColors.first),
-        // outsideLabelStyleAccessorFn: (Kpi kpi, _) =>
-        //     charts.TextStyleSpec(color: charts.MaterialPalette.red.shadeDefault),
-        // fillPatternFn: (_, __) => charts.FillPatternType.solid,
-        id: 'Expenditure',
-        domainLowerBoundFn: (datum, index) => datum.kpi.data,
-        labelAccessorFn: (Kpi kpi, _) =>
-            '$currency${(kpi.value).toInt()}'.replaceAllMapped(
-              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-              (Match m) => '${m[1]},',
-            ),
-      ),
-    );
-  }
 
   @override
   void initState() {
-    setState(() => expenditureData = context.read<Providers>().expenditureList);
-    setState(
-      () => expenditureDataLite = context.read<Providers>().expenditureListLite,
-    );
-    currency = context.read<Providers>().currency;
-    print("expenditureDataLite: ${expenditureDataLite!["values"]}");
-    addData(expenditureDataLite!["values"], currency);
-
     super.initState();
+    _scrollController.addListener(() {
+      final statusBarHeight = MediaQuery.of(context).padding.top;
+      final triggerOffset = 200.h - statusBarHeight - 56.h;
+      final shouldBeSolid = _scrollController.offset >= triggerOffset;
+      if (shouldBeSolid != _appBarSolid) {
+        setState(() => _appBarSolid = shouldBeSolid);
+      }
+    });
+
+    // ✅ KEPT: Fetch financial data in parallel
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(investmentProvider.notifier).refreshInvestments();
+      ref.read(equityProvider.notifier).refreshEquity();
+      ref.read(cashProvider.notifier).refreshCash();
+      ref.read(pensionProvider.notifier).refreshPensions();
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    // var expenditureDataLite = widget.expenditureDataLite;
-    expenditureDataLite!["values"];
-    List<dynamic> lists = expenditureDataLite!["values"];
-    var sum = lists.reduce((value, current) => value + current);
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    print(sum);
-    String currency = context.watch<Providers>().snapshotmodel.currency;
-
-    Orientation orientation = MediaQuery.of(context).orientation;
-    final height = orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.height
-        : MediaQuery.of(context).size.width;
-    final width = orientation == Orientation.portrait
-        ? MediaQuery.of(context).size.width
-        : MediaQuery.of(context).size.height;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Expenditure',
-          style: TextStyle(fontSize: width * .06, fontWeight: FontWeight.w700),
+  Future<void> _showWheelBottomSheet(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      enableDrag: true,
+      isDismissible: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(56.0),
+          topRight: Radius.circular(56.0),
         ),
-        centerTitle: true,
       ),
-      bottomNavigationBar: const BottomNav(4),
-      body: ListView(
-        children: [
-          SizedBox(height: height * .01),
-          Center(
-            child: Text(
-              "Cost of Living: $currency${sum.toStringAsFixed(2)}"
-                  .replaceAllMapped(
-                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                    (Match m) => '${m[1]},',
-                  ),
-              style: TextStyle(
-                fontSize: width * .06,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+      builder: (BuildContext context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(56.0),
+            topRight: Radius.circular(56.0),
           ),
-          SizedBox(height: height * .01),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: width * .02,
-                vertical: height * .02,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(width * .01),
-                  border: Border.all(color: Theme.of(context).primaryColor),
-                ),
-                child: Text(
-                  "This is the amount you spend on your upkeep as an individual or a family.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontSize: width * .04,
-                    fontWeight: FontWeight.w500,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            color: Colors.white,
+            child: Column(
+              children: [
+                SizedBox(height: 16.sp),
+                InkWell(
+                  onTap: () => Navigator.pop(context),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 160),
+                    child: Container(
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xffCDCDCD),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-          SizedBox(height: height * .03),
-          Center(
-            child: Text(
-              "Your Average Cost of Living",
-              style: TextStyle(
-                decoration: TextDecoration.underline,
-                fontSize: width * .06,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          SizedBox(height: height * .01),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const ScrollPhysics(),
-            itemCount: expenditureDataLite!["labels"].length,
-            itemBuilder: (context, index) => Padding(
-              padding: EdgeInsets.symmetric(horizontal: width * .02),
-              child: Card(
-                elevation: 3,
-                color: const Color(0xff989898),
-                child: ListTile(
-                  onTap: () {},
-                  title: RichText(
-                    text: TextSpan(
+                SizedBox(height: 7.sp),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextSpan(
-                          text:
-                              "${expenditureDataLite!["labels"][index] == "debt_repayment" ? "Debt Repayment" : expenditureDataLite!["labels"][index].replaceFirst(expenditureDataLite!["labels"][index][0], expenditureDataLite!["labels"][index][0].toUpperCase())} - ",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: width * .04,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        TextSpan(
-                          text:
-                              "$currency${expenditureDataLite!["values"][index].toStringAsFixed(2)} "
-                                  .replaceAllMapped(
-                                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                    (Match m) => '${m[1]},',
-                                  ),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: width * .04,
-                            fontWeight: FontWeight.w400,
+                        Icon(Icons.close, color: Colors.black, size: 20.sp),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Close',
+                          style: GoogleFonts.nunitoSans(
+                            fontSize: 14.sp,
+                            color: AppColors.blackColor,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
+                // ✅ KEPT: Expenditure category for wheel
+                const Expanded(
+                  child: ThreesSixtyWheelScreen(initialCategory: "Expenditure"),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: height * .05),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * .02),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(width * .03),
-                ),
-                backgroundColor: Theme.of(context).primaryColor,
+        );
+      },
+    ).whenComplete(() {
+      if (mounted) setState(() => isDropdownActive = false);
+    });
+  }
+
+  // ✅ KEPT: Expenditure sum calculation logic
+  num _calculateDisplaySum() {
+    if (expenditureDataLite == null) return 0;
+    try {
+      List<dynamic> lists = expenditureDataLite!["values"];
+      if (lists.isEmpty) return 0;
+      return lists.reduce((value, current) => value + current);
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ KEPT: Expenditure data flow
+    final providers = context.watch<Providers>();
+    final currency = providers.snapshotmodel.currency;
+    expenditureData = providers.expenditureList;
+    expenditureDataLite = providers.expenditureListLite;
+
+    // ✅ KEPT: Expenditure sum logic
+    final num displaySum = _calculateDisplaySum();
+    final int wholeNumber = displaySum.toInt();
+    final String decimalPart = displaySum.toStringAsFixed(2).split('.').last;
+
+    // ✅ FROM NETWORTH UI: Dynamic icon and title opacity
+    final Color iconColor = _appBarSolid ? Colors.black : Colors.white;
+    final double titleOpacity = _appBarSolid ? 1.0 : 0.0;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: _appBarSolid ? Colors.white : Colors.transparent,
+        statusBarIconBrightness: _appBarSolid
+            ? Brightness.dark
+            : Brightness.light,
+      ),
+      child: Scaffold(
+        bottomNavigationBar: const BottomNav(4),
+        body: Stack(
+          children: [
+            // ✅ FROM NETWORTH UI: Scrollable body with animated header
+            SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ✅ FROM NETWORTH UI: Hero header container
+                  AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: const SystemUiOverlayStyle(
+                      statusBarColor: Colors.transparent,
+                      statusBarIconBrightness: Brightness.light,
+                      statusBarBrightness: Brightness.dark,
+                    ),
+                    child: Container(
+                      height: 300.h,
+                      decoration: const BoxDecoration(
+                        // ✅ KEPT: Expenditure blur image
+                        image: DecorationImage(
+                          image: AssetImage(
+                            'assets/wheel_segments/expenditureblur.png',
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Column(
+                            children: [
+                              SizedBox(height: 110.h),
+                              // ✅ FROM NETWORTH UI: Live amount display
+                              Padding(
+                                padding: EdgeInsets.only(top: 8.h),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: RichText(
+                                        overflow: TextOverflow.ellipsis,
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: "${currency ?? '0'}$wholeNumber"
+                                                  .replaceAllMapped(
+                                                    RegExp(
+                                                      r'(\d{1,3})(?=(\d{3})+(?!\d))',
+                                                    ),
+                                                    (Match m) => '${m[1]},',
+                                                  ),
+                                              style: GoogleFonts.nunitoSans(
+                                                fontSize: 36.sp,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: ".$decimalPart",
+                                              style: GoogleFonts.nunitoSans(
+                                                fontSize: 24.sp,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: 16.h,
+                                  bottom: 20.h,
+                                ),
+                                child: CategoryDropdown(
+                                  // ✅ KEPT: Expenditure label
+                                  selectedCategory: "Expenditure",
+                                  onTap: () {
+                                    setState(() => isDropdownActive = true);
+                                    _showWheelBottomSheet(context);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // ✅ FROM NETWORTH UI: Translated content card
+                  Transform.translate(
+                    offset: Offset(0, -60.h),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 10.h),
+
+                            // ✅ KEPT: Expenditure distribution label
+                            if (expenditureDataLite != null &&
+                                expenditureDataLite!.isNotEmpty)
+                              ExpenditureDistributionCard(
+                                expenditureData: expenditureDataLite,
+                                currency: currency,
+                                onSetBudgetTap: seed,
+                              ),
+                            SizedBox(height: 30.h),
+
+                            // ✅ KEPT: Simple Add Account button (no popup)
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              onPressed: seed,
-              child: Container(
-                padding: EdgeInsets.zero,
-                height: height * .06,
-                // width: width * .5,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Set Budget in SEED',
-                    style: TextStyle(
-                      color: const Color(0xfff3f3f4),
-                      fontWeight: FontWeight.w900,
-                      fontSize: width * .05,
+            ),
+            // ✅ FROM NETWORTH UI: Floating animated AppBar
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: _appBarSolid
+                      ? Colors.white
+                      : Colors.transparent,
+                  statusBarIconBrightness: _appBarSolid
+                      ? Brightness.dark
+                      : Brightness.light,
+                  statusBarBrightness: _appBarSolid
+                      ? Brightness.light
+                      : Brightness.dark,
+                ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  color: _appBarSolid ? Colors.white : Colors.transparent,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 8.h,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // ✅ FROM NETWORTH UI: Dynamic color back button
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios,
+                              color: iconColor,
+                              size: 20.sp,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          // ✅ FROM NETWORTH UI: Fade-in title on scroll
+                          AnimatedOpacity(
+                            opacity: titleOpacity,
+                            duration: const Duration(milliseconds: 250),
+                            // ✅ KEPT: Expenditure title
+                            child: Text(
+                              "Expenditure",
+                              style: GoogleFonts.nunitoSans(
+                                fontSize: 16.sp,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              // ✅ KEPT: Expenditure info bottom sheet content
+                              InkWell(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(56.0),
+                                        topRight: Radius.circular(56.0),
+                                      ),
+                                    ),
+                                    builder: (BuildContext context) {
+                                      return const CustomBottomSheet(
+                                        title: "Expenditure",
+                                        content:
+                                            "This is the amount you spend on your upkeep as an individual or a family.",
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.w),
+                                  child: SvgPicture.asset(
+                                    'assets/wheel_segments/info_thin.svg',
+                                    colorFilter: ColorFilter.mode(
+                                      iconColor,
+                                      BlendMode.srcIn,
+                                    ),
+                                    width: 24.w,
+                                    height: 24.h,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: height * .05, child: const Divider(thickness: 2)),
-          Center(
-            child: Text(
-              "Cost of Living Distribution",
-              style: TextStyle(
-                decoration: TextDecoration.underline,
-                fontSize: width * .06,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          SizedBox(height: height * .01),
-          Container(
-            height: height * .4,
-            padding: const EdgeInsets.all(8),
-            child: charts.BarChart(
-              _seriesData,
-              animate: true,
-              vertical: true,
-              barRendererDecorator: charts.BarLabelDecorator<String>(),
-              animationDuration: const Duration(milliseconds: 1000),
-            ),
-          ),
-          SizedBox(height: height * .05, child: const Divider(thickness: 2)),
-          const ClockWidget(3),
-          SizedBox(height: height * .05),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  // ✅ KEPT: Expenditure getData method unchanged
+  Future<void> getData(String cap, String small, BuildContext context) async {
+    final timeoutTimer = Timer(const Duration(seconds: 40), () {
+      EasyLoading.dismiss();
+      Fluttertoast.showToast(msg: "Request timed out. Please try again.");
+    });
+
+    EasyLoading.show(status: 'Loading', dismissOnTap: false);
+
+    try {
+      var url = Uri.parse("$baseUrl/app/portfolio/$small");
+      final prefs = await SharedPreferences.getInstance();
+      var token = prefs.getString('tokenDB');
+
+      var response = await http.get(
+        url,
+        headers: {"Authorization": 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                Braidetails(cap, jsonDecode(response.body), false),
+          ),
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: "Error: ${response.statusCode}. Something went wrong.",
+        );
+      }
+    } catch (error) {
+      Fluttertoast.showToast(msg: "An error occurred: ${error.toString()}");
+    } finally {
+      timeoutTimer.cancel();
+      EasyLoading.dismiss();
+    }
   }
 
   seed() async {
@@ -294,11 +484,65 @@ class _ExpenditureState extends State<Expenditure> {
       Navigator.pop(context);
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Seedash()),
+        MaterialPageRoute(builder: (context) => const Seedash()),
       );
     } else {
       timer.cancel();
       Navigator.pop(context);
     }
+  }
+}
+
+// ✅ KEPT: AssetRow widget unchanged
+class AssetRow extends StatelessWidget {
+  final String label;
+  const AssetRow({super.key, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      child: Row(
+        children: [
+          Container(
+            width: 12.w,
+            height: 12.h,
+            decoration: const BoxDecoration(
+              color: Color(0xFFCECECE),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
+            ),
+          ),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '0',
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+                TextSpan(
+                  text: '%',
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grayColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -19,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../iLAB/I360LabScreen.dart';
 import 'controllers/wheel_controller.dart';
 import 'providers/carousel_provider.dart';
+import 'providers/carousel_notifier.dart';
 import 'widgets/carousel_slider_widget.dart';
 import 'widgets/rotating_wheel_painter.dart';
 
@@ -43,8 +44,6 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
   // Arrow animation controllers
   late AnimationController _leftArrowController;
   late AnimationController _rightArrowController;
-  late Animation<double> _leftArrowAnimation;
-  late Animation<double> _rightArrowAnimation;
 
   // Idle carousel arrow pulse
   late AnimationController _idleCarouselArrowController;
@@ -77,12 +76,6 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
     _rightArrowController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
-    );
-    _leftArrowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _leftArrowController, curve: Curves.elasticOut),
-    );
-    _rightArrowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _rightArrowController, curve: Curves.elasticOut),
     );
 
     _idleCarouselArrowController = AnimationController(
@@ -327,66 +320,63 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
       color: Colors.white,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                // ── "Scroll across" hint ──────────────────────────────────
-                AnimatedOpacity(
-                  opacity: _showArrows ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(8.w),
-                      child: Text(
-                        'Scroll across to view more',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: const Color(0xff393737),
-                          fontWeight: FontWeight.w400,
-                        ),
+          return Column(
+            children: [
+              // ── "Scroll across" hint ──────────────────────────────────
+              AnimatedOpacity(
+                opacity: _showArrows ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.w),
+                    child: Text(
+                      'Scroll across to view more',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: const Color(0xff393737),
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
                 ),
+              ),
 
-                // ── Carousel navigation arrows ────────────────────────────
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildCarouselArrow(isLeft: true),
-                      _buildCarouselArrow(isLeft: false),
-                    ],
-                  ),
+              // ── Carousel navigation arrows ────────────────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildCarouselArrow(isLeft: true),
+                    _buildCarouselArrow(isLeft: false),
+                  ],
                 ),
-                // ── Carousel slider ───────────────────────────────────────
-                Transform.translate(
-                  offset: Offset(0, -20.h),
-                  child: SizedBox(
-                    height: constraints.maxHeight * 0.5,
-                    // No props needed — reads from Riverpod internally.
-                    child: CarouselSliderWidget(controller: _controller),
-                  ),
+              ),
+              // ── Carousel slider ───────────────────────────────────────
+              Expanded(
+                flex: 40,
+                child: Transform.translate(
+                  offset: Offset(0, -30.h),
+                  // No props needed — reads from Riverpod internally.
+                  child: CarouselSliderWidget(controller: _controller),
                 ),
+              ),
 
-                // ── Wheel ─────────────────────────────────────────────────
-                SizedBox(
-                  height: constraints.maxHeight * 0.42,
-                  child: Container(
-                    color: Colors.white,
-                    child: ClipRect(
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: Container(color: Colors.white),
-                          ),
+              // ── Wheel ─────────────────────────────────────────────────
+              Expanded(
+                flex: 42,
+                child: Container(
+                  color: Colors.white,
+                  child: ClipRect(
+                    child: Stack(
+                      children: [
+                        // Positioned.fill(child: Container(color: Colors.red)),
 
-                          // Draggable wheel
-                          Positioned(
-                            bottom: -160.h,
-                            left: -20.w,
-                            right: -20.w,
+                        // Draggable wheel
+                        Center(
+                          child: OverflowBox(
+                            maxWidth: double.infinity,
+                            alignment: Alignment.topCenter,
                             child: GestureDetector(
                               onPanStart: (_) =>
                                   setState(() => _isDragging = true),
@@ -403,119 +393,122 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
                                     .snapToNearest();
                               },
                               child: SizedBox(
-                                height: 380.h,
-                                width: double.infinity,
+                                height: 370.h,
+                                width: 465.w,
                                 child: LayoutBuilder(
                                   builder: (context, c) {
-                                    final size = min(c.maxWidth, 600.w);
+                                    final size = min(c.maxWidth, 800.w);
                                     return AnimatedBuilder(
                                       animation: _wheelAnimationController,
-                                      builder: (context, child) => CustomPaint(
-                                        size: Size(size, size),
-                                        painter: RotatingWheelPainter(
-                                          carouselState.wheelItems,
-                                          _wheelRotationAnimation.value,
-                                          selectedIndex,
-                                          _centerIcons,
-                                          carouselState.wheelItems
-                                              .map((i) => i.gradienColor)
-                                              .toList(),
-                                        ),
-                                      ),
+                                      builder: (context, child) {
+                                        return CustomPaint(
+                                          size: Size(size, size),
+                                          painter: RotatingWheelPainter(
+                                            carouselState.wheelItems,
+                                            _wheelRotationAnimation.value,
+                                            selectedIndex,
+                                            _centerIcons,
+                                            carouselState.wheelItems
+                                                .map((i) => i.gradienColor)
+                                                .toList(),
+                                            CarouselNotifier
+                                                .childWheelRotations,
+                                          ),
+                                        );
+                                      },
                                     );
                                   },
                                 ),
                               ),
                             ),
                           ),
+                        ),
 
-                          // iLab button
-                          Positioned(
-                            bottom: -40.h,
-                            left: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTapDown: (_) => _ilabTapController.forward(),
-                              onTapUp: (_) => _onIlabTap(),
-                              onTapCancel: () => _ilabTapController.reverse(),
-                              child: AnimatedBuilder(
-                                animation: _ilabTapController,
-                                builder: (_, child) => Transform.scale(
-                                  scale: _ilabScaleAnimation.value,
-                                  child: Opacity(
-                                    opacity: _ilabFadeAnimation.value,
-                                    child: child,
-                                  ),
+                        // iLab button
+                        Positioned(
+                          bottom: -30.h,
+                          left: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTapDown: (_) => _ilabTapController.forward(),
+                            onTapUp: (_) => _onIlabTap(),
+                            onTapCancel: () => _ilabTapController.reverse(),
+                            child: AnimatedBuilder(
+                              animation: _ilabTapController,
+                              builder: (_, child) => Transform.scale(
+                                scale: _ilabScaleAnimation.value,
+                                child: Opacity(
+                                  opacity: _ilabFadeAnimation.value,
+                                  child: child,
                                 ),
-                                child: Center(
-                                  child: Image.asset(
-                                    'assets/images/ILAB.png',
-                                    width: 150.w,
-                                    height: 160.h,
-                                  ),
+                              ),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/images/ILAB.png',
+                                  width: 180.w,
+                                  height: 160.h,
                                 ),
                               ),
                             ),
                           ),
+                        ),
 
-                          // Pointer indicator
-                          Positioned(
-                            top: -5.h,
-                            left: 0,
-                            right: 0,
-                            child: Stack(
-                              children: [
-                                Align(
-                                  alignment: Alignment.topCenter,
-                                  child: Image.asset(
-                                    'assets/images/pointer.png',
-                                    width: 50.w,
-                                    height: 50.h,
-                                  ),
+                        // Pointer indicator
+                        Positioned(
+                          top: -5.h,
+                          left: 0,
+                          right: 0,
+                          child: Stack(
+                            children: [
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: Image.asset(
+                                  'assets/images/pointer.png',
+                                  width: 50.w,
+                                  height: 50.h,
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 12.h),
-                                  child: Align(
-                                    alignment: Alignment.topCenter,
-                                    child: SizedBox(
-                                      width: 8.w,
-                                      height: 8.h,
-                                      child: Image.asset(
-                                        'assets/images/pointer_inside.png',
-                                        fit: BoxFit.contain,
-                                      ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(top: 12.h),
+                                child: Align(
+                                  alignment: Alignment.topCenter,
+                                  child: SizedBox(
+                                    width: 8.w,
+                                    height: 8.h,
+                                    child: Image.asset(
+                                      'assets/images/pointer_inside.png',
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
                                 ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Wheel-level left/right arrows
+                        Positioned(
+                          top: 40.h,
+                          left: 0,
+                          right: 0,
+                          height: 30.h,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20.w),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildWheelArrow(isLeft: true),
+                                _buildWheelArrow(isLeft: false),
                               ],
                             ),
                           ),
-
-                          // Wheel-level left/right arrows
-                          Positioned(
-                            top: 40.h,
-                            left: 0,
-                            right: 0,
-                            height: 30.h,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildWheelArrow(isLeft: true),
-                                  _buildWheelArrow(isLeft: false),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),

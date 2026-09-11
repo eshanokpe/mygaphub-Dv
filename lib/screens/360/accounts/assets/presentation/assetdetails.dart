@@ -208,7 +208,7 @@ class _AssetdetailsState extends ConsumerState<Assetdetails> {
     // ✅ 2. Extract sums safely (fallback to 0 while loading)
     final double invSum = investmentState.loading
         ? 0
-        : (investmentState.investmentSum ?? 0).toDouble();
+        : (investmentState.investmentSum).toDouble();
     final double cashSum = cashState.loading
         ? 0
         : (cashState.cashDetail?["sum"] ?? 0).toDouble();
@@ -264,12 +264,6 @@ class _AssetdetailsState extends ConsumerState<Assetdetails> {
                           ),
                           fit: BoxFit.cover,
                         ),
-                        gradient: LinearGradient(
-                          colors: [Color(0xFFF266C26), Color(0xffF6981E)],
-                          stops: [0.0, 5.8],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
                       ),
                       child: Stack(
                         fit: StackFit.expand,
@@ -289,7 +283,7 @@ class _AssetdetailsState extends ConsumerState<Assetdetails> {
                                         text: TextSpan(
                                           children: [
                                             TextSpan(
-                                              text: "${currency ?? '0'}$wholeNumber"
+                                              text: "$currency$wholeNumber"
                                                   .replaceAllMapped(
                                                     RegExp(
                                                       r'(\d{1,3})(?=(\d{3})+(?!\d))',

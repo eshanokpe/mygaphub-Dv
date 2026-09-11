@@ -374,45 +374,6 @@ class _AddHomeEquityState extends ConsumerState<AddHomeEquity> {
     }
   }
 
-  Future<({String townCity, String postcode})> _fetchFromGeocoding(
-    String placeId,
-  ) async {
-    try {
-      final uri = Uri.https('maps.googleapis.com', '/maps/api/geocode/json', {
-        'place_id': placeId,
-        'key': googlePlacesApiKey,
-      });
-      final response = await http.get(uri);
-
-      debugPrint('Geocoding fallback status: ${response.statusCode}');
-      debugPrint('Geocoding fallback body: ${response.body}');
-
-      if (response.statusCode != 200) return (townCity: '', postcode: '');
-
-      final decoded = jsonDecode(response.body) as Map;
-
-      debugPrint('Geocoding fallback "status" field: ${decoded['status']}');
-      if (decoded['status'] != 'OK') {
-        if (decoded['error_message'] != null) {
-          debugPrint(
-            'Geocoding fallback error_message: ${decoded['error_message']}',
-          );
-        }
-        return (townCity: '', postcode: '');
-      }
-
-      // Geocode results is a *list* of results (route + broader areas etc.)
-      // — take the first, which is the most specific match for the place_id.
-      final results = (decoded['results'] as List?) ?? [];
-      if (results.isEmpty) return (townCity: '', postcode: '');
-
-      final components = (results.first['address_components'] as List?) ?? [];
-      return _parseAddressComponents(components);
-    } catch (e) {
-      debugPrint('Geocoding fallback fetch error: $e');
-      return (townCity: '', postcode: '');
-    }
-  }
 
   Future<void> _openAddressSearch(
     HomeEquityFormNotifier notifier,

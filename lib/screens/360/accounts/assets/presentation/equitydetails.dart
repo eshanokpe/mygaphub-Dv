@@ -116,12 +116,6 @@ class _EquitydetailsState extends ConsumerState<Equitydetails> {
                           ),
                           fit: BoxFit.cover,
                         ),
-                        gradient: LinearGradient(
-                          colors: [Color(0xfff266c26), Color(0xffF6981E)],
-                          stops: [0.0, 5.8],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
                       ),
                       child: Stack(
                         fit: StackFit.expand,

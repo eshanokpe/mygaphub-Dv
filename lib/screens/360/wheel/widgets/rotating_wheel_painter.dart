@@ -11,6 +11,7 @@ class RotatingWheelPainter extends CustomPainter {
   final int selectedIndex;
   final List<ui.Image> centerIcons;
   final List<List<Color>> gradientColors;
+  final List<List<double?>> childWheelRotations;
 
   RotatingWheelPainter(
     this.items,
@@ -18,6 +19,7 @@ class RotatingWheelPainter extends CustomPainter {
     this.selectedIndex,
     this.centerIcons,
     this.gradientColors,
+    this.childWheelRotations,
   );
 
   @override
@@ -110,22 +112,13 @@ class RotatingWheelPainter extends CustomPainter {
       canvas.translate(iconX, iconY);
 
       // ── Dynamic rotation ─────────────────────────────────────────────────
-      // Counter-rotate by the wheel's current rotation so icons stay upright.
-      // Then apply each item's own static tilt on top.
-      // For the active item, we skip the static tilt (already upright).
+      canvas.rotate(items[i].centerIconRotation);
       final bool isActive = i == selectedIndex;
+      final childRotation = childWheelRotations[selectedIndex][i];
       final double tilt = isActive
           ? items[i].iconRotation
-          : items[i].childIconRotation;
+          : (childRotation ?? items[i].childIconRotation);
       canvas.rotate(-rotation + tilt);
-      if (isActive) {
-        // Counter-rotate only — icon faces straight up
-        canvas.rotate(-rotation);
-      } else {
-        // Counter-rotate + item's individual tilt
-        canvas.rotate(-rotation + items[i].iconRotation);
-      }
-      // ─────────────────────────────────────────────────────────────────────
 
       canvas.drawImageRect(
         icon,
@@ -164,6 +157,7 @@ class RotatingWheelPainter extends CustomPainter {
         oldDelegate.rotation != rotation ||
         oldDelegate.selectedIndex != selectedIndex ||
         oldDelegate.centerIcons != centerIcons ||
-        oldDelegate.gradientColors != gradientColors;
+        oldDelegate.gradientColors != gradientColors ||
+        oldDelegate.childWheelRotations != childWheelRotations;
   }
 }

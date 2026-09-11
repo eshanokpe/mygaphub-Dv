@@ -235,22 +235,6 @@ class _ProtectiondetailsState extends ConsumerState<Protectiondetails> {
                           ),
                           fit: BoxFit.cover,
                         ),
-                        gradient: LinearGradient(
-                          colors: const [
-                            // Color(0xFFF06708),  // #F06708 - Orange
-                            // Color(0xFFC61A24),  // #C61A24 - Red
-                            Color(0xFFF06708), // Orange overlay
-                            // Colors.transparent, // Transparent at bottom
-                            Colors.white,
-                          ],
-                          stops: [
-                            0.0, // 0%
-                            0.8, // 80%
-                            // 1.0,    // 100%
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
                       ),
                       child: Stack(
                         fit: StackFit.expand,
