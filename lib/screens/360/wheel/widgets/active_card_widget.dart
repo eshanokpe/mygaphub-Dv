@@ -28,8 +28,8 @@ class ActiveCardWidget extends ConsumerWidget {
           alignment: Alignment.center,
           maxWidth: double.infinity,
           child: SizedBox(
-            width: 210.w,
-            height: 254.h,
+            width: 200.w,
+            height: 340.h,
             child: Container(
               clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(

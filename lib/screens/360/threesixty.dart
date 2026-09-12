@@ -17,7 +17,7 @@ class Threesixty extends StatefulWidget {
     this.unallocated = false,
     this.balance = 0,
     this.data = const [],
-  }); 
+  });
   @override
   // ignore: library_private_types_in_public_api
   _ThreesixtyState createState() => _ThreesixtyState();
@@ -89,7 +89,7 @@ class _ThreesixtyState extends State<Threesixty> with TickerProviderStateMixin {
         children: [
           /// ================= HEADER =================
           Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 8.h),
+            padding: EdgeInsets.fromLTRB(20.w, 0.h, 20.w, 8.h),
             child: Column(
               children: [
                 Text(

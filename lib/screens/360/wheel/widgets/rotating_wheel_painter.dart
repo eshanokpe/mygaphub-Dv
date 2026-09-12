@@ -25,7 +25,6 @@ class RotatingWheelPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (items.isEmpty) return;
-    canvas.drawColor(Colors.white, BlendMode.srcOver);
 
     final radius = size.width / 2.0;
     final center = Offset(radius, radius);

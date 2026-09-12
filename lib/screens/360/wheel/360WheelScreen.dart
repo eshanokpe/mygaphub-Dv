@@ -15,7 +15,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart' as legacy_provider;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// import '../controllers/wheel_controller.dart';
 import '../iLAB/I360LabScreen.dart';
 import 'controllers/wheel_controller.dart';
 import 'providers/carousel_provider.dart';
@@ -36,34 +35,26 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
     with TickerProviderStateMixin {
   late WheelController _controller;
 
-  // ── UI-only state (stays local — not needed by other widgets) ────────────
   bool _isDragging = false;
   bool _showArrows = true;
   Timer? _blinkTimer;
 
-  // Arrow animation controllers
   late AnimationController _leftArrowController;
   late AnimationController _rightArrowController;
 
-  // Idle carousel arrow pulse
   late AnimationController _idleCarouselArrowController;
   late Animation<double> _idleCarouselArrowAnimation;
 
-  // iLab button tap feedback
   late AnimationController _ilabTapController;
   late Animation<double> _ilabScaleAnimation;
   late Animation<double> _ilabFadeAnimation;
 
-  // Wheel animation on index change
   late AnimationController _wheelAnimationController;
   Animation<double> _wheelRotationAnimation =
       const AlwaysStoppedAnimation<double>(0.0);
   double _displayedWheelRotation = 0.0;
 
-  // Center icon images for the CustomPainter
   List<ui.Image> _centerIcons = [];
-
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   @override
   void initState() {
@@ -146,8 +137,8 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
 
     _startBlinking();
     _loadCenterIcons();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Set initial category if provided via navigation argument.
       if (widget.initialCategory != null) {
         final items = ref.read(carouselProvider).wheelItems;
         final idx = items.indexWhere(
@@ -174,8 +165,6 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
     super.reassemble();
     ref.invalidate(carouselProvider);
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   void _startBlinking() {
     _blinkTimer = Timer.periodic(const Duration(seconds: 20), (_) {
@@ -234,8 +223,6 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
         return 'An unexpected error occurred. Please try again.';
     }
   }
-
-  // ── iLab tap handler ──────────────────────────────────────────────────────
 
   Future<void> _onIlabTap() async {
     await _ilabTapController.reverse();
@@ -308,214 +295,206 @@ class _ThreesSixtyWheelScreenState extends ConsumerState<ThreesSixtyWheelScreen>
     }
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    // Narrow watch — only rebuilds this widget when index changes.
     final selectedIndex = ref.watch(selectedIndexProvider);
     final carouselState = ref.watch(carouselProvider);
 
     return Container(
       color: Colors.white,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            children: [
-              // ── "Scroll across" hint ──────────────────────────────────
-              AnimatedOpacity(
-                opacity: _showArrows ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(8.w),
-                    child: Text(
-                      'Scroll across to view more',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: const Color(0xff393737),
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+      // ── Root column — same structure as the original ──────────────────────
+      child: Column(
+        children: [
+          // ── 1. "Scroll across" hint ─────────────────────────────────────
+          AnimatedOpacity(
+            opacity: _showArrows ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(8.w),
+                child: Text(
+                  'Scroll across to view more',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: const Color(0xff393737),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
+            ),
+          ),
 
-              // ── Carousel navigation arrows ────────────────────────────
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildCarouselArrow(isLeft: true),
-                    _buildCarouselArrow(isLeft: false),
-                  ],
-                ),
-              ),
-              // ── Carousel slider ───────────────────────────────────────
-              Expanded(
-                flex: 40,
-                child: Transform.translate(
-                  offset: Offset(0, -30.h),
-                  // No props needed — reads from Riverpod internally.
-                  child: CarouselSliderWidget(controller: _controller),
-                ),
-              ),
+          // ── 2. Carousel navigation arrows ──────────────────────────────
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildCarouselArrow(isLeft: true),
+                _buildCarouselArrow(isLeft: false),
+              ],
+            ),
+          ),
 
-              // ── Wheel ─────────────────────────────────────────────────
-              Expanded(
-                flex: 42,
-                child: Container(
-                  color: Colors.white,
-                  child: ClipRect(
-                    child: Stack(
-                      children: [
-                        // Positioned.fill(child: Container(color: Colors.red)),
+          // ── 3. Carousel slider ──────────────────────────────────────────
+          Expanded(
+            flex: 40,
+            child: Transform.translate(
+              offset: Offset(0, -30.h),
+              child: CarouselSliderWidget(controller: _controller),
+            ),
+          ),
 
-                        // Draggable wheel
-                        Center(
-                          child: OverflowBox(
-                            maxWidth: double.infinity,
-                            alignment: Alignment.topCenter,
-                            child: GestureDetector(
-                              onPanStart: (_) =>
-                                  setState(() => _isDragging = true),
-                              onPanUpdate: (details) {
-                                // Delegate to Riverpod — no setState for state.
-                                ref
-                                    .read(carouselProvider.notifier)
-                                    .updateRotation(details.delta.dx * 0.01);
-                              },
-                              onPanEnd: (_) {
-                                setState(() => _isDragging = false);
-                                ref
-                                    .read(carouselProvider.notifier)
-                                    .snapToNearest();
-                              },
-                              child: SizedBox(
-                                height: 370.h,
-                                width: 465.w,
-                                child: LayoutBuilder(
-                                  builder: (context, c) {
-                                    final size = min(c.maxWidth, 800.w);
-                                    return AnimatedBuilder(
-                                      animation: _wheelAnimationController,
-                                      builder: (context, child) {
-                                        return CustomPaint(
-                                          size: Size(size, size),
-                                          painter: RotatingWheelPainter(
-                                            carouselState.wheelItems,
-                                            _wheelRotationAnimation.value,
-                                            selectedIndex,
-                                            _centerIcons,
-                                            carouselState.wheelItems
-                                                .map((i) => i.gradienColor)
-                                                .toList(),
-                                            CarouselNotifier
-                                                .childWheelRotations,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // iLab button
-                        Positioned(
-                          bottom: -30.h,
-                          left: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTapDown: (_) => _ilabTapController.forward(),
-                            onTapUp: (_) => _onIlabTap(),
-                            onTapCancel: () => _ilabTapController.reverse(),
-                            child: AnimatedBuilder(
-                              animation: _ilabTapController,
-                              builder: (_, child) => Transform.scale(
-                                scale: _ilabScaleAnimation.value,
-                                child: Opacity(
-                                  opacity: _ilabFadeAnimation.value,
-                                  child: child,
-                                ),
-                              ),
-                              child: Center(
-                                child: Image.asset(
-                                  'assets/images/ILAB.png',
-                                  width: 180.w,
-                                  height: 160.h,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Pointer indicator
-                        Positioned(
-                          top: -5.h,
-                          left: 0,
-                          right: 0,
-                          child: Stack(
-                            children: [
-                              Align(
-                                alignment: Alignment.topCenter,
-                                child: Image.asset(
-                                  'assets/images/pointer.png',
-                                  width: 50.w,
-                                  height: 50.h,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(top: 12.h),
-                                child: Align(
-                                  alignment: Alignment.topCenter,
-                                  child: SizedBox(
-                                    width: 8.w,
-                                    height: 8.h,
-                                    child: Image.asset(
-                                      'assets/images/pointer_inside.png',
-                                      fit: BoxFit.contain,
+          // ── 4. Wheel section ────────────────────────────────────────────
+          Expanded(
+            flex: 42,
+            child: Container(
+              color: Colors.white,
+              // ❌ REMOVED: ClipRect — was cutting the pointer at top: -10
+              child: Stack(
+                clipBehavior: Clip.none, // ✅ allows pointer to overflow upward
+                children: [
+                  // ── Draggable wheel ───────────────────────────────────
+                  Center(
+                    child: OverflowBox(
+                      maxWidth: double.infinity,
+                      alignment: Alignment.topCenter,
+                      child: GestureDetector(
+                        onPanStart: (_) => setState(() => _isDragging = true),
+                        onPanUpdate: (details) {
+                          ref
+                              .read(carouselProvider.notifier)
+                              .updateRotation(details.delta.dx * 0.01);
+                        },
+                        onPanEnd: (_) {
+                          setState(() => _isDragging = false);
+                          ref.read(carouselProvider.notifier).snapToNearest();
+                        },
+                        child: SizedBox(
+                          height: 370.h,
+                          width: 465.w,
+                          child: LayoutBuilder(
+                            builder: (context, c) {
+                              final size = min(c.maxWidth, 800.w);
+                              return AnimatedBuilder(
+                                animation: _wheelAnimationController,
+                                builder: (context, child) {
+                                  return CustomPaint(
+                                    size: Size(size, size),
+                                    painter: RotatingWheelPainter(
+                                      carouselState.wheelItems,
+                                      _wheelRotationAnimation.value,
+                                      selectedIndex,
+                                      _centerIcons,
+                                      carouselState.wheelItems
+                                          .map((i) => i.gradienColor)
+                                          .toList(),
+                                      CarouselNotifier.childWheelRotations,
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                                  );
+                                },
+                              );
+                            },
                           ),
                         ),
+                      ),
+                    ),
+                  ),
 
-                        // Wheel-level left/right arrows
-                        Positioned(
-                          top: 40.h,
-                          left: 0,
-                          right: 0,
-                          height: 30.h,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20.w),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildWheelArrow(isLeft: true),
-                                _buildWheelArrow(isLeft: false),
-                              ],
+                  // ── iLab button ───────────────────────────────────────
+                  Positioned(
+                    bottom: -20,
+                    left: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTapDown: (_) => _ilabTapController.forward(),
+                      onTapUp: (_) => _onIlabTap(),
+                      onTapCancel: () => _ilabTapController.reverse(),
+                      child: AnimatedBuilder(
+                        animation: _ilabTapController,
+                        builder: (_, child) => Transform.scale(
+                          scale: _ilabScaleAnimation.value,
+                          child: Opacity(
+                            opacity: _ilabFadeAnimation.value,
+                            child: child,
+                          ),
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            'assets/images/ILAB.png',
+                            width: 180.w,
+                            height: 160.h,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ── Pointer indicator ─────────────────────────────────
+                  // Clip.none on parent Stack lets this overflow upward freely
+                  Positioned(
+                    top: -18,
+                    left: 0,
+                    right: 0,
+                    child: Stack(
+                      clipBehavior:
+                          Clip.none, // safety — inner stack also won't clip
+                      children: [
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Image.asset(
+                            'assets/images/pointer.png',
+                            width: 50.w,
+                            height: 50.h,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 12.h),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: SizedBox(
+                              width: 8.w,
+                              height: 8.h,
+                              child: Image.asset(
+                                'assets/images/pointer_inside.png',
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+
+                  // ── Wheel-level left/right arrows ─────────────────────
+                  Positioned(
+                    top: 20.h,
+                    left: 0,
+                    right: 0,
+                    height: 30.h,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildWheelArrow(isLeft: true),
+                          _buildWheelArrow(isLeft: false),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // ── Arrow helpers (extracted to keep build() readable) ────────────────────
+  // ── Arrow helpers ──────────────────────────────────────────────────────────
 
   Widget _buildCarouselArrow({required bool isLeft}) {
     return AnimatedOpacity(
